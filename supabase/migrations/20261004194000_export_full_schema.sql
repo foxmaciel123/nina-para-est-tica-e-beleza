@@ -2,7 +2,6 @@
 -- PostgreSQL database dump
 --
 
-\restrict K2P6hV3Z1K8qew4A7LPoRAhBIUEKg151cuOokloozKca5aegsekPHolabtstX5a
 
 
 SET statement_timeout = 0;
@@ -3368,5 +3367,4 @@ ALTER DEFAULT PRIVILEGES FOR ROLE supabase_admin IN SCHEMA public GRANT ALL ON T
 -- PostgreSQL database dump complete
 --
 
-\unrestrict K2P6hV3Z1K8qew4A7LPoRAhBIUEKg151cuOokloozKca5aegsekPHolabtstX5a
 
