@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { isOrgActive } from "../_shared/tenant.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -97,6 +98,15 @@ serve(async (req) => {
           }
 
           const orgId = conversation.organization_id;
+
+          if (!(await isOrgActive(supabase, orgId))) {
+            console.log(`[Sender] Clínica suspensa, mensagem ${item.id} não enviada`);
+            await supabase
+              .from('send_queue')
+              .update({ status: 'failed', error_message: 'Clínica suspensa' })
+              .eq('id', item.id);
+            continue;
+          }
 
           const cacheKey = orgId;
           let settings = settingsCache[cacheKey];

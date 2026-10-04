@@ -13,6 +13,17 @@ export async function getUserOrgId(supabase: any, userId: string | null | undefi
   return data?.organization_id ?? null;
 }
 
+// Clínica suspensa pelo dono: Nina não responde nem envia mensagens
+export async function isOrgActive(supabase: any, orgId: string | null): Promise<boolean> {
+  if (!orgId) return false;
+  const { data } = await supabase
+    .from('organizations')
+    .select('status')
+    .eq('id', orgId)
+    .maybeSingle();
+  return data?.status === 'active';
+}
+
 export async function getOrgSettings(supabase: any, orgId: string | null, columns = '*'): Promise<any | null> {
   if (!orgId) return null;
   const { data } = await supabase

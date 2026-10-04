@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { AI_CHAT_URL, getAiApiKey, resolveModel } from "../_shared/ai.ts";
 import { DEFAULT_NINA_PROMPT } from "../_shared/default-nina-prompt.ts";
+import { isOrgActive } from "../_shared/tenant.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -170,6 +171,19 @@ serve(async (req) => {
               status: 'failed', 
               processed_at: new Date().toISOString(),
               error_message: 'Conversation not found'
+            })
+            .eq('id', item.id);
+          continue;
+        }
+
+        if (!(await isOrgActive(supabase, conversation.organization_id))) {
+          console.log('[Nina] Clínica suspensa, não responde:', conversation.organization_id);
+          await supabase
+            .from('nina_processing_queue')
+            .update({
+              status: 'completed',
+              processed_at: new Date().toISOString(),
+              error_message: 'Clínica suspensa'
             })
             .eq('id', item.id);
           continue;

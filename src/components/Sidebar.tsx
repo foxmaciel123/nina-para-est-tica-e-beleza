@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, MessageSquare, Settings as SettingsIcon, LogOut, ShieldCheck, Calendar, Kanban, Sparkles } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, Settings as SettingsIcon, LogOut, ShieldCheck, Calendar, Kanban, Sparkles, Crown } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useCompanySettings } from '@/hooks/useCompanySettings';
 import { useAuth } from '@/hooks/useAuth';
+import { useOrganization } from '@/hooks/useOrganization';
 import { Sidebar, SidebarBody, SidebarLink, useSidebar } from '@/components/ui/sidebar';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -59,6 +60,7 @@ const LogoIcon = () => {
 const SidebarContent = () => {
   const { companyName } = useCompanySettings();
   const { user, signOut } = useAuth();
+  const { isPlatformOwner } = useOrganization();
   const location = useLocation();
   const navigate = useNavigate();
   const currentPath = location.pathname.substring(1) || 'dashboard';
@@ -109,6 +111,18 @@ const SidebarContent = () => {
             />
           ))}
         </nav>
+
+        {isPlatformOwner && (
+          <nav className="mt-6 flex flex-col gap-1.5 border-t border-border/50 pt-4" data-testid="owner-nav">
+            {open && (
+              <span className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">Plataforma</span>
+            )}
+            <SidebarLink
+              link={{ label: 'Painel do Dono', href: '/dono', icon: <Crown className="h-5 w-5" /> }}
+              isActive={currentPath.startsWith('dono')}
+            />
+          </nav>
+        )}
       </div>
 
       {open && (

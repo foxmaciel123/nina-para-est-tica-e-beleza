@@ -10,9 +10,13 @@ import Scheduling from './components/Scheduling';
 import Kanban from './components/Kanban';
 import Auth from './pages/Auth';
 import ProtectedRoute from './components/ProtectedRoute';
+import { RequireClinic, RequireOwner } from './components/AccessGates';
+import OwnerDashboard from './components/owner/OwnerDashboard';
+import OwnerClinicDetail from './components/owner/OwnerClinicDetail';
 
 import { CompanySettingsProvider } from './hooks/useCompanySettings';
 import { AuthProvider } from './hooks/useAuth';
+import { OrganizationProvider } from './hooks/useOrganization';
 import { ThemeProvider, useTheme } from './hooks/useTheme';
 import { Toaster } from 'sonner';
 import { OnboardingWizard } from './components/OnboardingWizard';
@@ -64,6 +68,7 @@ const App: React.FC = () => {
   return (
     <ThemeProvider>
       <AuthProvider>
+        <OrganizationProvider>
         <CompanySettingsProvider>
           <BrowserRouter>
             <Routes>
@@ -76,14 +81,22 @@ const App: React.FC = () => {
                   <AppLayout />
                 </ProtectedRoute>
               }>
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/pipeline" element={<Kanban />} />
-                <Route path="/chat" element={<ChatInterface />} />
-                <Route path="/contacts" element={<Contacts />} />
-                <Route path="/scheduling" element={<Scheduling />} />
-                <Route path="/team" element={<Team />} />
-                <Route path="/settings" element={<Settings />} />
+                <Route element={<RequireClinic />}>
+                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/pipeline" element={<Kanban />} />
+                  <Route path="/chat" element={<ChatInterface />} />
+                  <Route path="/contacts" element={<Contacts />} />
+                  <Route path="/scheduling" element={<Scheduling />} />
+                  <Route path="/team" element={<Team />} />
+                  <Route path="/settings" element={<Settings />} />
+                </Route>
+
+                {/* Painel do Dono */}
+                <Route element={<RequireOwner />}>
+                  <Route path="/dono" element={<OwnerDashboard />} />
+                  <Route path="/dono/clinicas/:id" element={<OwnerClinicDetail />} />
+                </Route>
               </Route>
 
               {/* Catch all - redirect to dashboard */}
@@ -92,6 +105,7 @@ const App: React.FC = () => {
           </BrowserRouter>
           <ThemedToaster />
         </CompanySettingsProvider>
+        </OrganizationProvider>
       </AuthProvider>
     </ThemeProvider>
   );

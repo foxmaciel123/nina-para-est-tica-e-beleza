@@ -1506,6 +1506,33 @@ export type Database = {
       }
     }
     Functions: {
+      is_platform_owner: { Args: never; Returns: boolean }
+      my_organization: {
+        Args: never
+        Returns: { id: string; name: string; status: string; role: string }[]
+      }
+      owner_organizations_overview: {
+        Args: never
+        Returns: {
+          id: string
+          name: string
+          status: string
+          created_at: string
+          admin_email: string | null
+          members: number
+          contacts: number
+          conversations_30d: number
+          ai_messages_30d: number
+          appointments_30d: number
+          whatsapp_connected: boolean
+          last_activity_at: string | null
+        }[]
+      }
+      owner_organization_detail: { Args: { p_org: string }; Returns: Json }
+      owner_set_organization_status: {
+        Args: { p_org: string; p_status: string }
+        Returns: undefined
+      }
       app_config_get: { Args: { p_key: string }; Returns: string }
       claim_message_processing_batch: {
         Args: { p_limit?: number }
