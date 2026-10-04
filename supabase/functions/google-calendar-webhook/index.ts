@@ -177,10 +177,11 @@ async function reconcileEvent(supabase: any, creds: any, gEvent: any): Promise<v
   // Eventos cancelados no Google têm status='cancelled' (sem start/end)
   const isCancelled = gEvent.status === 'cancelled';
 
-  // Busca appointment local pelo google_event_id
+  // Busca appointment local pelo google_event_id (só na clínica dessa credencial)
   const { data: existing } = await supabase
     .from('appointments')
     .select('*')
+    .eq('organization_id', creds.organization_id)
     .eq('google_event_id', gEvent.id)
     .maybeSingle();
 

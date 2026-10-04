@@ -155,10 +155,10 @@ serve(async (req) => {
 
     for (const item of queueItems) {
       try {
-        // Get user_id from conversation to fetch correct settings
+        // Clínica dona da conversa → configurações dessa clínica
         const { data: conversation } = await supabase
           .from('conversations')
-          .select('user_id')
+          .select('user_id, organization_id')
           .eq('id', item.conversation_id)
           .single();
 
@@ -175,49 +175,11 @@ serve(async (req) => {
           continue;
         }
 
-        // Buscar settings com fallback triplo (user_id → global → any)
-        let settings = null;
-        
-        // 1. Tentar buscar por user_id da conversa
-        if (conversation.user_id) {
-          const { data: userSettings } = await supabase
-            .from('nina_settings')
-            .select('*')
-            .eq('user_id', conversation.user_id)
-            .maybeSingle();
-          settings = userSettings;
-          if (settings) {
-            console.log('[Nina] Found settings for user:', conversation.user_id);
-          }
-        }
-        
-        // 2. Se não encontrou, tentar buscar global (user_id is null)
-        if (!settings) {
-          console.log('[Nina] No user-specific settings, trying global...');
-          const { data: globalSettings } = await supabase
-            .from('nina_settings')
-            .select('*')
-            .is('user_id', null)
-            .maybeSingle();
-          settings = globalSettings;
-          if (settings) {
-            console.log('[Nina] Found global settings (user_id is null)');
-          }
-        }
-        
-        // 3. Último fallback: buscar qualquer settings existente
-        if (!settings) {
-          console.log('[Nina] No global settings, fetching any available...');
-          const { data: anySettings } = await supabase
-            .from('nina_settings')
-            .select('*')
-            .limit(1)
-            .maybeSingle();
-          settings = anySettings;
-          if (settings) {
-            console.log('[Nina] Using fallback settings from:', settings.id);
-          }
-        }
+        const { data: settings } = await supabase
+          .from('nina_settings')
+          .select('*')
+          .eq('organization_id', conversation.organization_id)
+          .maybeSingle();
 
         // Use default settings if nothing found
         const effectiveSettings = settings || {
@@ -231,7 +193,8 @@ serve(async (req) => {
           audio_response_enabled: false,
           elevenlabs_api_key: null,
           ai_scheduling_enabled: true,
-          user_id: conversation.user_id
+          user_id: conversation.user_id,
+          organization_id: conversation.organization_id
         };
         
         if (!settings) {
@@ -404,7 +367,7 @@ async function createAppointmentFromAI(
   supabase: any,
   contactId: string,
   conversationId: string,
-  userId: string | null,
+  orgId: string | null,
   args: {
     title: string;
     date: string;
@@ -414,7 +377,7 @@ async function createAppointmentFromAI(
     description?: string;
   }
 ): Promise<any> {
-  console.log('[Nina] Creating appointment from AI:', args, 'for user:', userId);
+  console.log('[Nina] Creating appointment from AI:', args, 'for user:', orgId);
   
   // Validate date is not in the past
   const appointmentDate = new Date(`${args.date}T${args.time}:00`);
@@ -432,8 +395,8 @@ async function createAppointmentFromAI(
     .eq('date', args.date)
     .eq('status', 'scheduled');
   
-  if (userId) {
-    query.eq('user_id', userId);
+  if (orgId) {
+    query.eq('organization_id', orgId);
   }
   
   const { data: existingAppointments } = await query;
@@ -473,9 +436,9 @@ async function createAppointmentFromAI(
     }
   };
   
-  // Add user_id if available (for RLS compliance)
-  if (userId) {
-    insertData.user_id = userId;
+  // Clínica dona do agendamento
+  if (orgId) {
+    insertData.organization_id = orgId;
   }
   
   const { data, error } = await supabase
@@ -492,12 +455,12 @@ async function createAppointmentFromAI(
   console.log('[Nina] Appointment created successfully:', data.id);
 
   // F3.2 — Sync com Google Calendar (best-effort, não bloqueia)
-  syncAppointmentToGoogleCalendar(supabase, data, userId).catch(err =>
+  syncAppointmentToGoogleCalendar(supabase, data, orgId).catch(err =>
     console.warn('[Nina] Google Calendar sync skipped/failed:', err?.message || err)
   );
 
   // F3.3 — Agenda lembretes pré/pós procedimento (best-effort, não bloqueia)
-  scheduleAppointmentReminders(supabase, data, userId).catch(err =>
+  scheduleAppointmentReminders(supabase, data, orgId).catch(err =>
     console.warn('[Nina] Reminders scheduling failed:', err?.message || err)
   );
 
@@ -507,7 +470,7 @@ async function createAppointmentFromAI(
 // F3.1 — Query do catálogo de procedimentos da clínica
 async function queryProcedures(
   supabase: any,
-  userId: string | null,
+  orgId: string | null,
   args: { category?: string; name_query?: string }
 ): Promise<any[]> {
   let query = supabase
@@ -524,8 +487,8 @@ async function queryProcedures(
     query = query.ilike('name', `%${args.name_query}%`);
   }
 
-  if (userId) {
-    query = query.or(`user_id.eq.${userId},user_id.is.null`);
+  if (orgId) {
+    query = query.eq('organization_id', orgId);
   }
 
   const { data, error } = await query;
@@ -557,9 +520,9 @@ async function queryProcedures(
 async function syncAppointmentToGoogleCalendar(
   supabase: any,
   appointment: any,
-  userId: string | null
+  orgId: string | null
 ): Promise<void> {
-  if (!userId) return;
+  if (!orgId) return;
 
   // Loop guard: se essa mudança veio do Google via webhook, NÃO devolve pro Google
   if (appointment.last_sync_source === 'google') {
@@ -570,7 +533,7 @@ async function syncAppointmentToGoogleCalendar(
   const { data: creds } = await supabase
     .from('google_calendar_credentials')
     .select('*')
-    .eq('user_id', userId)
+    .eq('organization_id', orgId)
     .eq('is_active', true)
     .limit(1)
     .maybeSingle();
@@ -635,7 +598,7 @@ async function syncAppointmentToGoogleCalendar(
     .eq('id', creds.id);
 
   await logSync(supabase, {
-    user_id: userId,
+    user_id: creds.user_id,
     credential_id: creds.id,
     appointment_id: appointment.id,
     direction: 'outbound_create',
@@ -650,22 +613,22 @@ async function syncAppointmentToGoogleCalendar(
 async function syncRescheduleToGoogleCalendar(
   supabase: any,
   appointment: any,
-  userId: string | null
+  orgId: string | null
 ): Promise<void> {
-  if (!userId) return;
+  if (!orgId) return;
   if (appointment.last_sync_source === 'google') {
     console.log('[Nina] Skipping reschedule sync: originated from Google');
     return;
   }
   if (!appointment.google_event_id) {
     // Sem event_id, faz CREATE em vez de UPDATE (cenário: Google ficou indisponível na criação)
-    return syncAppointmentToGoogleCalendar(supabase, appointment, userId);
+    return syncAppointmentToGoogleCalendar(supabase, appointment, orgId);
   }
 
   const { data: creds } = await supabase
     .from('google_calendar_credentials')
     .select('*')
-    .eq('user_id', userId)
+    .eq('organization_id', orgId)
     .eq('is_active', true)
     .limit(1)
     .maybeSingle();
@@ -700,7 +663,7 @@ async function syncRescheduleToGoogleCalendar(
     const errText = await resp.text();
     console.warn('[Nina] Google Calendar PATCH failed:', resp.status, errText);
     await logSync(supabase, {
-      user_id: userId,
+      user_id: creds.user_id,
       credential_id: creds.id,
       appointment_id: appointment.id,
       direction: 'outbound_update',
@@ -717,7 +680,7 @@ async function syncRescheduleToGoogleCalendar(
     .eq('id', appointment.id);
 
   await logSync(supabase, {
-    user_id: userId,
+    user_id: creds.user_id,
     credential_id: creds.id,
     appointment_id: appointment.id,
     direction: 'outbound_update',
@@ -732,9 +695,9 @@ async function syncRescheduleToGoogleCalendar(
 async function syncCancelToGoogleCalendar(
   supabase: any,
   appointment: any,
-  userId: string | null
+  orgId: string | null
 ): Promise<void> {
-  if (!userId) return;
+  if (!orgId) return;
   if (appointment.last_sync_source === 'google') {
     console.log('[Nina] Skipping cancel sync: originated from Google');
     return;
@@ -747,7 +710,7 @@ async function syncCancelToGoogleCalendar(
   const { data: creds } = await supabase
     .from('google_calendar_credentials')
     .select('*')
-    .eq('user_id', userId)
+    .eq('organization_id', orgId)
     .eq('is_active', true)
     .limit(1)
     .maybeSingle();
@@ -772,7 +735,7 @@ async function syncCancelToGoogleCalendar(
     const errText = await resp.text();
     console.warn('[Nina] Google Calendar DELETE failed:', resp.status, errText);
     await logSync(supabase, {
-      user_id: userId,
+      user_id: creds.user_id,
       credential_id: creds.id,
       appointment_id: appointment.id,
       direction: 'outbound_delete',
@@ -789,7 +752,7 @@ async function syncCancelToGoogleCalendar(
     .eq('id', appointment.id);
 
   await logSync(supabase, {
-    user_id: userId,
+    user_id: creds.user_id,
     credential_id: creds.id,
     appointment_id: appointment.id,
     direction: 'outbound_delete',
@@ -865,7 +828,7 @@ async function refreshGoogleAccessTokenIfNeeded(supabase: any, creds: any): Prom
 async function scheduleAppointmentReminders(
   supabase: any,
   appointment: any,
-  userId: string | null
+  orgId: string | null
 ): Promise<void> {
   const apptDate = new Date(`${appointment.date}T${appointment.time}:00-03:00`);
   const now = new Date();
@@ -893,6 +856,7 @@ async function scheduleAppointmentReminders(
     const { data: tmpl } = await supabase
       .from('reminder_templates')
       .select('template_body')
+      .eq('organization_id', orgId)
       .eq('reminder_type', r.type)
       .or(`procedure_category.eq.${category},procedure_category.is.null`)
       .eq('is_active', true)
@@ -903,7 +867,7 @@ async function scheduleAppointmentReminders(
     if (!tmpl) continue;
 
     await supabase.from('appointment_reminders').insert({
-      user_id: userId,
+      user_id: appointment.user_id ?? null,
       appointment_id: appointment.id,
       contact_id: appointment.contact_id,
       reminder_type: r.type,
@@ -920,14 +884,14 @@ async function scheduleAppointmentReminders(
 async function rescheduleAppointmentFromAI(
   supabase: any,
   contactId: string,
-  userId: string | null,
+  orgId: string | null,
   args: {
     new_date: string;
     new_time: string;
     reason?: string;
   }
 ): Promise<any> {
-  console.log('[Nina] Rescheduling appointment for contact:', contactId, 'user:', userId, args);
+  console.log('[Nina] Rescheduling appointment for contact:', contactId, 'user:', orgId, args);
   
   // Find the most recent scheduled appointment for this contact
   const query = supabase
@@ -939,8 +903,8 @@ async function rescheduleAppointmentFromAI(
     .order('time', { ascending: true })
     .limit(1);
   
-  if (userId) {
-    query.eq('user_id', userId);
+  if (orgId) {
+    query.eq('organization_id', orgId);
   }
   
   const { data: existingAppointments } = await query;
@@ -969,8 +933,8 @@ async function rescheduleAppointmentFromAI(
     .eq('status', 'scheduled')
     .neq('id', appointment.id);
   
-  if (userId) {
-    conflictQuery.eq('user_id', userId);
+  if (orgId) {
+    conflictQuery.eq('organization_id', orgId);
   }
   
   const { data: conflictingAppointments } = await conflictQuery;
@@ -1018,7 +982,7 @@ async function rescheduleAppointmentFromAI(
   console.log('[Nina] Appointment rescheduled successfully:', data.id);
 
   // F3.2 two-way — Propaga reschedule pro Google (best-effort, não bloqueia)
-  syncRescheduleToGoogleCalendar(supabase, data, userId).catch(err =>
+  syncRescheduleToGoogleCalendar(supabase, data, orgId).catch(err =>
     console.warn('[Nina] Google Calendar reschedule sync failed:', err?.message || err)
   );
 
@@ -1029,12 +993,12 @@ async function rescheduleAppointmentFromAI(
 async function cancelAppointmentFromAI(
   supabase: any,
   contactId: string,
-  userId: string | null,
+  orgId: string | null,
   args: {
     reason?: string;
   }
 ): Promise<any> {
-  console.log('[Nina] Canceling appointment for contact:', contactId, 'user:', userId);
+  console.log('[Nina] Canceling appointment for contact:', contactId, 'user:', orgId);
   
   // Find the most recent scheduled appointment for this contact
   const query = supabase
@@ -1046,8 +1010,8 @@ async function cancelAppointmentFromAI(
     .order('time', { ascending: true })
     .limit(1);
   
-  if (userId) {
-    query.eq('user_id', userId);
+  if (orgId) {
+    query.eq('organization_id', orgId);
   }
   
   const { data: existingAppointments } = await query;
@@ -1083,7 +1047,7 @@ async function cancelAppointmentFromAI(
   console.log('[Nina] Appointment cancelled successfully:', data.id);
 
   // F3.2 two-way — Propaga cancelamento pro Google (best-effort, não bloqueia)
-  syncCancelToGoogleCalendar(supabase, data, userId).catch(err =>
+  syncCancelToGoogleCalendar(supabase, data, orgId).catch(err =>
     console.warn('[Nina] Google Calendar cancel sync failed:', err?.message || err)
   );
 
@@ -1252,7 +1216,7 @@ async function processQueueItem(
           supabase, 
           conversation.contact_id,
           conversation.id,
-          settings?.user_id || null,
+          settings?.organization_id || null,
           args
         );
         
@@ -1280,7 +1244,7 @@ async function processQueueItem(
         appointmentRescheduled = await rescheduleAppointmentFromAI(
           supabase,
           conversation.contact_id,
-          settings?.user_id || null,
+          settings?.organization_id || null,
           args
         );
         
@@ -1310,7 +1274,7 @@ async function processQueueItem(
         appointmentCancelled = await cancelAppointmentFromAI(
           supabase,
           conversation.contact_id,
-          settings?.user_id || null,
+          settings?.organization_id || null,
           args
         );
 
@@ -1334,7 +1298,7 @@ async function processQueueItem(
   if (listProcCall && !aiContent) {
     try {
       const args = JSON.parse(listProcCall.function.arguments || '{}');
-      const procedures = await queryProcedures(supabase, settings?.user_id || null, args);
+      const procedures = await queryProcedures(supabase, settings?.organization_id || null, args);
       console.log(`[Nina] list_procedures retornou ${procedures.length} procedimentos`);
 
       const secondResponse = await fetch(AI_CHAT_URL, {

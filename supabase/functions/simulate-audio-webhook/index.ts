@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getUserOrgId, getOrgSettings } from "../_shared/tenant.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -11,49 +12,13 @@ async function transcribeAudio(
   audioBuffer: ArrayBuffer, 
   mimeType: string,
   supabase: any,
-  userId: string
+  orgId: string
 ): Promise<string | null> {
-  // Fetch ElevenLabs API key from nina_settings com fallback triplo (user_id → global → any)
-  let settings = null;
-  
-  // 1. Tentar por user_id
-  const { data: userSettings, error: userError } = await supabase
-    .from('nina_settings')
-    .select('elevenlabs_api_key')
-    .eq('user_id', userId)
-    .maybeSingle();
-  
-  if (userError) {
-    console.error('Error fetching nina_settings by user_id:', userError);
-  } else {
-    settings = userSettings;
-  }
-  
-  // 2. Se não encontrou, tentar global
-  if (!settings?.elevenlabs_api_key) {
-    const { data: globalSettings } = await supabase
-      .from('nina_settings')
-      .select('elevenlabs_api_key')
-      .is('user_id', null)
-      .maybeSingle();
-    if (globalSettings?.elevenlabs_api_key) {
-      settings = globalSettings;
-    }
-  }
-  
-  // 3. Fallback: qualquer settings
-  if (!settings?.elevenlabs_api_key) {
-    const { data: anySettings } = await supabase
-      .from('nina_settings')
-      .select('elevenlabs_api_key')
-      .not('elevenlabs_api_key', 'is', null)
-      .limit(1)
-      .maybeSingle();
-    settings = anySettings;
-  }
+  // Chave ElevenLabs da clínica
+  const settings = await getOrgSettings(supabase, orgId, 'elevenlabs_api_key');
 
   if (!settings?.elevenlabs_api_key) {
-    console.error('ElevenLabs API key not configured in any nina_settings');
+    console.error('ElevenLabs API key not configured for organization', orgId);
     return null;
   }
 
@@ -134,6 +99,14 @@ serve(async (req) => {
 
     console.log(`[simulate-audio-webhook] Processing audio from ${phone}, mime: ${mimeType} (user: ${userId})`);
 
+    const orgId = await getUserOrgId(supabase, userId);
+    if (!orgId) {
+      return new Response(
+        JSON.stringify({ error: 'Usuário sem clínica vinculada' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Decode base64 to ArrayBuffer
     const binaryString = atob(audio_base64);
     const bytes = new Uint8Array(binaryString.length);
@@ -144,7 +117,7 @@ serve(async (req) => {
     console.log(`[simulate-audio-webhook] Decoded audio: ${audioBuffer.byteLength} bytes`);
 
     // Transcribe audio using ElevenLabs Scribe (with userId for multi-tenant)
-    const transcription = await transcribeAudio(audioBuffer, mimeType, supabase, userId);
+    const transcription = await transcribeAudio(audioBuffer, mimeType, supabase, orgId);
     
     if (!transcription) {
       return new Response(
@@ -155,40 +128,14 @@ serve(async (req) => {
 
     console.log(`[simulate-audio-webhook] Transcription: "${transcription}"`);
 
-    // Get whatsapp_phone_number_id from settings com fallback triplo
-    let phoneSettings = null;
-    
-    const { data: userPhoneSettings } = await supabase
-      .from('nina_settings')
-      .select('whatsapp_phone_number_id')
-      .eq('user_id', userId)
-      .maybeSingle();
-    phoneSettings = userPhoneSettings;
-    
-    if (!phoneSettings) {
-      const { data: globalPhoneSettings } = await supabase
-        .from('nina_settings')
-        .select('whatsapp_phone_number_id')
-        .is('user_id', null)
-        .maybeSingle();
-      phoneSettings = globalPhoneSettings;
-    }
-    
-    if (!phoneSettings) {
-      const { data: anyPhoneSettings } = await supabase
-        .from('nina_settings')
-        .select('whatsapp_phone_number_id')
-        .limit(1)
-        .maybeSingle();
-      phoneSettings = anyPhoneSettings;
-    }
-
+    const phoneSettings = await getOrgSettings(supabase, orgId, 'whatsapp_phone_number_id');
     const phoneNumberId = phoneSettings?.whatsapp_phone_number_id || 'simulated';
 
-    // Find or create contact (single-tenant - no user_id filter)
+    // Find or create contact (dentro da clínica)
     let { data: contact, error: contactError } = await supabase
       .from('contacts')
       .select('*')
+      .eq('organization_id', orgId)
       .eq('phone_number', phone)
       .maybeSingle();
 
@@ -196,11 +143,12 @@ serve(async (req) => {
       const { data: newContact, error: createError } = await supabase
         .from('contacts')
         .insert({
+          organization_id: orgId,
           phone_number: phone,
           name: name || null,
           call_name: name || null,
           whatsapp_id: phone,
-          user_id: null, // Single-tenant: global contact
+          user_id: null,
         })
         .select()
         .single();

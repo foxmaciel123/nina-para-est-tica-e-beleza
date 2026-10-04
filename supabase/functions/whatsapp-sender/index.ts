@@ -84,10 +84,10 @@ serve(async (req) => {
 
       for (const item of queueItems) {
         try {
-          // Buscar user_id da conversation para multi-tenancy
+          // Clínica dona da conversa → envia pelo WhatsApp dessa clínica
           const { data: conversation, error: convError } = await supabase
             .from('conversations')
-            .select('user_id')
+            .select('organization_id')
             .eq('id', item.conversation_id)
             .single();
 
@@ -96,49 +96,19 @@ serve(async (req) => {
             throw new Error('Conversation not found');
           }
 
-          const userId = conversation.user_id;
-          
-          // Buscar settings do cache ou do banco com fallback triplo
-          const cacheKey = userId || 'global';
+          const orgId = conversation.organization_id;
+
+          const cacheKey = orgId;
           let settings = settingsCache[cacheKey];
           if (!settings) {
-            let settingsData = null;
-
-            // 1. Tentar por user_id da conversa
-            if (userId) {
-              const { data } = await supabase
-                .from('nina_settings')
-                .select('whatsapp_access_token, whatsapp_phone_number_id')
-                .eq('user_id', userId)
-                .maybeSingle();
-              settingsData = data;
-            }
-
-            // 2. Fallback: buscar global (user_id IS NULL)
-            if (!settingsData) {
-              console.log('[Sender] No user-specific settings, trying global...');
-              const { data } = await supabase
-                .from('nina_settings')
-                .select('whatsapp_access_token, whatsapp_phone_number_id')
-                .is('user_id', null)
-                .maybeSingle();
-              settingsData = data;
-            }
-
-            // 3. Último fallback: qualquer settings com WhatsApp configurado
-            if (!settingsData) {
-              console.log('[Sender] No global settings, fetching any with WhatsApp...');
-              const { data } = await supabase
-                .from('nina_settings')
-                .select('whatsapp_access_token, whatsapp_phone_number_id')
-                .not('whatsapp_phone_number_id', 'is', null)
-                .limit(1)
-                .maybeSingle();
-              settingsData = data;
-            }
+            const { data: settingsData } = await supabase
+              .from('nina_settings')
+              .select('whatsapp_access_token, whatsapp_phone_number_id')
+              .eq('organization_id', orgId)
+              .maybeSingle();
 
             if (!settingsData) {
-              console.error('[Sender] No settings found with any fallback');
+              console.error('[Sender] No settings found for organization', orgId);
               throw new Error('Settings not found');
             }
 

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { getUserOrgId, getOrgSettings } from "../_shared/tenant.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -69,43 +70,13 @@ serve(async (req) => {
       );
     }
 
-    // Fetch WhatsApp credentials from nina_settings com fallback triplo
+    // Credenciais do WhatsApp da clínica do usuário
     console.log('🔍 Fetching WhatsApp credentials for user:', userId);
-    let settings = null;
-
-    // 1. Tentar por user_id
-    const { data: userSettings } = await supabase
-      .from('nina_settings')
-      .select('whatsapp_access_token, whatsapp_phone_number_id')
-      .eq('user_id', userId)
-      .maybeSingle();
-    settings = userSettings;
-
-    // 2. Fallback: buscar global (user_id IS NULL)
-    if (!settings) {
-      console.log('🔍 No user-specific settings, trying global...');
-      const { data: globalSettings } = await supabase
-        .from('nina_settings')
-        .select('whatsapp_access_token, whatsapp_phone_number_id')
-        .is('user_id', null)
-        .maybeSingle();
-      settings = globalSettings;
-    }
-
-    // 3. Último fallback: qualquer settings com WhatsApp configurado
-    if (!settings) {
-      console.log('🔍 No global settings, fetching any with WhatsApp...');
-      const { data: anySettings } = await supabase
-        .from('nina_settings')
-        .select('whatsapp_access_token, whatsapp_phone_number_id')
-        .not('whatsapp_phone_number_id', 'is', null)
-        .limit(1)
-        .maybeSingle();
-      settings = anySettings;
-    }
+    const orgId = await getUserOrgId(supabase, userId);
+    const settings = await getOrgSettings(supabase, orgId, 'whatsapp_access_token, whatsapp_phone_number_id');
 
     if (!settings) {
-      console.error('❌ No settings found with any fallback');
+      console.error('❌ No settings found for organization', orgId);
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -127,12 +98,13 @@ serve(async (req) => {
     }
 
     // ========================================
-    // 1. Get or create contact (single-tenant - no user_id filter)
+    // 1. Get or create contact (dentro da clínica)
     // ========================================
     console.log('📇 Getting or creating contact...');
     const { data: existingContact } = await supabase
       .from('contacts')
       .select('*')
+      .eq('organization_id', orgId)
       .eq('phone_number', cleanPhone)
       .maybeSingle();
 
@@ -145,9 +117,10 @@ serve(async (req) => {
       const { data: newContact, error: contactError } = await supabase
         .from('contacts')
         .insert({
+          organization_id: orgId,
           phone_number: cleanPhone,
           whatsapp_id: cleanPhone,
-          user_id: null, // Single-tenant: global contact
+          user_id: null,
         })
         .select()
         .single();

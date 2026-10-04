@@ -30,17 +30,17 @@ serve(async (req) => {
       const token = url.searchParams.get('hub.verify_token');
       const challenge = url.searchParams.get('hub.challenge');
 
-      // Get verify token from settings (get the first one that has a token)
-      const { data: settings } = await supabase
-        .from('nina_settings')
-        .select('whatsapp_verify_token')
-        .not('whatsapp_verify_token', 'is', null)
-        .limit(1)
-        .maybeSingle();
+      // Todas as clínicas usam a mesma URL de webhook; aceita o token de qualquer uma
+      const { data: settings } = token
+        ? await supabase
+            .from('nina_settings')
+            .select('id')
+            .eq('whatsapp_verify_token', token)
+            .limit(1)
+            .maybeSingle()
+        : { data: null };
 
-      const verifyToken = settings?.whatsapp_verify_token || 'webhook-verify-token';
-
-      if (mode === 'subscribe' && token === verifyToken) {
+      if (mode === 'subscribe' && settings) {
         console.log('[Webhook] Verification successful');
         return new Response(challenge, { status: 200, headers: corsHeaders });
       } else {
@@ -71,34 +71,22 @@ serve(async (req) => {
       const contacts = value.contacts;
       const phoneNumberId = value.metadata?.phone_number_id;
 
-      // Find the user who owns this phone number ID
+      // Clínica dona do número que recebeu a mensagem
       const { data: ownerSettings } = await supabase
         .from('nina_settings')
-        .select('user_id, whatsapp_access_token')
+        .select('organization_id, user_id')
         .eq('whatsapp_phone_number_id', phoneNumberId)
         .maybeSingle();
 
-      let ownerId = ownerSettings?.user_id || null;
-      
-      // Se não encontrou owner específico ou user_id é null, buscar o admin do sistema
-      if (!ownerId) {
-        console.log('[Webhook] No owner in settings, looking for system admin...');
-        const { data: adminRole } = await supabase
-          .from('user_roles')
-          .select('user_id')
-          .eq('role', 'admin')
-          .limit(1)
-          .maybeSingle();
-        
-        ownerId = adminRole?.user_id || null;
-        
-        if (ownerId) {
-          console.log('[Webhook] Using admin as owner:', ownerId);
-        } else {
-          console.warn('[Webhook] No admin found in system - contacts will have null user_id');
-        }
-      } else {
-        console.log('[Webhook] Found owner user_id:', ownerId);
+      const orgId: string | null = ownerSettings?.organization_id || null;
+      const ownerId: string | null = ownerSettings?.user_id || null;
+
+      if (!orgId) {
+        console.warn('[Webhook] Nenhuma clínica com phone_number_id', phoneNumberId, '- ignorando');
+        return new Response(JSON.stringify({ status: 'ignored', reason: 'unknown_phone_number_id' }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
       }
 
       // Handle status updates (delivered, read, etc)
@@ -149,6 +137,7 @@ serve(async (req) => {
           let { data: contact } = await supabase
             .from('contacts')
             .select('*')
+            .eq('organization_id', orgId)
             .eq('phone_number', phoneNumber)
             .maybeSingle();
 
@@ -156,6 +145,7 @@ serve(async (req) => {
             const { data: newContact, error: contactError } = await supabase
               .from('contacts')
               .insert({
+                organization_id: orgId,
                 phone_number: phoneNumber,
                 whatsapp_id: whatsappId,
                 name: contactName,

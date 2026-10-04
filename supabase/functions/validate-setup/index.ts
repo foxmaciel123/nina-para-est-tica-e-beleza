@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getUserOrgId } from "../_shared/tenant.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -44,40 +45,13 @@ serve(async (req) => {
 
     const results: ValidationResult[] = [];
 
-    // 1. Check nina_settings (triple fallback for single-tenant)
-    let settings = null;
-    let settingsError = null;
-
-    // 1a. Try by user_id
-    const { data: userSettings, error: err1 } = await supabase
+    // 1. Check nina_settings da clínica do usuário
+    const orgId = await getUserOrgId(supabase, user.id);
+    const { data: settings, error: settingsError } = await supabase
       .from('nina_settings')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('organization_id', orgId)
       .maybeSingle();
-    settings = userSettings;
-    settingsError = err1;
-
-    // 1b. Fallback: global (user_id IS NULL)
-    if (!settings) {
-      const { data: globalSettings, error: err2 } = await supabase
-        .from('nina_settings')
-        .select('*')
-        .is('user_id', null)
-        .maybeSingle();
-      settings = globalSettings;
-      if (!settingsError) settingsError = err2;
-    }
-
-    // 1c. Last fallback: any settings
-    if (!settings) {
-      const { data: anySettings, error: err3 } = await supabase
-        .from('nina_settings')
-        .select('*')
-        .limit(1)
-        .maybeSingle();
-      settings = anySettings;
-      if (!settingsError) settingsError = err3;
-    }
 
     if (settingsError || !settings) {
       results.push({
@@ -235,6 +209,7 @@ serve(async (req) => {
     const { count: stagesCount } = await supabase
       .from('pipeline_stages')
       .select('*', { count: 'exact', head: true })
+      .eq('organization_id', orgId)
       .eq('is_active', true);
 
     if (stagesCount && stagesCount > 0) {

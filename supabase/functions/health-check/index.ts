@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { getUserOrgId } from '../_shared/tenant.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -54,41 +55,17 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 2. Check nina_settings com fallback triplo
+    // 2. Check nina_settings da clínica do usuário
     console.log('[health-check] Checking nina_settings...');
+    const orgId = await getUserOrgId(supabase, userId);
     let settings = null;
     let settingsError = null;
 
-    // 1. Tentar por user_id
-    if (userId) {
+    if (orgId) {
       const { data, error } = await supabase
         .from('nina_settings')
         .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-      settings = data;
-      settingsError = error;
-    }
-
-    // 2. Fallback: buscar global (user_id IS NULL)
-    if (!settings && !settingsError) {
-      console.log('[health-check] No user-specific settings, trying global...');
-      const { data, error } = await supabase
-        .from('nina_settings')
-        .select('*')
-        .is('user_id', null)
-        .maybeSingle();
-      settings = data;
-      settingsError = error;
-    }
-
-    // 3. Último fallback: qualquer settings
-    if (!settings && !settingsError) {
-      console.log('[health-check] No global settings, fetching any...');
-      const { data, error } = await supabase
-        .from('nina_settings')
-        .select('*')
-        .limit(1)
+        .eq('organization_id', orgId)
         .maybeSingle();
       settings = data;
       settingsError = error;
@@ -240,6 +217,7 @@ Deno.serve(async (req) => {
     const { data: stages, error: stagesError } = await supabase
       .from('pipeline_stages')
       .select('id, title')
+      .eq('organization_id', orgId)
       .eq('is_active', true);
 
     if (stagesError) {
@@ -268,6 +246,7 @@ Deno.serve(async (req) => {
     const { data: tags, error: tagsError } = await supabase
       .from('tag_definitions')
       .select('id')
+      .eq('organization_id', orgId)
       .eq('is_active', true);
 
     if (tagsError) {
@@ -296,6 +275,7 @@ Deno.serve(async (req) => {
     const { data: teams, error: teamsError } = await supabase
       .from('teams')
       .select('id, name')
+      .eq('organization_id', orgId)
       .eq('is_active', true);
 
     if (teamsError) {

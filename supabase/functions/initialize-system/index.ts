@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { getUserOrgId } from '../_shared/tenant.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -82,20 +83,18 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    let userId: string | null = null;
-    try {
-      const body = await req.json();
-      userId = body.user_id || null;
-    } catch {
-      // Body might be empty
-    }
+    // Usuário vem do token de login (não confiar em user_id do corpo)
+    const authHeader = req.headers.get('authorization') || '';
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user: authUser } } = await supabase.auth.getUser(token);
+    const userId: string | null = authUser?.id || null;
 
     if (!userId) {
-      console.error('[initialize-system] No user_id provided');
+      console.error('[initialize-system] No authenticated user');
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'user_id is required in request body',
+          error: 'Usuário não autenticado',
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -155,101 +154,71 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Check if this is the FIRST user (no existing global settings)
-    console.log('[initialize-system] Checking if global nina_settings exist...');
-    const { data: existingGlobalSettings } = await supabase
-      .from('nina_settings')
-      .select('id, whatsapp_verify_token')
-      .limit(1)
+    // Configuração padrão por clínica: cria na primeira vez que alguém da clínica entra
+    const orgId = await getUserOrgId(supabase, userId);
+    if (!orgId) {
+      console.warn('[initialize-system] Usuário sem clínica vinculada:', userId);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Usuário sem clínica vinculada', results }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+      );
+    }
+
+    const { data: membership } = await supabase
+      .from('organization_members')
+      .select('role')
+      .eq('organization_id', orgId)
+      .eq('user_id', userId)
+      .maybeSingle();
+    const appRole = membership?.role === 'admin' ? 'admin' : 'user';
+
+    const { data: existingRole } = await supabase
+      .from('user_roles')
+      .select('id, role')
+      .eq('user_id', userId)
       .maybeSingle();
 
-    if (existingGlobalSettings) {
-      // System already configured - this is NOT the first user
-      console.log('[initialize-system] Global settings already exist - not first user');
-      results.nina_settings.existed = true;
-      results.nina_settings.isFirstUser = false;
-      
-      // Just return the existing verify token
-      results.verify_token.token = existingGlobalSettings.whatsapp_verify_token || '';
-      
-      // Don't create any more default data - system is already configured
-      console.log('[initialize-system] System already initialized, skipping default data creation');
-
-      // Assign 'user' role if user doesn't have any role yet
-      const { data: existingRole } = await supabase
-        .from('user_roles')
-        .select('id, role')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (existingRole) {
-        console.log('[initialize-system] User already has role:', existingRole.role);
-        results.user_role.existed = true;
-        results.user_role.role = existingRole.role;
-      } else {
-        console.log('[initialize-system] Assigning user role to subsequent user...');
-        const { error: roleError } = await supabase
-          .from('user_roles')
-          .insert({
-            user_id: userId,
-            role: 'user',
-          });
-
-        if (roleError) {
-          if (roleError.code === '23505') {
-            console.log('[initialize-system] User already has role (race condition)');
-            results.user_role.existed = true;
-          } else {
-            console.error('[initialize-system] Error assigning user role:', roleError);
-          }
-        } else {
-          results.user_role.assigned = true;
-          results.user_role.role = 'user';
-          console.log('[initialize-system] User role assigned');
-        }
-      }
-      
+    if (existingRole) {
+      results.user_role.existed = true;
+      results.user_role.role = existingRole.role;
     } else {
-      // This IS the first user - create all default data (globally, without user_id)
-      console.log('[initialize-system] No global settings found - this is the FIRST user!');
-      results.nina_settings.isFirstUser = true;
-
-      // Assign 'admin' role to the first user
-      console.log('[initialize-system] Assigning admin role to first user...');
       const { error: roleError } = await supabase
         .from('user_roles')
-        .insert({
-          user_id: userId,
-          role: 'admin',
-        });
-
-      if (roleError) {
-        if (roleError.code === '23505') {
-          console.log('[initialize-system] User already has admin role (race condition)');
-          results.user_role.existed = true;
-          results.user_role.role = 'admin';
-        } else {
-          console.error('[initialize-system] Error assigning admin role:', roleError);
-        }
+        .insert({ user_id: userId, role: appRole });
+      if (roleError && roleError.code !== '23505') {
+        console.error('[initialize-system] Error assigning role:', roleError);
       } else {
         results.user_role.assigned = true;
-        results.user_role.role = 'admin';
-        console.log('[initialize-system] Admin role assigned to first user');
+        results.user_role.role = appRole;
       }
+    }
 
-      // Create global nina_settings (user_id = NULL for global access)
+    const { data: existingSettings } = await supabase
+      .from('nina_settings')
+      .select('id, whatsapp_verify_token')
+      .eq('organization_id', orgId)
+      .maybeSingle();
+
+    if (existingSettings) {
+      console.log('[initialize-system] Clínica já configurada:', orgId);
+      results.nina_settings.existed = true;
+      results.verify_token.token = existingSettings.whatsapp_verify_token || '';
+    } else {
+      console.log('[initialize-system] Criando configuração padrão da clínica:', orgId);
+      results.nina_settings.isFirstUser = true;
+
       const newToken = generateVerifyToken();
       const { error: settingsError } = await supabase
         .from('nina_settings')
         .insert({
           ...DEFAULT_NINA_SETTINGS,
           whatsapp_verify_token: newToken,
-          user_id: null, // Global settings - no user_id
+          organization_id: orgId,
+          user_id: null,
         });
 
       if (settingsError) {
         if (settingsError.code === '23505') {
-          console.log('[initialize-system] Settings already exist (race condition)');
           results.nina_settings.existed = true;
         } else {
           console.error('[initialize-system] Error creating nina_settings:', settingsError);
@@ -259,103 +228,37 @@ Deno.serve(async (req) => {
         results.nina_settings.initialized = true;
         results.verify_token.generated = true;
         results.verify_token.token = newToken;
-        console.log('[initialize-system] Global nina_settings created');
       }
 
-      // Create global pipeline_stages (user_id = NULL)
-      console.log('[initialize-system] Creating global pipeline_stages...');
-      const stagesWithoutUserId = DEFAULT_PIPELINE_STAGES.map(stage => ({
-        ...stage,
-        user_id: null,
-      }));
-      
-      const { error: stagesError } = await supabase
-        .from('pipeline_stages')
-        .insert(stagesWithoutUserId);
+      const seeds: Array<[keyof typeof results, string, Record<string, unknown>[]]> = [
+        ['pipeline_stages', 'pipeline_stages', DEFAULT_PIPELINE_STAGES],
+        ['tag_definitions', 'tag_definitions', DEFAULT_TAG_DEFINITIONS],
+        ['teams', 'teams', DEFAULT_TEAMS],
+        ['team_functions', 'team_functions', DEFAULT_TEAM_FUNCTIONS],
+      ];
 
-      if (stagesError) {
-        if (stagesError.code === '23505') {
-          console.log('[initialize-system] pipeline_stages already exist (race condition)');
-          results.pipeline_stages.existed = true;
-        } else {
-          console.error('[initialize-system] Error creating pipeline_stages:', stagesError);
+      for (const [key, table, rows] of seeds) {
+        const { count } = await supabase
+          .from(table)
+          .select('id', { count: 'exact', head: true })
+          .eq('organization_id', orgId);
+
+        const entry = results[key] as { initialized: boolean; existed: boolean; count: number };
+        if (count && count > 0) {
+          entry.existed = true;
+          continue;
         }
-      } else {
-        results.pipeline_stages.initialized = true;
-        results.pipeline_stages.count = DEFAULT_PIPELINE_STAGES.length;
-        console.log(`[initialize-system] Created ${DEFAULT_PIPELINE_STAGES.length} global pipeline stages`);
-      }
 
-      // Create global tag_definitions (user_id = NULL)
-      console.log('[initialize-system] Creating global tag_definitions...');
-      const tagsWithoutUserId = DEFAULT_TAG_DEFINITIONS.map(tag => ({
-        ...tag,
-        user_id: null,
-      }));
-      
-      const { error: tagsError } = await supabase
-        .from('tag_definitions')
-        .insert(tagsWithoutUserId);
+        const { error } = await supabase
+          .from(table)
+          .insert(rows.map((row) => ({ ...row, organization_id: orgId, user_id: null })));
 
-      if (tagsError) {
-        if (tagsError.code === '23505') {
-          console.log('[initialize-system] tag_definitions already exist (race condition)');
-          results.tag_definitions.existed = true;
+        if (error) {
+          console.error(`[initialize-system] Error creating ${table}:`, error);
         } else {
-          console.error('[initialize-system] Error creating tag_definitions:', tagsError);
+          entry.initialized = true;
+          entry.count = rows.length;
         }
-      } else {
-        results.tag_definitions.initialized = true;
-        results.tag_definitions.count = DEFAULT_TAG_DEFINITIONS.length;
-        console.log(`[initialize-system] Created ${DEFAULT_TAG_DEFINITIONS.length} global tag definitions`);
-      }
-
-      // Create global teams (user_id = NULL)
-      console.log('[initialize-system] Creating global teams...');
-      const teamsWithoutUserId = DEFAULT_TEAMS.map(team => ({
-        ...team,
-        user_id: null,
-      }));
-      
-      const { error: teamsError } = await supabase
-        .from('teams')
-        .insert(teamsWithoutUserId);
-
-      if (teamsError) {
-        if (teamsError.code === '23505') {
-          console.log('[initialize-system] teams already exist (race condition)');
-          results.teams.existed = true;
-        } else {
-          console.error('[initialize-system] Error creating teams:', teamsError);
-        }
-      } else {
-        results.teams.initialized = true;
-        results.teams.count = DEFAULT_TEAMS.length;
-        console.log(`[initialize-system] Created ${DEFAULT_TEAMS.length} global teams`);
-      }
-
-      // Create global team_functions (user_id = NULL)
-      console.log('[initialize-system] Creating global team_functions...');
-      const functionsWithoutUserId = DEFAULT_TEAM_FUNCTIONS.map(func => ({
-        ...func,
-        user_id: null,
-      }));
-      
-      const { error: functionsError } = await supabase
-        .from('team_functions')
-        .insert(functionsWithoutUserId);
-
-      if (functionsError) {
-        if (functionsError.code === '23505') {
-          console.log('[initialize-system] team_functions already exist (race condition)');
-          results.team_functions.existed = true;
-        } else {
-          console.error('[initialize-system] Error creating team_functions:', functionsError);
-        }
-      } else {
-        results.team_functions.initialized = true;
-        results.team_functions.count = DEFAULT_TEAM_FUNCTIONS.length;
-        console.log(`[initialize-system] Created ${DEFAULT_TEAM_FUNCTIONS.length} global team functions`);
       }
     }
 

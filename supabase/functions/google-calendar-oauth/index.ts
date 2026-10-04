@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getUserOrgId } from "../_shared/tenant.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -116,10 +117,15 @@ serve(async (req) => {
 
       const expiresAt = new Date(Date.now() + (tokens.expires_in || 3600) * 1000).toISOString();
 
-      // Upsert credentials
+      // Upsert credentials (na clínica do usuário)
+      const orgId = await getUserOrgId(supabase, stateData.user_id);
+      if (!orgId) {
+        return new Response('Usuário sem clínica vinculada', { status: 403, headers: corsHeaders });
+      }
       const { error: upsertErr } = await supabase
         .from('google_calendar_credentials')
         .upsert({
+          organization_id: orgId,
           user_id: stateData.user_id,
           professional_id: stateData.professional_id || null,
           google_email: userInfo.email,

@@ -61,11 +61,17 @@ serve(async (req) => {
       });
     }
 
-    // FULL ANALYSIS: Fetch pipeline stages and current deal
-    // Only fetch AI-managed stages with criteria (single-tenant - no user_id filter)
+    // FULL ANALYSIS: Fetch pipeline stages (da clínica do contato) and current deal
+    const { data: contactOrg } = await supabase
+      .from('contacts')
+      .select('organization_id')
+      .eq('id', contact_id)
+      .single();
+
     const { data: stages } = await supabase
       .from('pipeline_stages')
       .select('id, title, ai_trigger_criteria, position')
+      .eq('organization_id', contactOrg?.organization_id)
       .eq('is_ai_managed', true)
       .not('ai_trigger_criteria', 'is', null)
       .eq('is_active', true)

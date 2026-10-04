@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.84.0';
+import { getUserOrgId } from '../_shared/tenant.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -56,6 +57,14 @@ Deno.serve(async (req) => {
     }
 
     console.log(`[seed-appointments] Creating appointments for user: ${userId}`);
+
+    const orgId = await getUserOrgId(supabase, userId);
+    if (!orgId) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Usuário sem clínica vinculada' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Get current date info
     const now = new Date();
@@ -162,7 +171,7 @@ Deno.serve(async (req) => {
 
     const { data, error } = await supabase
       .from('appointments')
-      .insert(appointments)
+      .insert(appointments.map((a) => ({ ...a, organization_id: orgId })))
       .select();
 
     if (error) {

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { getUserOrgId, getOrgSettings } from "../_shared/tenant.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -44,43 +45,23 @@ serve(async (req) => {
 
     console.log(`[simulate-webhook] Simulating message from ${phone}: ${message} (user: ${userId})`);
 
-    // Get phone_number_id from settings with fallback triplo (user_id → global → any)
-    let settings = null;
-    
-    // 1. Tentar por user_id
-    const { data: userSettings } = await supabase
-      .from('nina_settings')
-      .select('whatsapp_phone_number_id')
-      .eq('user_id', userId)
-      .maybeSingle();
-    settings = userSettings;
-    
-    // 2. Se não encontrou, tentar global
-    if (!settings) {
-      const { data: globalSettings } = await supabase
-        .from('nina_settings')
-        .select('whatsapp_phone_number_id')
-        .is('user_id', null)
-        .maybeSingle();
-      settings = globalSettings;
+    // Clínica do usuário logado
+    const orgId = await getUserOrgId(supabase, userId);
+    if (!orgId) {
+      return new Response(
+        JSON.stringify({ error: 'Usuário sem clínica vinculada' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
-    
-    // 3. Fallback: qualquer settings
-    if (!settings) {
-      const { data: anySettings } = await supabase
-        .from('nina_settings')
-        .select('whatsapp_phone_number_id')
-        .limit(1)
-        .maybeSingle();
-      settings = anySettings;
-    }
+    const settings = await getOrgSettings(supabase, orgId, 'whatsapp_phone_number_id');
 
     const phoneNumberId = settings?.whatsapp_phone_number_id || 'test_phone_id';
 
-    // Get or create contact (single-tenant - no user_id filter)
+    // Get or create contact (dentro da clínica)
     const { data: existingContact } = await supabase
       .from('contacts')
       .select('*')
+      .eq('organization_id', orgId)
       .eq('phone_number', phone)
       .maybeSingle();
 
@@ -100,10 +81,11 @@ serve(async (req) => {
       const { data: newContact, error: contactError } = await supabase
         .from('contacts')
         .insert({
+          organization_id: orgId,
           phone_number: phone,
           name: name || null,
           whatsapp_id: phone,
-          user_id: null, // Single-tenant: global contact
+          user_id: null,
         })
         .select()
         .single();
