@@ -1,3 +1,5 @@
+import { AI_CHAT_URL, getAiApiKey, resolveModel } from "../_shared/ai.ts";
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -93,9 +95,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
+    const AI_API_KEY = getAiApiKey();
+    if (!AI_API_KEY) {
+      throw new Error('GEMINI_API_KEY not configured');
     }
 
     const voiceDescriptor = VOICE_DESCRIPTORS[formData.voice_style] || VOICE_DESCRIPTORS['acolhedor-premium'];
@@ -224,15 +226,15 @@ ${promptTemplate}
 
 Retorne o XML final, refinado para soar natural em português brasileiro de clínica de beleza.`;
 
-    console.log('[generate-prompt] Chamando Lovable AI Gateway...');
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    console.log('[generate-prompt] Chamando Gemini...');
+    const response = await fetch(AI_CHAT_URL, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${AI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-3-pro-preview',
+        model: resolveModel('google/gemini-3-pro-preview'),
         messages: [
           { role: 'user', content: metaPrompt }
         ],
@@ -251,7 +253,7 @@ Retorne o XML final, refinado para soar natural em português brasileiro de clí
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: 'Créditos insuficientes. Adicione créditos ao seu workspace Lovable.' }),
+          JSON.stringify({ error: 'Créditos insuficientes. Verifique o faturamento da chave do Gemini.' }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }

@@ -1,12 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getAiApiKey, transcribeAudioWithGemini } from "../_shared/ai.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-const LOVABLE_AI_URL = "https://ai.gateway.lovable.dev/v1/audio/transcriptions";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -15,7 +14,7 @@ serve(async (req) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
+  const aiApiKey = getAiApiKey()!;
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
@@ -127,7 +126,7 @@ serve(async (req) => {
           messages,
           dbMessages,
           ownerSettings,
-          lovableApiKey
+          aiApiKey
         );
 
         console.log(`[MessageGrouper] Combined content for ${phoneNumber}:`, combinedContent.substring(0, 200));
@@ -239,7 +238,7 @@ async function combineAndTranscribeMessages(
   queueMessages: any[],
   dbMessages: any[],
   settings: any,
-  lovableApiKey: string
+  aiApiKey: string
 ): Promise<string> {
   const contentParts: string[] = [];
 
@@ -255,11 +254,11 @@ async function combineAndTranscribeMessages(
     // Handle audio transcription
     if (messageData.type === 'audio') {
       const audioMediaId = messageData.audio?.id;
-      if (audioMediaId && settings?.whatsapp_access_token && lovableApiKey) {
+      if (audioMediaId && settings?.whatsapp_access_token && aiApiKey) {
         console.log('[MessageGrouper] Transcribing audio:', audioMediaId);
         const audioBuffer = await downloadWhatsAppMedia(settings, audioMediaId);
         if (audioBuffer) {
-          const transcription = await transcribeAudio(audioBuffer, lovableApiKey);
+          const transcription = await transcribeAudio(audioBuffer);
           if (transcription) {
             content = transcription;
             // Update the message in database with transcription
@@ -328,34 +327,13 @@ async function downloadWhatsAppMedia(settings: any, mediaId: string): Promise<Ar
   }
 }
 
-// Transcribe audio using Lovable AI Gateway (Whisper)
-async function transcribeAudio(audioBuffer: ArrayBuffer, lovableApiKey: string): Promise<string | null> {
+// Transcribe audio using Gemini
+async function transcribeAudio(audioBuffer: ArrayBuffer): Promise<string | null> {
   try {
     console.log('[MessageGrouper] Transcribing audio, size:', audioBuffer.byteLength, 'bytes');
 
-    const formData = new FormData();
-    const audioBlob = new Blob([audioBuffer], { type: 'audio/ogg' });
-    formData.append('file', audioBlob, 'audio.ogg');
-    formData.append('model', 'whisper-1');
-    formData.append('language', 'pt');
+    const transcription = await transcribeAudioWithGemini(audioBuffer, 'audio/ogg');
 
-    const response = await fetch(LOVABLE_AI_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${lovableApiKey}`
-      },
-      body: formData
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[MessageGrouper] Transcription error:', response.status, errorText);
-      return null;
-    }
-
-    const result = await response.json();
-    const transcription = result.text;
-    
     console.log('[MessageGrouper] Transcription result:', transcription);
     return transcription || null;
   } catch (error) {

@@ -1,12 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { AI_CHAT_URL, getAiApiKey, resolveModel } from "../_shared/ai.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const LOVABLE_AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const ELEVENLABS_API_URL = "https://api.elevenlabs.io/v1/text-to-speech";
 
 // Tool definition for appointment creation — Nina Beleza & Estética
@@ -126,7 +126,7 @@ serve(async (req) => {
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-  const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
+  const aiApiKey = getAiApiKey()!;
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
@@ -263,7 +263,7 @@ serve(async (req) => {
           has_elevenlabs: !!effectiveSettings.elevenlabs_api_key,
         });
         
-        await processQueueItem(supabase, lovableApiKey, item, systemPrompt, effectiveSettings);
+        await processQueueItem(supabase, aiApiKey, item, systemPrompt, effectiveSettings);
         
         // Mark as completed
         await supabase
@@ -1091,7 +1091,7 @@ async function cancelAppointmentFromAI(
 
 async function processQueueItem(
   supabase: any,
-  lovableApiKey: string,
+  aiApiKey: string,
   item: any,
   systemPrompt: string,
   settings: any
@@ -1168,7 +1168,7 @@ async function processQueueItem(
   // Process template variables ({{ data_hora }}, {{ dia_semana }}, etc.)
   const processedPrompt = processPromptTemplate(enhancedSystemPrompt, conversation.contact);
 
-  console.log('[Nina] Calling Lovable AI...');
+  console.log('[Nina] Calling Gemini...');
 
   // Get AI model settings based on user configuration
   const aiSettings = getModelSettings(settings, conversationHistory, message, conversation.contact, clientMemory);
@@ -1191,7 +1191,7 @@ async function processQueueItem(
 
   // Build request body
   const requestBody: any = {
-    model: aiSettings.model,
+    model: resolveModel(aiSettings.model),
     messages: [
       { role: 'system', content: processedPrompt },
       ...conversationHistory
@@ -1206,11 +1206,11 @@ async function processQueueItem(
     requestBody.tool_choice = "auto";
   }
 
-  // Call Lovable AI Gateway
-  const aiResponse = await fetch(LOVABLE_AI_URL, {
+  // Call Gemini (OpenAI-compatible endpoint)
+  const aiResponse = await fetch(AI_CHAT_URL, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${lovableApiKey}`,
+      'Authorization': `Bearer ${aiApiKey}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify(requestBody)
@@ -1336,14 +1336,14 @@ async function processQueueItem(
       const procedures = await queryProcedures(supabase, settings?.user_id || null, args);
       console.log(`[Nina] list_procedures retornou ${procedures.length} procedimentos`);
 
-      const secondResponse = await fetch(LOVABLE_AI_URL, {
+      const secondResponse = await fetch(AI_CHAT_URL, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${lovableApiKey}`,
+          'Authorization': `Bearer ${aiApiKey}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: aiSettings.model,
+          model: resolveModel(aiSettings.model),
           messages: [
             { role: 'system', content: processedPrompt },
             ...conversationHistory,
