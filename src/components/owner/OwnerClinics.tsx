@@ -1,9 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ChevronRight } from 'lucide-react';
+import { Search, ChevronRight, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import NewClinicDialog from './NewClinicDialog';
 import {
   BillingChip, ErrorNote, PageHeader, PageLoader, StatusChip, WhatsAppChip,
   formatBRL, formatDay, formatNumber, formatRelative,
@@ -17,9 +19,11 @@ const OwnerClinics: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
+  const [creating, setCreating] = useState(false);
 
+  // Só a primeira carga troca a tela pelo "carregando": recarregar depois de criar
+  // uma clínica não pode desmontar a janela que mostra o link de acesso.
   const load = async () => {
-    setLoading(true);
     setError(null);
     const { data, error: rpcError } = await supabase.rpc('owner_organizations_overview');
     if (rpcError) {
@@ -52,6 +56,10 @@ const OwnerClinics: React.FC = () => {
         title="Clínicas"
         description="Todas as clínicas, com mensalidade e uso dos últimos 30 dias."
         actions={
+          <>
+          <Button onClick={() => setCreating(true)} className="gap-2" data-testid="new-clinic-button">
+            <Plus className="h-4 w-4" /> Nova clínica
+          </Button>
           <div className="relative w-full sm:w-72">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -63,8 +71,11 @@ const OwnerClinics: React.FC = () => {
               aria-label="Buscar clínica"
             />
           </div>
+          </>
         }
       />
+
+      <NewClinicDialog open={creating} onClose={() => setCreating(false)} onCreated={load} />
 
       {error && <ErrorNote message={error} onRetry={load} />}
 

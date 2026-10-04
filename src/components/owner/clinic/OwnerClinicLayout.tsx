@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Link, Outlet, useOutletContext, useParams } from 'react-router-dom';
-import { ArrowLeft, LayoutDashboard, MessageCircle, Bot, Wallet, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, LayoutDashboard, MessageCircle, Bot, Wallet, AlertTriangle, Clock, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { OwnerFrame, OwnerNavGroup } from '../OwnerLayout';
 import { PageLoader, StatusChip } from '../ownerUi';
@@ -65,6 +65,8 @@ const OwnerClinicLayout: React.FC = () => {
         { label: 'Resumo', to: base, icon: LayoutDashboard, end: true },
         { label: 'WhatsApp', to: `${base}/whatsapp`, icon: MessageCircle },
         { label: 'Agente IA', to: `${base}/agente-ia`, icon: Bot },
+        { label: 'Horários', to: `${base}/horarios`, icon: Clock },
+        { label: 'Procedimentos', to: `${base}/procedimentos`, icon: Sparkles },
         { label: 'Cobrança', to: `${base}/cobranca`, icon: Wallet },
       ],
     },

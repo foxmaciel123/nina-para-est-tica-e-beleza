@@ -80,6 +80,34 @@ async function setup(page: Page, opts: { owner?: boolean; orgStatus?: string } =
   await mockRpc(page, 'owner_organizations_overview', clinics);
   await mockRpc(page, 'owner_list_charges', charges);
   await mockRpc(page, 'owner_organization_detail', detailB);
+  await mockRpc(page, 'owner_get_clinic_config', {
+    company_name: 'Harmoniza Face', sdr_name: 'Nina', is_active: true, auto_response_enabled: true,
+    ai_model_mode: 'flash', system_prompt_override: null, audio_response_enabled: false,
+    ai_scheduling_enabled: true, message_breaking_enabled: true, business_hours_start: '09:00:00',
+    business_hours_end: '18:00:00', business_days: [1, 2, 3, 4, 5], timezone: 'America/Sao_Paulo',
+    whatsapp_phone_number_id: null, whatsapp_business_account_id: null, has_whatsapp_token: false,
+    whatsapp_verify_token: 'nina-beleza-abc',
+  });
+  await mockRpc(page, 'owner_list_procedures', [
+    { id: 'p1', name: 'Botox', category: 'harmonizacao', description: null, duration_minutes: 45, price_min: 800, price_max: 1200,
+      price_visible: true, contraindications: null, pre_care: null, post_care: null, is_active: true,
+      professional_id: null, user_id: null, created_at: '2026-10-01T00:00:00Z', updated_at: '2026-10-01T00:00:00Z' },
+  ]);
+  await mockRpc(page, 'owner_list_audit', [
+    { action: 'clinic_created', details: { email: 'dona@harmoniza.test' }, actor_email: 'qa@nina-beleza.test', created_at: '2026-09-10T12:00:00Z' },
+  ]);
+  for (const name of ['owner_update_clinic_whatsapp', 'owner_update_clinic_agent', 'owner_update_clinic_hours', 'owner_save_procedure']) {
+    await mockRpc(page, name, null);
+  }
+  await page.route(/\/functions\/v1\/owner-actions/, async (route) => {
+    const body = route.request().postDataJSON();
+    const replies: Record<string, unknown> = {
+      create_clinic: { organization_id: ORG_B, access_link: 'https://nina-api.test/auth/v1/verify?token=abc&type=recovery', email: body?.email },
+      resend_access: { access_link: 'https://nina-api.test/auth/v1/verify?token=def&type=recovery', email: 'dona@harmoniza.test' },
+      test_whatsapp: { ok: false, message: 'Token inválido ou expirado.' },
+    };
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(replies[body?.action] ?? {}) });
+  });
   await mockRpc(page, 'owner_ai_usage', {
     days: 30,
     totals: { events: 500, prompt_tokens: 900000, completion_tokens: 120000, cost_usd: 0.57 },
@@ -108,7 +136,9 @@ const ownerPages = [
   { path: '/dono/alertas', heading: 'Alertas', shot: 'dono-alertas', expectText: 'WhatsApp não conectado' },
   { path: `/dono/clinicas/${ORG_B}`, heading: 'Harmoniza Face', shot: 'clinica-resumo', expectText: 'Uso nos últimos 30 dias' },
   { path: `/dono/clinicas/${ORG_B}/whatsapp`, heading: 'WhatsApp', shot: 'clinica-whatsapp', expectText: 'Token de verificação' },
-  { path: `/dono/clinicas/${ORG_B}/agente-ia`, heading: 'Agente IA', shot: 'clinica-agente', expectText: 'Seg, Ter, Qua, Qui, Sex' },
+  { path: `/dono/clinicas/${ORG_B}/agente-ia`, heading: 'Agente IA', shot: 'clinica-agente', expectText: 'Carregar prompt padrão' },
+  { path: `/dono/clinicas/${ORG_B}/horarios`, heading: 'Horários', shot: 'clinica-horarios', expectText: 'Dias de atendimento' },
+  { path: `/dono/clinicas/${ORG_B}/procedimentos`, heading: 'Procedimentos', shot: 'clinica-procedimentos', expectText: 'Botox' },
   { path: `/dono/clinicas/${ORG_B}/cobranca`, heading: 'Cobrança', shot: 'clinica-cobranca', expectText: 'Histórico' },
 ];
 
@@ -142,6 +172,108 @@ test.describe('Painel do Dono', () => {
     await page.locator('#charge-amount').fill('');
     await page.getByRole('button', { name: 'Criar cobrança' }).click();
     await expect(page.getByRole('alert')).toHaveText('Informe um valor maior que zero.');
+    await expectHealthy(page, errors);
+  });
+});
+
+test.describe('Cadastro e configuração de clínica pelo dono', () => {
+  test('nova clínica valida e mostra o link de acesso', async ({ page }) => {
+    const errors = await setup(page);
+    await page.goto('/dono/clinicas');
+    await page.getByTestId('new-clinic-button').click();
+    await page.getByRole('button', { name: 'Criar clínica' }).click();
+    await expect(page.getByRole('alert')).toHaveText('Informe o nome da clínica.');
+    await page.locator('#new-clinic-name').fill('Studio Bella Pele');
+    await page.locator('#new-clinic-owner').fill('Ana Souza');
+    await page.locator('#new-clinic-email').fill('email-invalido');
+    await page.getByRole('button', { name: 'Criar clínica' }).click();
+    await expect(page.getByRole('alert')).toHaveText('Informe um e-mail válido.');
+    await page.locator('#new-clinic-email').fill('ana@bellapele.test');
+    await page.locator('#new-clinic-fee').fill('397');
+    await page.getByRole('button', { name: 'Criar clínica' }).click();
+    await expect(page.getByTestId('clinic-created')).toBeVisible();
+    await expect(page.getByTestId('access-link')).toContainText('type=recovery');
+    await expect(page.getByText('ana@bellapele.test')).toBeVisible();
+    await page.screenshot({ path: 'test-results/screens/dono-nova-clinica.png' });
+    await expectHealthy(page, errors);
+  });
+
+  test('reenviar acesso mostra um link novo', async ({ page }) => {
+    const errors = await setup(page);
+    await page.goto(`/dono/clinicas/${ORG_B}`);
+    await page.getByTestId('resend-access').click();
+    await expect(page.getByTestId('access-link')).toContainText('token=def');
+    await expectHealthy(page, errors);
+  });
+
+  test('WhatsApp exige token na primeira vez e salva', async ({ page }) => {
+    const errors = await setup(page);
+    await page.goto(`/dono/clinicas/${ORG_B}/whatsapp`);
+    await page.locator('#wa-phone-id').fill('104857362910');
+    await page.getByRole('button', { name: 'Salvar WhatsApp' }).click();
+    await expect(page.getByRole('alert')).toHaveText('Informe o token de acesso.');
+    await page.locator('#wa-token').fill('EAAG-token-de-teste');
+    await page.getByRole('button', { name: 'Salvar WhatsApp' }).click();
+    await expect(page.getByText('WhatsApp da clínica salvo')).toBeVisible();
+    await expectHealthy(page, errors);
+  });
+
+  test('agente carrega o prompt padrão e salva', async ({ page }) => {
+    const errors = await setup(page);
+    await page.goto(`/dono/clinicas/${ORG_B}/agente-ia`);
+    await page.getByRole('button', { name: 'Carregar prompt padrão' }).click();
+    await expect(page.locator('#agent-prompt')).toHaveValue(/system_instruction/);
+    await page.getByRole('radio', { name: 'Avançado', exact: true }).click();
+    await page.getByRole('button', { name: 'Salvar agente' }).click();
+    await expect(page.getByText('Agente da clínica salvo')).toBeVisible();
+    await expectHealthy(page, errors);
+  });
+
+  test('horário recusa fim antes do início', async ({ page }) => {
+    const errors = await setup(page);
+    await page.goto(`/dono/clinicas/${ORG_B}/horarios`);
+    await page.locator('#hours-start').fill('18:00');
+    await page.locator('#hours-end').fill('09:00');
+    await page.getByRole('button', { name: 'Salvar horários' }).click();
+    await expect(page.getByRole('alert')).toHaveText('O horário de fim precisa ser depois do início.');
+    await expectHealthy(page, errors);
+  });
+
+  test('novo procedimento exige nome e salva', async ({ page }) => {
+    const errors = await setup(page);
+    await page.goto(`/dono/clinicas/${ORG_B}/procedimentos`);
+    await page.getByRole('button', { name: 'Novo procedimento' }).click();
+    await page.getByRole('button', { name: 'Salvar procedimento' }).click();
+    await expect(page.getByRole('alert')).toHaveText('Informe o nome do procedimento.');
+    await page.locator('#proc-name').fill('Limpeza de pele');
+    await page.getByRole('button', { name: 'Salvar procedimento' }).click();
+    await expect(page.getByText('Procedimento cadastrado')).toBeVisible();
+    await expectHealthy(page, errors);
+  });
+});
+
+test.describe('Primeiro acesso da dona', () => {
+  test('link vencido mostra o aviso', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (err) => errors.push(err.message));
+    await page.goto('/primeiro-acesso#error=access_denied&error_code=otp_expired&error_description=Email+link+is+invalid+or+has+expired');
+    await expect(page.getByText('Este link expirou ou já foi usado')).toBeVisible();
+    expect(errors).toEqual([]);
+  });
+
+  test('com sessão do link, pede a senha e valida', async ({ page }) => {
+    const errors = await setup(page, { owner: false });
+    await page.route(/\/auth\/v1\/user/, (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: '00000000-0000-0000-0000-000000000001', email: 'qa@nina-beleza.test', aud: 'authenticated', role: 'authenticated' }) })
+    );
+    await page.goto('/primeiro-acesso');
+    await page.locator('#new-password').fill('1234');
+    await page.getByRole('button', { name: 'Salvar senha e entrar' }).click();
+    await expect(page.getByRole('alert')).toHaveText('A senha precisa ter pelo menos 8 caracteres.');
+    await page.locator('#new-password').fill('senha-forte-123');
+    await page.locator('#confirm-password').fill('senha-forte-123');
+    await page.getByRole('button', { name: 'Salvar senha e entrar' }).click();
+    await expect(page).toHaveURL(/\/dashboard$/);
     await expectHealthy(page, errors);
   });
 });

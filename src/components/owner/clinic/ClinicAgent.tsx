@@ -1,72 +1,174 @@
-import React from 'react';
-import { Chip, PageHeader, Panel } from '../ownerUi';
+import React, { useEffect, useState } from 'react';
+import { Loader2, RotateCcw } from 'lucide-react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
+import { DEFAULT_NINA_PROMPT } from '@/prompts/default-nina-prompt';
+import { ErrorNote, PageHeader, PageLoader, Panel } from '../ownerUi';
+import { rpcErrorMessage, useClinicConfig } from '../ownerApi';
 import { useClinic } from './OwnerClinicLayout';
 
-const DAY_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+const MODELS = [
+  { id: 'flash', label: 'Rápido', hint: 'Gemini Flash: respostas rápidas e econômicas' },
+  { id: 'pro', label: 'Avançado', hint: 'Gemini Pro: respostas mais elaboradas, custo maior' },
+  { id: 'pro3', label: 'Avançado+', hint: 'Modelo Pro mais recente' },
+  { id: 'adaptive', label: 'Adaptativo', hint: 'Escolhe o modelo conforme a conversa' },
+];
 
-const MODEL_LABEL: Record<string, string> = {
-  flash: 'Rápido (Gemini Flash)',
-  pro: 'Avançado (Gemini Pro)',
-  pro3: 'Avançado (Gemini Pro)',
-  adaptive: 'Adaptativo',
-};
+const TOGGLES = [
+  { key: 'is_active', label: 'Nina ligada', hint: 'Desligada, a Nina não responde nenhuma mensagem.' },
+  { key: 'auto_response_enabled', label: 'Resposta automática', hint: 'A Nina responde sozinha às mensagens novas.' },
+  { key: 'ai_scheduling_enabled', label: 'Agendar pela IA', hint: 'A Nina marca, remarca e cancela avaliações na agenda.' },
+  { key: 'message_breaking_enabled', label: 'Quebrar mensagens longas', hint: 'Envia a resposta em partes, como uma pessoa digitando.' },
+  { key: 'audio_response_enabled', label: 'Responder em áudio', hint: 'Exige a chave do ElevenLabs configurada pela clínica.' },
+] as const;
 
-const OnOff: React.FC<{ on: boolean; onLabel?: string; offLabel?: string }> = ({ on, onLabel = 'Ligado', offLabel = 'Desligado' }) =>
-  on ? <Chip tone="ok">{onLabel}</Chip> : <Chip tone="neutral">{offLabel}</Chip>;
-
-const Row: React.FC<{ label: string; children: React.ReactNode }> = ({ label, children }) => (
-  <div className="flex items-center justify-between gap-4 border-b border-border/60 py-2.5 text-sm last:border-0">
-    <span className="text-muted-foreground">{label}</span>
-    <span className="text-right font-medium">{children}</span>
-  </div>
-);
+type ToggleKey = typeof TOGGLES[number]['key'];
 
 const ClinicAgent: React.FC = () => {
-  const { detail } = useClinic();
-  const s = detail.settings;
+  const { detail, reload: reloadDetail } = useClinic();
+  const orgId = detail.organization.id;
+  const { config, loading, error, reload } = useClinicConfig(orgId);
+
+  const [name, setName] = useState('Nina');
+  const [company, setCompany] = useState('');
+  const [mode, setMode] = useState('flash');
+  const [prompt, setPrompt] = useState('');
+  const [toggles, setToggles] = useState<Record<ToggleKey, boolean>>({
+    is_active: true, auto_response_enabled: true, ai_scheduling_enabled: true,
+    message_breaking_enabled: true, audio_response_enabled: false,
+  });
+  const [formError, setFormError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!config) return;
+    setName(config.sdr_name ?? 'Nina');
+    setCompany(config.company_name ?? '');
+    setMode(config.ai_model_mode ?? 'flash');
+    setPrompt(config.system_prompt_override ?? '');
+    setToggles({
+      is_active: config.is_active,
+      auto_response_enabled: config.auto_response_enabled,
+      ai_scheduling_enabled: config.ai_scheduling_enabled,
+      message_breaking_enabled: config.message_breaking_enabled,
+      audio_response_enabled: config.audio_response_enabled,
+    });
+  }, [config]);
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return setFormError('Informe o nome da assistente.');
+    setFormError(null);
+    setSaving(true);
+    // Texto igual ao padrão é guardado como "padrão" para receber melhorias futuras
+    const override = prompt.trim() === DEFAULT_NINA_PROMPT.trim() ? '' : prompt;
+    const { error: rpcError } = await supabase.rpc('owner_update_clinic_agent', {
+      p_org: orgId,
+      p_settings: { sdr_name: name, company_name: company, ai_model_mode: mode, system_prompt_override: override, ...toggles },
+    });
+    setSaving(false);
+    if (rpcError) {
+      setFormError(rpcErrorMessage(rpcError, 'Não foi possível salvar. Tente de novo.'));
+      return;
+    }
+    toast.success('Agente da clínica salvo');
+    reload();
+    reloadDetail();
+  };
+
+  if (loading) return <PageLoader />;
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 p-6" data-testid="clinic-agent">
-      <PageHeader eyebrow="Clínica · Agente IA" title="Agente IA" description="Como a Nina está configurada nesta clínica." />
+      <PageHeader eyebrow="Clínica · Agente IA" title="Agente IA" description="Como a Nina atende nesta clínica. Você pode configurar por ela." />
+      {error && <ErrorNote message={error} onRetry={reload} />}
 
-      {!s ? (
+      {!config ? (
         <Panel>
-          <p className="text-sm text-muted-foreground">A clínica ainda não fez o primeiro acesso, então a Nina não foi configurada.</p>
+          <p className="text-sm text-muted-foreground">Esta clínica ainda não tem a configuração da Nina. Ela é criada no cadastro da clínica ou no primeiro acesso da dona.</p>
         </Panel>
       ) : (
-        <>
+        <form onSubmit={save} className="flex flex-col gap-6" noValidate>
           <Panel title="Assistente">
-            <Row label="Nome da assistente">{s.assistant_name ?? 'Nina'}</Row>
-            <Row label="Nome usado nas conversas">{s.company_name ?? '—'}</Row>
-            <Row label="Nina"><OnOff on={s.is_active} onLabel="Ligada" offLabel="Desligada" /></Row>
-            <Row label="Resposta automática"><OnOff on={s.auto_response_enabled} /></Row>
-            <Row label="Modelo">{MODEL_LABEL[s.ai_model_mode ?? ''] ?? s.ai_model_mode ?? '—'}</Row>
-            <Row label="Agenda pela IA"><OnOff on={s.ai_scheduling_enabled} /></Row>
-            <Row label="Respostas em áudio"><OnOff on={s.audio_response_enabled} /></Row>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="agent-name">Nome da assistente</Label>
+                <Input id="agent-name" value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="agent-company">Nome da clínica nas conversas</Label>
+                <Input id="agent-company" placeholder="Studio Bella Pele" value={company} onChange={(e) => setCompany(e.target.value)} />
+              </div>
+            </div>
+            <div className="flex flex-col">
+              {TOGGLES.map((t) => (
+                <div key={t.key} className="flex items-center justify-between gap-4 border-b border-border/60 py-3 last:border-0">
+                  <div>
+                    <Label htmlFor={`agent-${t.key}`} className="text-sm font-medium">{t.label}</Label>
+                    <p className="text-xs text-muted-foreground">{t.hint}</p>
+                  </div>
+                  <Switch
+                    id={`agent-${t.key}`}
+                    checked={toggles[t.key]}
+                    onCheckedChange={(v) => setToggles((prev) => ({ ...prev, [t.key]: v }))}
+                  />
+                </div>
+              ))}
+            </div>
           </Panel>
 
-          <Panel title="Horário de atendimento">
-            <Row label="Horário">{s.business_hours ?? '—'}</Row>
-            <Row label="Dias">
-              {s.business_days && s.business_days.length > 0
-                ? [...s.business_days].sort().map((d) => DAY_LABELS[d] ?? d).join(', ')
-                : '—'}
-            </Row>
+          <Panel title="Modelo de IA">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" role="radiogroup" aria-label="Modelo de IA">
+              {MODELS.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={mode === m.id}
+                  onClick={() => setMode(m.id)}
+                  className={`rounded-lg border px-3 py-2 text-left text-sm transition-colors ${mode === m.id ? 'border-accent bg-accent/10 font-semibold' : 'border-border hover:bg-muted/50'}`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">{MODELS.find((m) => m.id === mode)?.hint}</p>
           </Panel>
 
-          <Panel title="Prompt">
-            {s.custom_prompt ? (
-              <>
-                <p className="text-sm text-muted-foreground">A clínica personalizou o prompt. Início do texto:</p>
-                <pre className="max-h-72 overflow-auto whitespace-pre-wrap rounded-lg bg-muted/60 p-4 text-xs leading-relaxed">{s.prompt_preview}</pre>
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground">Usa o prompt padrão de estética da Nina.</p>
-            )}
+          <Panel
+            title="Prompt"
+            actions={
+              <Button type="button" variant="ghost" size="sm" className="gap-1.5" onClick={() => setPrompt(DEFAULT_NINA_PROMPT)}>
+                <RotateCcw className="h-3.5 w-3.5" /> Carregar prompt padrão
+              </Button>
+            }
+          >
+            <Textarea
+              id="agent-prompt"
+              rows={14}
+              className="font-mono text-xs leading-relaxed"
+              placeholder="Em branco, a Nina usa o prompt padrão de estética. Clique em “Carregar prompt padrão” para partir dele."
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+            />
+            <p className="text-xs text-muted-foreground">
+              Variáveis disponíveis: {'{{ clinica_nome }}'}, {'{{ cliente_nome }}'}, {'{{ data_hora }}'}, {'{{ dia_semana }}'}. Apague todo o texto para voltar ao padrão.
+            </p>
           </Panel>
 
-          <p className="text-xs text-muted-foreground">Para alterar, a clínica usa o painel dela em Configurações → Agente.</p>
-        </>
+          {formError && <p className="text-sm text-destructive" role="alert">{formError}</p>}
+          <div className="flex justify-end">
+            <Button type="submit" disabled={saving}>
+              {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Salvar agente
+            </Button>
+          </div>
+        </form>
       )}
     </div>
   );

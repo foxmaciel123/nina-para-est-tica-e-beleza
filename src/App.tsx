@@ -23,6 +23,9 @@ import ClinicSummary from './components/owner/clinic/ClinicSummary';
 import ClinicWhatsapp from './components/owner/clinic/ClinicWhatsapp';
 import ClinicAgent from './components/owner/clinic/ClinicAgent';
 import ClinicBilling from './components/owner/clinic/ClinicBilling';
+import ClinicHours from './components/owner/clinic/ClinicHours';
+import ClinicProcedures from './components/owner/clinic/ClinicProcedures';
+import FirstAccess from './pages/FirstAccess';
 
 import { CompanySettingsProvider } from './hooks/useCompanySettings';
 import { AuthProvider } from './hooks/useAuth';
@@ -87,6 +90,7 @@ const App: React.FC = () => {
             <Routes>
               {/* Public Routes */}
               <Route path="/auth" element={<Auth />} />
+              <Route path="/primeiro-acesso" element={<FirstAccess />} />
 
               {/* Protected Routes (With Sidebar) */}
               <Route element={
@@ -119,6 +123,8 @@ const App: React.FC = () => {
                 <Route index element={<ClinicSummary />} />
                 <Route path="whatsapp" element={<ClinicWhatsapp />} />
                 <Route path="agente-ia" element={<ClinicAgent />} />
+                <Route path="horarios" element={<ClinicHours />} />
+                <Route path="procedimentos" element={<ClinicProcedures />} />
                 <Route path="cobranca" element={<ClinicBilling />} />
               </Route>
 

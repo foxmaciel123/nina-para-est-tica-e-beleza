@@ -1,77 +1,12 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { getUserOrgId } from '../_shared/tenant.ts';
+import { DEFAULT_NINA_SETTINGS, DEFAULT_PIPELINE_STAGES, DEFAULT_TAG_DEFINITIONS, DEFAULT_TEAMS, DEFAULT_TEAM_FUNCTIONS, generateVerifyToken } from '../_shared/clinic-defaults.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Generate a unique verify token
-function generateVerifyToken(): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = 'nina-beleza-';
-  for (let i = 0; i < 16; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}
-
-// Default pipeline stages
-const DEFAULT_PIPELINE_STAGES = [
-  { position: 0, title: 'Novas Interessadas', color: 'border-pink-500', is_system: false, is_ai_managed: false },
-  { position: 1, title: 'Avaliação Agendada', color: 'border-rose-500', is_system: false, is_ai_managed: true },
-  { position: 2, title: 'Pós-avaliação', color: 'border-fuchsia-500', is_system: false, is_ai_managed: true },
-  { position: 3, title: 'Negociando Pacote', color: 'border-amber-500', is_system: false, is_ai_managed: false },
-  { position: 100, title: 'Ganho', color: 'border-green-500', is_system: true, is_ai_managed: false },
-  { position: 101, title: 'Perdido', color: 'border-red-500', is_system: true, is_ai_managed: false },
-];
-
-// Default tag definitions
-const DEFAULT_TAG_DEFINITIONS = [
-  { key: 'hot_lead', label: 'Pronta pra agendar', color: '#ef4444', category: 'status' },
-  { key: 'warm_lead', label: 'Interessada', color: '#f97316', category: 'status' },
-  { key: 'cold_lead', label: 'Só pesquisando', color: '#3b82f6', category: 'status' },
-  { key: 'qualified', label: 'Perfil ideal', color: '#22c55e', category: 'qualification' },
-  { key: 'unqualified', label: 'Fora do perfil', color: '#6b7280', category: 'qualification' },
-  { key: 'interested', label: 'Quer saber valores', color: '#8b5cf6', category: 'interest' },
-  { key: 'follow_up', label: 'Retomar contato', color: '#eab308', category: 'action' },
-  { key: 'demo_requested', label: 'Avaliação solicitada', color: '#06b6d4', category: 'action' },
-];
-
-// Default teams
-const DEFAULT_TEAMS = [
-  { name: 'Recepção', description: 'Atendimento e agendamento', color: '#ec4899', is_active: true },
-  { name: 'Procedimentos', description: 'Profissionais que realizam os atendimentos', color: '#22c55e', is_active: true },
-];
-
-// Default team functions
-const DEFAULT_TEAM_FUNCTIONS = [
-  { name: 'Recepcionista', description: 'Atende, agenda e confirma horários', is_active: true },
-  { name: 'Esteticista', description: 'Realiza avaliações e procedimentos', is_active: true },
-  { name: 'Gestora', description: 'Acompanha pacotes, financeiro e pós-atendimento', is_active: true },
-];
-
-// Default nina_settings values for a fresh system
-const DEFAULT_NINA_SETTINGS = {
-  is_active: true,
-  auto_response_enabled: true,
-  ai_model_mode: 'flash',
-  timezone: 'America/Sao_Paulo',
-  business_hours_start: '09:00:00',
-  business_hours_end: '18:00:00',
-  business_days: [1, 2, 3, 4, 5],
-  audio_response_enabled: false,
-  response_delay_min: 1000,
-  response_delay_max: 3000,
-  message_breaking_enabled: true,
-  adaptive_response_enabled: true,
-  ai_scheduling_enabled: true,
-  route_all_to_receiver_enabled: false,
-  company_name: 'Minha Clínica',
-  sdr_name: 'Nina',
-  // null = usa o prompt padrão de beleza/estética (DEFAULT_NINA_PROMPT)
-  system_prompt_override: null,
-};
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {

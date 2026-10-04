@@ -14,6 +14,7 @@ import {
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { BillingChip, Chip, PageHeader, Panel, formatBRL, formatDate, formatNumber, formatRelative, formatUSD } from '../ownerUi';
 import { ClinicDetail, useClinic } from './OwnerClinicLayout';
+import { ClinicHistory, ResendAccessButton } from './ClinicHistory';
 
 const EditClinicDialog: React.FC<{ open: boolean; onClose: () => void; detail: ClinicDetail; onSaved: () => void }> = ({ open, onClose, detail, onSaved }) => {
   const org = detail.organization;
@@ -104,6 +105,7 @@ const ClinicSummary: React.FC = () => {
   const [editing, setEditing] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [historyKey, setHistoryKey] = useState(0);
 
   const { organization: org, billing, members, usage_30d: usage, daily_ai_messages: daily } = detail;
   const isSuspended = org.status === 'suspended';
@@ -145,6 +147,7 @@ const ClinicSummary: React.FC = () => {
         description={`Cliente desde ${formatDate(org.created_at)}`}
         actions={
           <>
+            <ResendAccessButton orgId={org.id} onDone={() => setHistoryKey((k) => k + 1)} />
             <Button variant="outline" onClick={() => setEditing(true)} className="gap-2">
               <Pencil className="h-4 w-4" /> Editar dados
             </Button>
@@ -237,6 +240,8 @@ const ClinicSummary: React.FC = () => {
           )}
         </Panel>
       </div>
+
+      <ClinicHistory orgId={org.id} refreshKey={`${historyKey}-${org.status}-${org.name}-${org.monthly_fee}`} />
 
       <EditClinicDialog open={editing} onClose={() => setEditing(false)} detail={detail} onSaved={reload} />
 
