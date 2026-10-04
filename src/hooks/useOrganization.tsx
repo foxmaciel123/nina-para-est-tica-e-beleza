@@ -21,35 +21,44 @@ const OrganizationContext = createContext<OrganizationContextType | undefined>(u
 
 export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
   const { user, loading: authLoading } = useAuth();
+  // Depende só do id: o Supabase recria o objeto user a cada renovação de
+  // token / volta à aba, e isso não pode recarregar a clínica nem as telas.
+  const userId = user?.id ?? null;
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [isPlatformOwner, setIsPlatformOwner] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loadedFor, setLoadedFor] = useState<string | null | undefined>(undefined);
 
   const refresh = useCallback(async () => {
-    if (!user) {
+    if (!userId) {
       setOrganization(null);
       setIsPlatformOwner(false);
-      setLoading(false);
+      setLoadedFor(null);
       return;
     }
 
-    setLoading(true);
     const [orgResult, ownerResult] = await Promise.all([
       supabase.rpc('my_organization'),
       supabase.rpc('is_platform_owner'),
     ]);
 
-    if (orgResult.error) console.error('[useOrganization] my_organization:', orgResult.error);
-    if (ownerResult.error) console.error('[useOrganization] is_platform_owner:', ownerResult.error);
+    // Falha de rede numa atualização não derruba a clínica já carregada
+    if (orgResult.error || ownerResult.error) {
+      console.error('[useOrganization]', orgResult.error ?? ownerResult.error);
+      setLoadedFor((prev) => (prev === userId ? prev : userId));
+      return;
+    }
 
     setOrganization(orgResult.data?.[0] ?? null);
     setIsPlatformOwner(ownerResult.data === true);
-    setLoading(false);
-  }, [user]);
+    setLoadedFor(userId);
+  }, [userId]);
 
   useEffect(() => {
     if (!authLoading) refresh();
   }, [authLoading, refresh]);
+
+  // Só mostra carregando na primeira vez para este usuário
+  const loading = authLoading || loadedFor !== userId;
 
   return (
     <OrganizationContext.Provider
@@ -57,7 +66,7 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
         organization,
         isPlatformOwner,
         isSuspended: organization?.status === 'suspended',
-        loading: authLoading || loading,
+        loading,
         refresh,
       }}
     >
