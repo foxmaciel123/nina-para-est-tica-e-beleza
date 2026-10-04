@@ -1,8 +1,27 @@
 import type { Page } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
-// Lido de VITE_SUPABASE_PROJECT_ID em .env — nunca hardcode o ref aqui.
-const SUPABASE_PROJECT_REF =
-  process.env.VITE_SUPABASE_PROJECT_ID ?? process.env.SUPABASE_PROJECT_ID ?? '';
+// O supabase-js guarda a sessão em `sb-<1º pedaço do host>-auth-token`.
+// Lê VITE_SUPABASE_URL do ambiente ou do .env — nunca hardcode o host aqui.
+function readSupabaseUrl(): string {
+  if (process.env.VITE_SUPABASE_URL) return process.env.VITE_SUPABASE_URL;
+  try {
+    const env = readFileSync(resolve(process.cwd(), '.env'), 'utf8');
+    const match = env.match(/^VITE_SUPABASE_URL\s*=\s*"?([^"\r\n]+)"?/m);
+    return match?.[1] ?? '';
+  } catch {
+    return '';
+  }
+}
+
+const SUPABASE_PROJECT_REF = (() => {
+  try {
+    return new URL(readSupabaseUrl()).hostname.split('.')[0];
+  } catch {
+    return '';
+  }
+})();
 
 /**
  * Injeta uma sessão Supabase fake no localStorage antes do app carregar.
@@ -77,6 +96,11 @@ export async function bypassAuth(page: Page) {
     }
   });
 
+  // RPCs: devolve vazio por padrão (testes registram mocks específicos com mockRpc)
+  await page.route(/\/rest\/v1\/rpc\//, async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: 'null' });
+  });
+
   // Bloqueia chamadas a edge functions (functions/v1/*) com 200 vazio
   await page.route(/\/functions\/v1\//, async (route) => {
     await route.fulfill({
@@ -84,5 +108,15 @@ export async function bypassAuth(page: Page) {
       contentType: 'application/json',
       body: JSON.stringify({ ok: true }),
     });
+  });
+}
+
+/**
+ * Responde uma RPC do Supabase (`/rest/v1/rpc/<name>`) com dados fixos.
+ * Registre depois do bypassAuth: no Playwright a rota registrada por último vence.
+ */
+export async function mockRpc(page: Page, name: string, data: unknown) {
+  await page.route(new RegExp(`/rest/v1/rpc/${name}(\\?|$)`), async (route) => {
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(data) });
   });
 }

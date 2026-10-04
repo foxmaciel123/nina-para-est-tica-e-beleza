@@ -51,11 +51,10 @@ export const RequireClinic: React.FC = () => {
   return <Outlet context={layoutContext} />;
 };
 
-// Telas do dono da plataforma
-export const RequireOwner: React.FC = () => {
+// Telas do dono da plataforma (envolve a moldura própria do Painel do Dono)
+export const RequireOwner: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isPlatformOwner, loading } = useOrganization();
-  const layoutContext = useOutletContext();
-  if (loading) return <FullLoader />;
+  if (loading) return <div className="h-screen"><FullLoader /></div>;
   if (!isPlatformOwner) return <Navigate to="/dashboard" replace />;
-  return <Outlet context={layoutContext} />;
+  return <>{children}</>;
 };

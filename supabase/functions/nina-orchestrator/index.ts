@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { AI_CHAT_URL, getAiApiKey, resolveModel } from "../_shared/ai.ts";
+import { AI_CHAT_URL, getAiApiKey, logAiUsage, resolveModel } from "../_shared/ai.ts";
 import { DEFAULT_NINA_PROMPT } from "../_shared/default-nina-prompt.ts";
 import { isOrgActive } from "../_shared/tenant.ts";
 
@@ -1209,6 +1209,7 @@ async function processQueueItem(
   }
 
   const aiData = await aiResponse.json();
+  await logAiUsage(supabase, settings?.organization_id, 'chat', requestBody.model, aiData.usage);
   const aiMessage = aiData.choices?.[0]?.message;
   let aiContent = aiMessage?.content || '';
   const toolCalls = aiMessage?.tool_calls || [];
@@ -1340,6 +1341,7 @@ async function processQueueItem(
 
       if (secondResponse.ok) {
         const secondData = await secondResponse.json();
+        await logAiUsage(supabase, settings?.organization_id, 'chat', resolveModel(aiSettings.model), secondData.usage);
         aiContent = secondData.choices?.[0]?.message?.content || aiContent;
         console.log('[Nina] Segunda chamada após list_procedures concluída');
       } else {

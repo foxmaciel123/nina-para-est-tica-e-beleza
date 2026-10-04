@@ -12,8 +12,17 @@ import Kanban from './components/Kanban';
 import Auth from './pages/Auth';
 import ProtectedRoute from './components/ProtectedRoute';
 import { RequireClinic, RequireOwner } from './components/AccessGates';
+import OwnerLayout from './components/owner/OwnerLayout';
 import OwnerDashboard from './components/owner/OwnerDashboard';
-import OwnerClinicDetail from './components/owner/OwnerClinicDetail';
+import OwnerClinics from './components/owner/OwnerClinics';
+import OwnerBilling from './components/owner/OwnerBilling';
+import OwnerAiUsage from './components/owner/OwnerAiUsage';
+import OwnerAlerts from './components/owner/OwnerAlerts';
+import OwnerClinicLayout from './components/owner/clinic/OwnerClinicLayout';
+import ClinicSummary from './components/owner/clinic/ClinicSummary';
+import ClinicWhatsapp from './components/owner/clinic/ClinicWhatsapp';
+import ClinicAgent from './components/owner/clinic/ClinicAgent';
+import ClinicBilling from './components/owner/clinic/ClinicBilling';
 
 import { CompanySettingsProvider } from './hooks/useCompanySettings';
 import { AuthProvider } from './hooks/useAuth';
@@ -95,12 +104,22 @@ const App: React.FC = () => {
                   <Route path="/team" element={<Team />} />
                   <Route path="/settings" element={<Settings />} />
                 </Route>
+              </Route>
 
-                {/* Painel do Dono */}
-                <Route element={<RequireOwner />}>
-                  <Route path="/dono" element={<OwnerDashboard />} />
-                  <Route path="/dono/clinicas/:id" element={<OwnerClinicDetail />} />
-                </Route>
+              {/* Painel do Dono: moldura própria, separada do painel da clínica */}
+              <Route element={<ProtectedRoute><RequireOwner><OwnerLayout /></RequireOwner></ProtectedRoute>}>
+                <Route path="/dono" element={<Navigate to="/dono/dashboard" replace />} />
+                <Route path="/dono/dashboard" element={<OwnerDashboard />} />
+                <Route path="/dono/clinicas" element={<OwnerClinics />} />
+                <Route path="/dono/vencimentos" element={<OwnerBilling />} />
+                <Route path="/dono/consumo-ia" element={<OwnerAiUsage />} />
+                <Route path="/dono/alertas" element={<OwnerAlerts />} />
+              </Route>
+              <Route path="/dono/clinicas/:id" element={<ProtectedRoute><RequireOwner><OwnerClinicLayout /></RequireOwner></ProtectedRoute>}>
+                <Route index element={<ClinicSummary />} />
+                <Route path="whatsapp" element={<ClinicWhatsapp />} />
+                <Route path="agente-ia" element={<ClinicAgent />} />
+                <Route path="cobranca" element={<ClinicBilling />} />
               </Route>
 
               {/* Catch all - redirect to dashboard */}

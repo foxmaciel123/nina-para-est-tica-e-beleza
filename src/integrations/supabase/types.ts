@@ -1526,9 +1526,61 @@ export type Database = {
           appointments_30d: number
           whatsapp_connected: boolean
           last_activity_at: string | null
+          monthly_fee: number
+          billing_state: string
+          next_due_date: string | null
         }[]
       }
       owner_organization_detail: { Args: { p_org: string }; Returns: Json }
+      owner_dashboard_summary: { Args: never; Returns: Json }
+      owner_update_organization: {
+        Args: {
+          p_org: string
+          p_name: string
+          p_monthly_fee: number
+          p_contact_name: string
+          p_contact_phone: string
+          p_notes: string
+        }
+        Returns: undefined
+      }
+      owner_list_charges: {
+        Args: { p_org?: string | null }
+        Returns: {
+          id: string
+          organization_id: string
+          organization_name: string
+          due_date: string
+          amount: number
+          status: string
+          display_status: string
+          paid_at: string | null
+          payment_method: string | null
+          notes: string | null
+        }[]
+      }
+      owner_create_charge: {
+        Args: { p_org: string; p_due_date: string; p_amount: number; p_notes?: string | null }
+        Returns: string
+      }
+      owner_mark_charge_paid: {
+        Args: { p_charge: string; p_paid_at?: string | null; p_method?: string | null }
+        Returns: undefined
+      }
+      owner_cancel_charge: { Args: { p_charge: string }; Returns: undefined }
+      owner_ai_usage: { Args: { p_days?: number }; Returns: Json }
+      owner_alerts: {
+        Args: never
+        Returns: {
+          severity: string
+          kind: string
+          organization_id: string | null
+          organization_name: string | null
+          title: string
+          detail: string
+          since: string | null
+        }[]
+      }
       owner_set_organization_status: {
         Args: { p_org: string; p_status: string }
         Returns: undefined

@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { getAiApiKey, transcribeAudioWithGemini } from "../_shared/ai.ts";
+import { getAiApiKey, logAiUsage, transcribeAudioWithGemini } from "../_shared/ai.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -80,7 +80,7 @@ serve(async (req) => {
         // Get owner settings for this phone_number_id
         const { data: ownerSettings } = await supabase
           .from('nina_settings')
-          .select('user_id, whatsapp_access_token')
+          .select('user_id, organization_id, whatsapp_access_token')
           .eq('whatsapp_phone_number_id', phoneNumberId)
           .maybeSingle();
 
@@ -258,7 +258,9 @@ async function combineAndTranscribeMessages(
         console.log('[MessageGrouper] Transcribing audio:', audioMediaId);
         const audioBuffer = await downloadWhatsAppMedia(settings, audioMediaId);
         if (audioBuffer) {
-          const transcription = await transcribeAudio(audioBuffer);
+          const transcription = await transcribeAudio(audioBuffer, (model, usage) =>
+            logAiUsage(supabase, settings?.organization_id, 'transcription', model, usage)
+          );
           if (transcription) {
             content = transcription;
             // Update the message in database with transcription
@@ -328,11 +330,14 @@ async function downloadWhatsAppMedia(settings: any, mediaId: string): Promise<Ar
 }
 
 // Transcribe audio using Gemini
-async function transcribeAudio(audioBuffer: ArrayBuffer): Promise<string | null> {
+async function transcribeAudio(
+  audioBuffer: ArrayBuffer,
+  onUsage?: (model: string, usage: any) => void
+): Promise<string | null> {
   try {
     console.log('[MessageGrouper] Transcribing audio, size:', audioBuffer.byteLength, 'bytes');
 
-    const transcription = await transcribeAudioWithGemini(audioBuffer, 'audio/ogg');
+    const transcription = await transcribeAudioWithGemini(audioBuffer, 'audio/ogg', onUsage);
 
     console.log('[MessageGrouper] Transcription result:', transcription);
     return transcription || null;

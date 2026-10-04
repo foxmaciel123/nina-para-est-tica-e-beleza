@@ -1,4 +1,6 @@
-import { AI_CHAT_URL, getAiApiKey, resolveModel } from "../_shared/ai.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { AI_CHAT_URL, getAiApiKey, logAiUsage, resolveModel } from "../_shared/ai.ts";
+import { getUserOrgId } from "../_shared/tenant.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -262,6 +264,12 @@ Retorne o XML final, refinado para soar natural em português brasileiro de clí
     }
 
     const data = await response.json();
+
+    // Consumo de IA na clínica de quem pediu o prompt
+    const authHeader = req.headers.get('authorization') || '';
+    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const { data: { user } } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''));
+    await logAiUsage(supabase, await getUserOrgId(supabase, user?.id), 'prompt', resolveModel('google/gemini-3-pro-preview'), data.usage);
     const generatedPrompt = data.choices?.[0]?.message?.content;
 
     if (!generatedPrompt) {

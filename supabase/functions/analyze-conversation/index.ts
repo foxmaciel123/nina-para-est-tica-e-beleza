@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { AI_CHAT_URL, getAiApiKey, resolveModel } from "../_shared/ai.ts";
+import { AI_CHAT_URL, getAiApiKey, logAiUsage, resolveModel } from "../_shared/ai.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -228,6 +228,7 @@ ESTÁGIO ATUAL DO DEAL: ${currentDeal?.stage || 'Sem estágio'}` : ''}
     }
 
     const analysisData = await analysisResponse.json();
+    await logAiUsage(supabase, contactOrg?.organization_id, 'analysis', resolveModel('google/gemini-2.5-flash'), analysisData.usage);
     const toolCalls = analysisData.choices?.[0]?.message?.tool_calls || [];
     
     if (toolCalls.length === 0) {

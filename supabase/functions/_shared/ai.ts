@@ -29,10 +29,41 @@ export function resolveModel(model: string | null | undefined): string {
   return name;
 }
 
+// Registra tokens usados por clínica (tela Consumo de IA do Painel do Dono).
+// Aceita o `usage` do endpoint OpenAI-compatível ou o `usageMetadata` nativo.
+// Nunca derruba a resposta da Nina se o registro falhar.
+export async function logAiUsage(
+  supabase: any,
+  orgId: string | null | undefined,
+  kind: 'chat' | 'analysis' | 'prompt' | 'transcription',
+  model: string,
+  usage: any,
+): Promise<void> {
+  if (!orgId || !usage) return;
+  const promptTokens = Number(usage.prompt_tokens ?? usage.promptTokenCount ?? 0);
+  const total = Number(usage.total_tokens ?? usage.totalTokenCount ?? 0);
+  // total - prompt inclui tokens de raciocínio (cobrados como saída no Gemini 2.5)
+  const completionTokens = total > promptTokens
+    ? total - promptTokens
+    : Number(usage.completion_tokens ?? usage.candidatesTokenCount ?? 0);
+  try {
+    await supabase.from('ai_usage_events').insert({
+      organization_id: orgId,
+      kind,
+      model,
+      prompt_tokens: promptTokens,
+      completion_tokens: completionTokens,
+    });
+  } catch (err) {
+    console.warn('[ai] Falha ao registrar consumo de IA:', err);
+  }
+}
+
 // Transcreve áudio (ogg/opus do WhatsApp) com o Gemini nativo.
 export async function transcribeAudioWithGemini(
   audioBuffer: ArrayBuffer,
   mimeType = 'audio/ogg',
+  onUsage?: (model: string, usage: any) => void,
 ): Promise<string | null> {
   const apiKey = getAiApiKey();
   if (!apiKey) return null;
@@ -65,6 +96,7 @@ export async function transcribeAudioWithGemini(
   }
 
   const data = await response.json();
+  onUsage?.(model, data.usageMetadata);
   const text = data.candidates?.[0]?.content?.parts?.map((p: { text?: string }) => p.text || '').join('').trim();
   return text || null;
 }
