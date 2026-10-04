@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate, Outlet, Link } from 'react-router-dom';
+import { Navigate, Outlet, Link, useOutletContext } from 'react-router-dom';
 import { Loader2, CirclePause, Building2 } from 'lucide-react';
 import { useOrganization } from '@/hooks/useOrganization';
 
@@ -19,9 +19,11 @@ const Notice: React.FC<{ icon: React.ReactNode; title: string; children: React.R
   </div>
 );
 
-// Telas da clínica: exige clínica vinculada e ativa
+// Telas da clínica: exige clínica vinculada e ativa.
+// Repassa o contexto do AppLayout (setShowOnboarding etc.) para as telas filhas.
 export const RequireClinic: React.FC = () => {
   const { organization, isSuspended, isPlatformOwner, loading } = useOrganization();
+  const layoutContext = useOutletContext();
 
   if (loading) return <FullLoader />;
 
@@ -46,13 +48,14 @@ export const RequireClinic: React.FC = () => {
     );
   }
 
-  return <Outlet />;
+  return <Outlet context={layoutContext} />;
 };
 
 // Telas do dono da plataforma
 export const RequireOwner: React.FC = () => {
   const { isPlatformOwner, loading } = useOrganization();
+  const layoutContext = useOutletContext();
   if (loading) return <FullLoader />;
   if (!isPlatformOwner) return <Navigate to="/dashboard" replace />;
-  return <Outlet />;
+  return <Outlet context={layoutContext} />;
 };

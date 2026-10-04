@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
+import ScreenErrorBoundary from './components/ScreenErrorBoundary';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import ChatInterface from './components/ChatInterface';
@@ -26,6 +27,7 @@ import { useOnboardingStatus } from './hooks/useOnboardingStatus';
 const AppLayout: React.FC = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { isComplete, hasSeenWizard, loading } = useOnboardingStatus();
+  const location = useLocation();
 
   // Show wizard automatically on first load if not complete and never seen
   useEffect(() => {
@@ -47,7 +49,9 @@ const AppLayout: React.FC = () => {
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-border to-transparent opacity-50 z-20"></div>
         
         <div className="flex-1 w-full h-full relative">
-          <Outlet context={{ showOnboarding, setShowOnboarding }} />
+          <ScreenErrorBoundary key={location.pathname}>
+            <Outlet context={{ showOnboarding, setShowOnboarding }} />
+          </ScreenErrorBoundary>
         </div>
       </main>
 
