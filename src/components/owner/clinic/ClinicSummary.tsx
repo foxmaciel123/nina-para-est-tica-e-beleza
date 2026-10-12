@@ -162,7 +162,7 @@ const ClinicSummary: React.FC = () => {
       {isSuspended && (
         <div className="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm">
           <CirclePause className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-500" />
-          <p>A equipe desta clínica está sem acesso ao painel e a Nina não responde nem envia mensagens. As mensagens que chegam continuam guardadas.</p>
+          <p>A equipe desta clínica está sem acesso ao painel e a assistente não responde nem envia mensagens. As mensagens que chegam continuam guardadas.</p>
         </div>
       )}
 
@@ -251,8 +251,8 @@ const ClinicSummary: React.FC = () => {
             <AlertDialogTitle>{isSuspended ? `Reativar ${org.name}?` : `Suspender ${org.name}?`}</AlertDialogTitle>
             <AlertDialogDescription>
               {isSuspended
-                ? 'A equipe volta a acessar o painel e a Nina volta a responder no WhatsApp da clínica.'
-                : 'A equipe perde o acesso ao painel e a Nina para de responder e de enviar lembretes. As mensagens que chegarem continuam guardadas e aparecem quando você reativar.'}
+                ? 'A equipe volta a acessar o painel e a assistente volta a responder no WhatsApp da clínica.'
+                : 'A equipe perde o acesso ao painel e a assistente para de responder e de enviar lembretes. As mensagens que chegarem continuam guardadas e aparecem quando você reativar.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

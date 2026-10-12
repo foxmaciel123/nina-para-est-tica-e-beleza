@@ -15,7 +15,7 @@ interface UsageData {
 }
 
 const KIND_LABEL: Record<string, string> = {
-  chat: 'Respostas da Nina',
+  chat: 'Respostas da IA',
   analysis: 'Análise de conversas',
   transcription: 'Transcrição de áudios',
   prompt: 'Gerador de prompt',
@@ -83,7 +83,7 @@ const OwnerAiUsage: React.FC = () => {
         <>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <Stat label="Custo estimado" value={formatUSD(data.totals.cost_usd)} hint={`Últimos ${data.days} dias`} />
-            <Stat label="Respostas da Nina" value={formatNumber(data.responses)} />
+            <Stat label="Respostas da IA" value={formatNumber(data.responses)} />
             <Stat label="Tokens de entrada" value={formatNumber(data.totals.prompt_tokens)} />
             <Stat label="Tokens de saída" value={formatNumber(data.totals.completion_tokens)} />
           </div>
@@ -142,7 +142,7 @@ const OwnerAiUsage: React.FC = () => {
           <div className="grid gap-6 lg:grid-cols-2">
             <Panel title="Por tipo de uso">
               {data.by_kind.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Ainda não houve uso de IA no período. O consumo passa a ser registrado assim que a Nina responder.</p>
+                <p className="text-sm text-muted-foreground">Ainda não houve uso de IA no período. O consumo passa a ser registrado assim que a assistente responder.</p>
               ) : (
                 <ul className="flex flex-col">
                   {data.by_kind.map((k) => (

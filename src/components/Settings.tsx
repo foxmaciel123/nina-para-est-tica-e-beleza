@@ -12,6 +12,7 @@ import { useCompanySettings } from '@/hooks/useCompanySettings';
 import { Button } from './Button';
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus';
 import { useOutletContext } from 'react-router-dom';
+import { useOrganization } from '@/hooks/useOrganization';
 
 interface OutletContext {
   showOnboarding: boolean;
@@ -20,6 +21,8 @@ interface OutletContext {
 
 const Settings: React.FC = () => {
   const { companyName, isAdmin } = useCompanySettings();
+  // Documentação técnica só para o dono da plataforma (as clínicas não veem)
+  const { isPlatformOwner } = useOrganization();
   const agentRef = useRef<AgentSettingsRef>(null);
   const apiRef = useRef<ApiSettingsRef>(null);
   const [activeTab, setActiveTab] = useState('agent');
@@ -57,7 +60,7 @@ const Settings: React.FC = () => {
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-white" data-testid="settings-title">Configurações</h2>
           <p className="text-sm text-slate-400 mt-1">
-            Ajuste como a Nina atende as clientes da {companyName || 'sua clínica'}.
+            Ajuste como a assistente atende as clientes da {companyName || 'sua clínica'}.
             {!isAdmin && (
               <span className="ml-2 text-amber-400">(Somente leitura)</span>
             )}
@@ -112,10 +115,12 @@ const Settings: React.FC = () => {
               <Bell className="w-4 h-4" />
               Lembretes
             </TabsTrigger>
-            <TabsTrigger value="docs" className="gap-2">
-              <BookOpen className="w-4 h-4" />
-              Documentação
-            </TabsTrigger>
+            {isPlatformOwner && (
+              <TabsTrigger value="docs" className="gap-2">
+                <BookOpen className="w-4 h-4" />
+                Documentação
+              </TabsTrigger>
+            )}
           </TabsList>
 
           {(activeTab === 'agent' || activeTab === 'apis') && isAdmin && (
@@ -179,9 +184,11 @@ const Settings: React.FC = () => {
           <RemindersManager />
         </TabsContent>
 
-        <TabsContent value="docs">
-          <SystemRoadmap />
-        </TabsContent>
+        {isPlatformOwner && (
+          <TabsContent value="docs">
+            <SystemRoadmap />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

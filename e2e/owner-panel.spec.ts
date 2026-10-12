@@ -12,7 +12,7 @@ const ORG_B = '22222222-2222-4222-8222-222222222222';
 const clinics = [
   {
     id: ORG_A, name: 'Minha Clínica', status: 'active', created_at: '2026-09-01T12:00:00Z',
-    admin_email: 'qa@nina-beleza.test', members: 1, contacts: 120, conversations_30d: 80,
+    admin_email: 'qa@clinica.test', members: 1, contacts: 120, conversations_30d: 80,
     ai_messages_30d: 310, appointments_30d: 14, whatsapp_connected: true,
     last_activity_at: new Date().toISOString(), monthly_fee: 397, billing_state: 'ok', next_due_date: '2026-11-10',
   },
@@ -44,8 +44,8 @@ const detailB = {
   billing: { state: 'overdue', next_due_date: '2026-10-01', overdue_amount: 297 },
   members: [{ email: 'dona@harmoniza.test', role: 'admin', full_name: 'Carla', joined_at: '2026-09-10T12:00:00Z', last_sign_in_at: null }],
   settings: {
-    company_name: 'Harmoniza Face', assistant_name: 'Nina', is_active: true, auto_response_enabled: true,
-    whatsapp_connected: false, custom_prompt: true, prompt_preview: 'Você é a Nina, assistente da Harmoniza Face...',
+    company_name: 'Harmoniza Face', assistant_name: 'Bia', is_active: true, auto_response_enabled: true,
+    whatsapp_connected: false, custom_prompt: true, prompt_preview: 'Você é a Bia, assistente da Harmoniza Face...',
     ai_model_mode: 'flash', business_hours: '09:00:00 – 18:00:00', business_days: [1, 2, 3, 4, 5],
     audio_response_enabled: false, ai_scheduling_enabled: true,
   },
@@ -53,6 +53,8 @@ const detailB = {
   usage_30d: { contacts_total: 45, new_contacts: 10, conversations: 30, messages_received: 200, ai_messages: 90, appointments: 6, ai_tokens: 120000, ai_cost_usd: 0.12 },
   daily_ai_messages: days.map(({ day, count }) => ({ day, count })),
 };
+
+const BRAND = { name: 'Marca QA', tagline: 'Estética com IA', logo_url: null, icon_url: null, accent_color: '#0A4F95', support_email: 'ajuda@marca.test', support_whatsapp: '11 90000-0000' };
 
 async function setup(page: Page, opts: { owner?: boolean; orgStatus?: string } = {}) {
   const errors: string[] = [];
@@ -64,7 +66,7 @@ async function setup(page: Page, opts: { owner?: boolean; orgStatus?: string } =
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify({
-        results: [{ component: 'identity', status: 'ok', message: 'Nina - Minha Clínica' }],
+        results: [{ component: 'identity', status: 'ok', message: 'Bia - Minha Clínica' }],
         overallStatus: 'ok',
         summary: { ok: 1, warning: 0, error: 0, total: 1, percentage: 100 },
       }),
@@ -81,7 +83,7 @@ async function setup(page: Page, opts: { owner?: boolean; orgStatus?: string } =
   await mockRpc(page, 'owner_list_charges', charges);
   await mockRpc(page, 'owner_organization_detail', detailB);
   await mockRpc(page, 'owner_get_clinic_config', {
-    company_name: 'Harmoniza Face', sdr_name: 'Nina', is_active: true, auto_response_enabled: true,
+    company_name: 'Harmoniza Face', sdr_name: 'Bia', is_active: true, auto_response_enabled: true,
     ai_model_mode: 'flash', system_prompt_override: null, audio_response_enabled: false,
     ai_scheduling_enabled: true, message_breaking_enabled: true, business_hours_start: '09:00:00',
     business_hours_end: '18:00:00', business_days: [1, 2, 3, 4, 5], timezone: 'America/Sao_Paulo',
@@ -94,9 +96,10 @@ async function setup(page: Page, opts: { owner?: boolean; orgStatus?: string } =
       professional_id: null, user_id: null, created_at: '2026-10-01T00:00:00Z', updated_at: '2026-10-01T00:00:00Z' },
   ]);
   await mockRpc(page, 'owner_list_audit', [
-    { action: 'clinic_created', details: { email: 'dona@harmoniza.test' }, actor_email: 'qa@nina-beleza.test', created_at: '2026-09-10T12:00:00Z' },
+    { action: 'clinic_created', details: { email: 'dona@harmoniza.test' }, actor_email: 'qa@clinica.test', created_at: '2026-09-10T12:00:00Z' },
   ]);
-  for (const name of ['owner_update_clinic_whatsapp', 'owner_update_clinic_agent', 'owner_update_clinic_hours', 'owner_save_procedure']) {
+  await mockRpc(page, 'public_brand', BRAND);
+  for (const name of ['owner_update_platform_brand', 'owner_update_clinic_whatsapp', 'owner_update_clinic_agent', 'owner_update_clinic_hours', 'owner_save_procedure']) {
     await mockRpc(page, name, null);
   }
   await page.route(/\/functions\/v1\/owner-actions/, async (route) => {
@@ -134,6 +137,7 @@ const ownerPages = [
   { path: '/dono/vencimentos', heading: 'Vencimentos', shot: 'dono-vencimentos', expectText: 'Em atraso' },
   { path: '/dono/consumo-ia', heading: 'Consumo de IA', shot: 'dono-consumo-ia', expectText: 'Por clínica' },
   { path: '/dono/alertas', heading: 'Alertas', shot: 'dono-alertas', expectText: 'WhatsApp não conectado' },
+  { path: '/dono/marca', heading: 'Marca', shot: 'dono-marca', expectText: 'Prévia' },
   { path: `/dono/clinicas/${ORG_B}`, heading: 'Harmoniza Face', shot: 'clinica-resumo', expectText: 'Uso nos últimos 30 dias' },
   { path: `/dono/clinicas/${ORG_B}/whatsapp`, heading: 'WhatsApp', shot: 'clinica-whatsapp', expectText: 'Token de verificação' },
   { path: `/dono/clinicas/${ORG_B}/agente-ia`, heading: 'Agente IA', shot: 'clinica-agente', expectText: 'Carregar prompt padrão' },
@@ -289,7 +293,7 @@ test.describe('Primeiro acesso da dona', () => {
   test('com sessão do link, pede a senha e valida', async ({ page }) => {
     const errors = await setup(page, { owner: false });
     await page.route(/\/auth\/v1\/user/, (route) =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: '00000000-0000-0000-0000-000000000001', email: 'qa@nina-beleza.test', aud: 'authenticated', role: 'authenticated' }) })
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: '00000000-0000-0000-0000-000000000001', email: 'qa@clinica.test', aud: 'authenticated', role: 'authenticated' }) })
     );
     await page.goto('/primeiro-acesso');
     await page.locator('#new-password').fill('1234');
@@ -347,6 +351,58 @@ test.describe('Painel da clínica continua igual', () => {
     const errors = await setup(page, { owner: false, orgStatus: 'suspended' });
     await page.goto('/dashboard');
     await expect(page.getByText('Acesso suspenso')).toBeVisible();
+    await expectHealthy(page, errors);
+  });
+});
+
+test.describe('White label', () => {
+  test('dono edita a marca e vê a prévia', async ({ page }) => {
+    const errors = await setup(page);
+    await page.goto('/dono/marca');
+    await expect(page.getByLabel('Nome da marca')).toHaveValue('Marca QA');
+    await page.getByLabel('Nome da marca').fill('Agência Bella');
+    await expect(page.getByTestId('brand-preview')).toContainText('Agência Bella');
+    const saved = page.waitForRequest(/\/rpc\/owner_update_platform_brand/);
+    await page.getByRole('button', { name: 'Salvar marca' }).click();
+    expect((await saved).postDataJSON()).toMatchObject({ p_name: 'Agência Bella', p_support_email: 'ajuda@marca.test' });
+    await expect(page.getByText('Marca salva')).toBeVisible();
+    await expectHealthy(page, errors);
+  });
+
+  test('nome da marca é obrigatório', async ({ page }) => {
+    const errors = await setup(page);
+    await page.goto('/dono/marca');
+    await page.getByLabel('Nome da marca').fill('');
+    await page.getByRole('button', { name: 'Salvar marca' }).click();
+    await expect(page.getByRole('alert')).toHaveText('Informe o nome da marca.');
+    await expectHealthy(page, errors);
+  });
+
+  test('painel da clínica mostra a marca e nada de "Nina"', async ({ page }) => {
+    const errors = await setup(page, { owner: false });
+    for (const path of ['/dashboard', '/settings', '/contacts']) {
+      await page.goto(path);
+      await expect(page.getByTestId('sidebar-nav').first()).toBeVisible();
+      await expect(page.getByTestId('brand-name').first()).toHaveText('Marca QA');
+      await expect(page.locator('body')).not.toContainText(/nina/i);
+    }
+    await expect(page).toHaveTitle(/Marca QA/);
+    await expectHealthy(page, errors);
+  });
+
+  test('clínica não vê a aba de documentação técnica', async ({ page }) => {
+    const errors = await setup(page, { owner: false });
+    await page.goto('/settings');
+    await expect(page.getByRole('tab', { name: /procedimentos/i })).toBeVisible();
+    await expect(page.getByRole('tab', { name: /documentação/i })).toHaveCount(0);
+    await expectHealthy(page, errors);
+  });
+
+  test('clínica suspensa vê o contato de suporte da marca', async ({ page }) => {
+    const errors = await setup(page, { owner: false, orgStatus: 'suspended' });
+    await page.goto('/dashboard');
+    await expect(page.getByText('Acesso suspenso')).toBeVisible();
+    await expect(page.getByTestId('support-contact')).toContainText('ajuda@marca.test');
     await expectHealthy(page, errors);
   });
 });

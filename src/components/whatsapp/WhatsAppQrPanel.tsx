@@ -3,7 +3,7 @@ import { AlertTriangle, CheckCircle2, Loader2, QrCode, Unplug } from 'lucide-rea
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
-// Conexão do WhatsApp por QR code (Evolution API da Nina).
+// Conexão do WhatsApp por QR code (Evolution API).
 // Sem organizationId: a admin da clínica conecta o próprio número.
 // Com organizationId: o dono da plataforma conecta pela clínica.
 
@@ -138,7 +138,7 @@ const WhatsAppQrPanel: React.FC<{ organizationId?: string; onChange?: () => void
           <div className="flex items-center gap-2 text-sm">
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
             <span>
-              Conectado{state?.phone ? <> ao número <strong>{formatPhone(state.phone)}</strong></> : ''}. A Nina responde por este WhatsApp.
+              Conectado{state?.phone ? <> ao número <strong>{formatPhone(state.phone)}</strong></> : ''}. A assistente responde por este WhatsApp.
             </span>
           </div>
           {confirmDisconnect ? (

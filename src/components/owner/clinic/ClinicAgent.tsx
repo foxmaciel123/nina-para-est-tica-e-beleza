@@ -20,9 +20,9 @@ const MODELS = [
 ];
 
 const TOGGLES = [
-  { key: 'is_active', label: 'Nina ligada', hint: 'Desligada, a Nina não responde nenhuma mensagem.' },
-  { key: 'auto_response_enabled', label: 'Resposta automática', hint: 'A Nina responde sozinha às mensagens novas.' },
-  { key: 'ai_scheduling_enabled', label: 'Agendar pela IA', hint: 'A Nina marca, remarca e cancela avaliações na agenda.' },
+  { key: 'is_active', label: 'Assistente ligada', hint: 'Desligada, a assistente não responde nenhuma mensagem.' },
+  { key: 'auto_response_enabled', label: 'Resposta automática', hint: 'A assistente responde sozinha às mensagens novas.' },
+  { key: 'ai_scheduling_enabled', label: 'Agendar pela IA', hint: 'A assistente marca, remarca e cancela avaliações na agenda.' },
   { key: 'message_breaking_enabled', label: 'Quebrar mensagens longas', hint: 'Envia a resposta em partes, como uma pessoa digitando.' },
   { key: 'audio_response_enabled', label: 'Responder em áudio', hint: 'Exige a chave do ElevenLabs configurada pela clínica.' },
 ] as const;
@@ -34,7 +34,7 @@ const ClinicAgent: React.FC = () => {
   const orgId = detail.organization.id;
   const { config, loading, error, reload } = useClinicConfig(orgId);
 
-  const [name, setName] = useState('Nina');
+  const [name, setName] = useState('Assistente');
   const [company, setCompany] = useState('');
   const [mode, setMode] = useState('flash');
   const [prompt, setPrompt] = useState('');
@@ -47,7 +47,7 @@ const ClinicAgent: React.FC = () => {
 
   useEffect(() => {
     if (!config) return;
-    setName(config.sdr_name ?? 'Nina');
+    setName(config.sdr_name ?? 'Assistente');
     setCompany(config.company_name ?? '');
     setMode(config.ai_model_mode ?? 'flash');
     setPrompt(config.system_prompt_override ?? '');
@@ -85,12 +85,12 @@ const ClinicAgent: React.FC = () => {
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 p-6" data-testid="clinic-agent">
-      <PageHeader eyebrow="Clínica · Agente IA" title="Agente IA" description="Como a Nina atende nesta clínica. Você pode configurar por ela." />
+      <PageHeader eyebrow="Clínica · Agente IA" title="Agente IA" description="Como a assistente atende nesta clínica. Você pode configurar por ela." />
       {error && <ErrorNote message={error} onRetry={reload} />}
 
       {!config ? (
         <Panel>
-          <p className="text-sm text-muted-foreground">Esta clínica ainda não tem a configuração da Nina. Ela é criada no cadastro da clínica ou no primeiro acesso da dona.</p>
+          <p className="text-sm text-muted-foreground">Esta clínica ainda não tem a configuração da assistente. Ela é criada no cadastro da clínica ou no primeiro acesso da dona.</p>
         </Panel>
       ) : (
         <form onSubmit={save} className="flex flex-col gap-6" noValidate>
@@ -152,7 +152,7 @@ const ClinicAgent: React.FC = () => {
               id="agent-prompt"
               rows={14}
               className="font-mono text-xs leading-relaxed"
-              placeholder="Em branco, a Nina usa o prompt padrão de estética. Clique em “Carregar prompt padrão” para partir dele."
+              placeholder="Em branco, a assistente usa o prompt padrão de estética. Clique em “Carregar prompt padrão” para partir dele."
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
             />

@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { BrandEyebrow } from '@/components/BrandMark';
 
 // Destino do link de primeiro acesso (e de "Reenviar acesso") gerado pelo Painel do Dono.
 // O supabase-js lê o token do #hash e abre a sessão; aqui a dona só cria a senha.
@@ -15,8 +16,8 @@ const linkError = (): string | null => {
   const code = hash.get('error_code') || query.get('error_code') || hash.get('error') || query.get('error');
   if (!code) return null;
   return code.includes('expired') || code === 'access_denied'
-    ? 'Este link expirou ou já foi usado. Peça um novo link de acesso para a Pixel Pro.'
-    : 'Não foi possível validar este link. Peça um novo link de acesso para a Pixel Pro.';
+    ? 'Este link expirou ou já foi usado. Peça um novo link de acesso para o suporte.'
+    : 'Não foi possível validar este link. Peça um novo link de acesso para o suporte.';
 };
 
 const FirstAccess: React.FC = () => {
@@ -61,7 +62,7 @@ const FirstAccess: React.FC = () => {
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10 text-foreground">
       <div className="flex w-full max-w-md flex-col gap-6 rounded-2xl border border-border bg-card/60 p-8 backdrop-blur-sm" data-testid="first-access">
         <div className="flex flex-col gap-1 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-accent">Nina Beleza · Estética com IA</p>
+          <BrandEyebrow className="text-[11px] font-semibold uppercase tracking-[0.35em] text-accent" />
           <h1 className="text-2xl font-bold tracking-tight">Crie sua nova senha</h1>
           {user?.email && <p className="text-sm text-muted-foreground">Acesso de <strong className="text-foreground">{user.email}</strong></p>}
         </div>
@@ -70,7 +71,7 @@ const FirstAccess: React.FC = () => {
           <div className="flex flex-col items-center gap-3 text-center">
             <AlertTriangle className="h-8 w-8 text-amber-500" />
             <p className="text-sm text-muted-foreground">
-              {error ?? 'Este link não é válido ou já foi usado. Peça um novo link de acesso para a Pixel Pro.'}
+              {error ?? 'Este link não é válido ou já foi usado. Peça um novo link de acesso para o suporte.'}
             </p>
             <button type="button" onClick={() => navigate('/auth')} className="text-sm font-semibold text-accent hover:underline">
               Já tenho senha, quero entrar

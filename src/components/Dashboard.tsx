@@ -72,7 +72,7 @@ const Dashboard: React.FC = () => {
     // Mantemos os labels que vêm do backend (api.fetchDashboardMetrics) mas
     // mapeamos os antigos rótulos de "SDR" para o vocabulário de beleza.
     const map: Record<string, string> = {
-      'Atendimentos Hoje': 'Atendimentos da Nina hoje',
+      'Atendimentos Hoje': 'Atendimentos da IA hoje',
       'Vendas Convertidas': 'Receita estimada',
       'Tempo Médio (TMA)': 'Tempo médio de resposta',
       'Novos Leads': 'Novas clientes interessadas',
@@ -80,7 +80,7 @@ const Dashboard: React.FC = () => {
     if (map[baseLabel]) return map[baseLabel];
 
     if (baseLabel.includes('Atendimentos')) {
-      return period === 'today' ? 'Atendimentos da Nina hoje' : `Atendimentos (${periodLabels[period]})`;
+      return period === 'today' ? 'Atendimentos da IA hoje' : `Atendimentos (${periodLabels[period]})`;
     }
     if (baseLabel.includes('Leads')) {
       return period === 'today' ? 'Novas clientes interessadas' : `Novas clientes (${periodLabels[period]})`;
@@ -113,7 +113,7 @@ const Dashboard: React.FC = () => {
           <p className="text-[11px] uppercase tracking-[0.35em] text-accent font-semibold">Sua clínica em tempo real</p>
           <h2 className="text-3xl font-bold tracking-tight text-foreground mt-1" data-testid="dashboard-title">Visão Geral</h2>
           <p className="text-muted-foreground mt-1">
-            Como a Nina está cuidando das suas clientes {period === 'today' ? 'hoje' : `nos últimos ${periodLabels[period].toLowerCase()}`}.
+            Como a assistente está cuidando das suas clientes {period === 'today' ? 'hoje' : `nos últimos ${periodLabels[period].toLowerCase()}`}.
           </p>
         </div>
         <div className="flex items-center gap-2 bg-card p-1 rounded-lg border border-border" role="tablist" aria-label="Período">
@@ -168,7 +168,7 @@ const Dashboard: React.FC = () => {
         <div className="col-span-4 rounded-2xl border border-border bg-card/60 backdrop-blur-sm p-6 shadow-lg">
           <div className="mb-6 flex items-center justify-between">
             <div>
-                <h3 className="text-lg font-semibold text-foreground">Volume de Atendimentos da Nina</h3>
+                <h3 className="text-lg font-semibold text-foreground">Volume de Atendimentos da IA</h3>
                 <p className="text-sm text-muted-foreground">
                   Conversas com clientes {period === 'today' ? 'hoje' : `nos últimos ${periodDays[period]} dias`}
                 </p>

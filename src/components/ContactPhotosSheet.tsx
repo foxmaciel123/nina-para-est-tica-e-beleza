@@ -72,7 +72,7 @@ export const ContactPhotosSheet: React.FC<ContactPhotosSheetProps> = ({
             Fotos {contactName ? `· ${contactName}` : 'da cliente'}
           </SheetTitle>
           <SheetDescription>
-            Imagens que a cliente enviou pelo WhatsApp, arquivadas pra você consultar antes da avaliação. A Nina nunca analisa essas fotos — só persiste pra você ver.
+            Imagens que a cliente enviou pelo WhatsApp, arquivadas pra você consultar antes da avaliação. A assistente nunca analisa essas fotos — só persiste pra você ver.
           </SheetDescription>
         </SheetHeader>
 

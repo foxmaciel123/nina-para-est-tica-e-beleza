@@ -26,8 +26,8 @@ export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onOpenWizard
                 <Rocket className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-foreground">Vamos deixar sua Nina pronta</h3>
-                <p className="text-sm text-muted-foreground">Em 5 passos a Nina já está atendendo no WhatsApp da sua clínica.</p>
+                <h3 className="text-lg font-semibold text-foreground">Vamos deixar sua assistente pronta</h3>
+                <p className="text-sm text-muted-foreground">Em 5 passos a assistente já está atendendo no WhatsApp da sua clínica.</p>
               </div>
             </div>
 
@@ -77,7 +77,7 @@ export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onOpenWizard
               onClick={onOpenWizard}
               className="gap-2 whitespace-nowrap"
             >
-              Continuar Configuração da Nina
+              Continuar configuração da assistente
               <ArrowRight className="w-4 h-4" />
             </Button>
           </div>

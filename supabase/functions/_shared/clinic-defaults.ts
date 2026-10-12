@@ -63,12 +63,12 @@ export const DEFAULT_NINA_SETTINGS = {
   ai_scheduling_enabled: true,
   route_all_to_receiver_enabled: false,
   company_name: 'Minha Clínica',
-  sdr_name: 'Nina',
+  sdr_name: 'Assistente',
   // null = usa o prompt padrão de beleza/estética (DEFAULT_NINA_PROMPT)
   system_prompt_override: null,
 };
 
-// Cria a configuração padrão de uma clínica (Nina, funil, etiquetas, equipes).
+// Cria a configuração padrão de uma clínica (assistente, funil, etiquetas, equipes).
 // Idempotente: só cria o que a clínica ainda não tem. Devolve o verify token.
 export async function seedClinicDefaults(supabase: any, orgId: string, companyName?: string): Promise<string> {
   const { data: existing } = await supabase

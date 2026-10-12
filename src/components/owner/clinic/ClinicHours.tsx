@@ -56,12 +56,12 @@ const ClinicHours: React.FC = () => {
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6 p-6" data-testid="clinic-hours">
-      <PageHeader eyebrow="Clínica · Horários" title="Horários" description="Quando a clínica atende. A Nina usa isso para oferecer horários de avaliação." />
+      <PageHeader eyebrow="Clínica · Horários" title="Horários" description="Quando a clínica atende. A assistente usa isso para oferecer horários de avaliação." />
       {error && <ErrorNote message={error} onRetry={reload} />}
 
       {!config ? (
         <Panel>
-          <p className="text-sm text-muted-foreground">Esta clínica ainda não tem a configuração da Nina.</p>
+          <p className="text-sm text-muted-foreground">Esta clínica ainda não tem a configuração da assistente.</p>
         </Panel>
       ) : (
         <form onSubmit={save} noValidate>

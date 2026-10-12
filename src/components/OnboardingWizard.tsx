@@ -293,7 +293,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onCl
       case 0: // Identity
         console.log('[OnboardingWizard] Step 0 (Identity) values:', { companyName, sdrName });
         if (!companyName?.trim()) issues.push('Nome da clínica/salão está vazio');
-        if (!sdrName?.trim()) issues.push('Nome da assistente Nina está vazio');
+        if (!sdrName?.trim()) issues.push('Nome da assistente está vazio');
         break;
       case 1: // WhatsApp
         console.log('[OnboardingWizard] Step 1 (WhatsApp) values:', { 
@@ -425,7 +425,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onCl
         business_hours_end: businessHoursEnd || '18:00',
         business_days: businessDays?.length > 0 ? businessDays : [1, 2, 3, 4, 5],
         
-        // Ensure Nina is active
+        // Ensure the assistant is active
         is_active: true,
         auto_response_enabled: true,
       };
@@ -592,7 +592,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onCl
     await saveSettings();
     markWizardSeen();
     fireConfetti();
-    toast.success('Tudo pronto! A Nina já pode começar a atender as suas clientes ✨');
+    toast.success('Tudo pronto! A assistente já pode começar a atender as suas clientes ✨');
     onClose();
     // Refresh após delay para atualizar o estado do onboarding em toda a aplicação
     setTimeout(() => window.location.reload(), 800);

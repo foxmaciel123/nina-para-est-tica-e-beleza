@@ -2,6 +2,7 @@ import React from 'react';
 import { Navigate, Outlet, Link, useOutletContext } from 'react-router-dom';
 import { Loader2, CirclePause, Building2 } from 'lucide-react';
 import { useOrganization } from '@/hooks/useOrganization';
+import { useBrand } from '@/hooks/useBrand';
 
 const FullLoader = () => (
   <div className="flex h-full items-center justify-center bg-background">
@@ -19,6 +20,19 @@ const Notice: React.FC<{ icon: React.ReactNode; title: string; children: React.R
   </div>
 );
 
+// Contato de suporte da marca (e-mail / WhatsApp), quando o dono preencheu
+const SupportContact: React.FC = () => {
+  const { brand } = useBrand();
+  if (!brand.support_email && !brand.support_whatsapp) return null;
+  const digits = brand.support_whatsapp?.replace(/D/g, '') ?? '';
+  return (
+    <p className="flex flex-wrap justify-center gap-x-4 gap-y-1" data-testid="support-contact">
+      {brand.support_email && <a className="font-semibold text-accent hover:underline" href={`mailto:${brand.support_email}`}>{brand.support_email}</a>}
+      {digits && <a className="font-semibold text-accent hover:underline" href={`https://wa.me/${digits.length <= 11 ? `55${digits}` : digits}`} target="_blank" rel="noreferrer">WhatsApp {brand.support_whatsapp}</a>}
+    </p>
+  );
+};
+
 // Telas da clínica: exige clínica vinculada e ativa.
 // Repassa o contexto do AppLayout (setShowOnboarding etc.) para as telas filhas.
 export const RequireClinic: React.FC = () => {
@@ -31,7 +45,8 @@ export const RequireClinic: React.FC = () => {
     if (isPlatformOwner) return <Navigate to="/dono" replace />;
     return (
       <Notice icon={<Building2 className="h-8 w-8 text-muted-foreground" />} title="Conta sem clínica">
-        <p>Seu usuário ainda não está vinculado a nenhuma clínica. Peça para a Pixel Pro concluir o seu cadastro.</p>
+        <p>Seu usuário ainda não está vinculado a nenhuma clínica. Peça para o suporte concluir o seu cadastro.</p>
+        <SupportContact />
       </Notice>
     );
   }
@@ -39,8 +54,9 @@ export const RequireClinic: React.FC = () => {
   if (isSuspended) {
     return (
       <Notice icon={<CirclePause className="h-8 w-8 text-red-500" />} title="Acesso suspenso">
-        <p>O acesso da <strong className="text-foreground">{organization.name}</strong> está suspenso e a Nina não está respondendo no WhatsApp.</p>
-        <p>As mensagens das suas clientes continuam guardadas. Fale com a Pixel Pro para reativar.</p>
+        <p>O acesso da <strong className="text-foreground">{organization.name}</strong> está suspenso e a assistente não está respondendo no WhatsApp.</p>
+        <p>As mensagens das suas clientes continuam guardadas. Fale com o suporte para reativar.</p>
+        <SupportContact />
         {isPlatformOwner && (
           <Link to="/dono" className="font-semibold text-accent hover:underline">Ir para o Painel do Dono</Link>
         )}

@@ -168,7 +168,7 @@ Deno.serve(async (req) => {
       .select('whatsapp_provider, evolution_instance, evolution_status, evolution_phone')
       .eq('organization_id', orgId)
       .maybeSingle();
-    if (!settings) throw new UserError('A clínica ainda não tem a configuração da Nina.');
+    if (!settings) throw new UserError('A clínica ainda não tem a configuração da assistente.');
 
     let result;
     switch (body.action) {

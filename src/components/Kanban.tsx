@@ -693,7 +693,7 @@ const Kanban: React.FC = () => {
                         )}
                     </div>
 
-                    {/* Nina Insights Section */}
+                    {/* Insights da IA Section */}
                     {selectedDeal.clientMemory && (
                       <div className="p-6 border-t border-slate-800">
                         <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">

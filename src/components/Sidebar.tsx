@@ -8,8 +8,8 @@ import { Sidebar, SidebarBody, SidebarLink, useSidebar } from '@/components/ui/s
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import beautyIcon from '@/assets/icon-nina-beleza.svg';
-import beautyLogo from '@/assets/logo-nina-beleza.svg';
+import { useBrand } from '@/hooks/useBrand';
+import { BrandIcon } from '@/components/BrandMark';
 import ThemeToggle from './ThemeToggle';
 
 const menuItems = [
@@ -23,13 +23,12 @@ const menuItems = [
 ];
 
 const Logo = ({ companyName }: { companyName: string }) => {
+  const { brand } = useBrand();
   return (
     <Link to="/dashboard" className="flex items-center space-x-3 py-1">
       <div className="relative w-10 h-10 flex items-center justify-center flex-shrink-0">
         <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full" />
-        <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20 p-1.5">
-          <img src={beautyIcon} alt="Nina Beleza" className="w-full h-full object-contain" />
-        </div>
+        <BrandIcon className="relative w-10 h-10" />
       </div>
       <motion.div
         initial={{ opacity: 0 }}
@@ -38,7 +37,7 @@ const Logo = ({ companyName }: { companyName: string }) => {
         className="flex flex-col overflow-hidden"
       >
         <span className="font-bold text-lg tracking-tight text-foreground whitespace-nowrap">{companyName || 'Sua Clínica'}</span>
-        <span className="text-[10px] uppercase tracking-wider text-primary font-semibold">Nina Beleza · IA</span>
+        <span className="text-[10px] uppercase tracking-wider text-primary font-semibold" data-testid="brand-name">{brand.name}</span>
       </motion.div>
     </Link>
   );
@@ -49,9 +48,7 @@ const LogoIcon = () => {
     <Link to="/dashboard" className="flex items-center py-1">
       <div className="relative w-10 h-10 flex items-center justify-center flex-shrink-0">
         <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full" />
-        <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/20 p-1.5">
-          <img src={beautyIcon} alt="Nina Beleza" className="w-full h-full object-contain" />
-        </div>
+        <BrandIcon className="relative w-10 h-10" />
       </div>
     </Link>
   );
@@ -65,6 +62,7 @@ const SidebarContent = () => {
   const navigate = useNavigate();
   const currentPath = location.pathname.substring(1) || 'dashboard';
   const { open } = useSidebar();
+  const { brand } = useBrand();
 
   const links = menuItems.map(item => ({
     label: item.label,
@@ -83,7 +81,7 @@ const SidebarContent = () => {
   };
 
   const getUserInitials = () => {
-    if (!user?.email) return 'NB';
+    if (!user?.email) return '?';
     const email = user.email;
     return email.substring(0, 2).toUpperCase();
   };
@@ -125,7 +123,7 @@ const SidebarContent = () => {
         )}
       </div>
 
-      {open && (
+      {open && brand.logo_url && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -133,8 +131,8 @@ const SidebarContent = () => {
           className="py-4 flex justify-center"
         >
           <img
-            src={beautyLogo}
-            alt="Nina Beleza & Estética"
+            src={brand.logo_url}
+            alt={brand.name}
             className="h-7 opacity-70 hover:opacity-100 transition-opacity"
           />
         </motion.div>

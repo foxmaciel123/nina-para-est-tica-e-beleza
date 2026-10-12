@@ -40,7 +40,7 @@ export async function bypassAuth(page: Page) {
     expires_in: 3600,
     user: {
       id: '00000000-0000-0000-0000-000000000001',
-      email: 'qa@nina-beleza.test',
+      email: 'qa@clinica.test',
       aud: 'authenticated',
       role: 'authenticated',
       app_metadata: { provider: 'email' },

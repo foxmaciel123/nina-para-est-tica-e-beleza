@@ -1,18 +1,25 @@
 import { test, expect } from '@playwright/test';
+import { mockRpc } from './helpers/auth';
 
-test.describe('Nina Beleza · página de autenticação', () => {
+test.describe('Página de autenticação', () => {
   test.beforeEach(async ({ page }) => {
+    await mockRpc(page, 'public_brand', { name: 'Marca QA', tagline: 'Estética com IA', accent_color: '#C2185B' });
     // O app redireciona "/" → "/auth" quando o usuário não está logado.
     // Vamos direto para a rota /auth para não depender do estado de loading do Supabase.
     await page.goto('/auth');
   });
 
-  test('exibe o título do produto na aba do navegador', async ({ page }) => {
-    await expect(page).toHaveTitle(/Nina Beleza/i);
+  test('exibe a marca configurada na aba do navegador', async ({ page }) => {
+    await expect(page).toHaveTitle('Marca QA · Estética com IA');
   });
 
-  test('mostra a marca Nina Beleza e o badge de vertical estética', async ({ page }) => {
-    await expect(page.getByText('Nina Beleza · Estética com IA')).toBeVisible();
+  test('mostra a marca configurada e nada de "Nina"', async ({ page }) => {
+    await expect(page.getByText('Marca QA · Estética com IA')).toBeVisible();
+    await expect(page.locator('body')).not.toContainText(/nina/i);
+  });
+
+  test('aplica a cor de destaque da marca', async ({ page }) => {
+    await expect.poll(() => page.evaluate(() => document.documentElement.style.getPropertyValue('--accent'))).toBe('336 78% 43%');
   });
 
   test('título inicial é o de login (modo "bem-vinda de volta")', async ({ page }) => {
@@ -27,9 +34,9 @@ test.describe('Nina Beleza · página de autenticação', () => {
     ).toBeVisible();
   });
 
-  test('não oferece cadastro público (acesso criado pela Pixel Pro)', async ({ page }) => {
+  test('não oferece cadastro público (acesso criado pelo suporte)', async ({ page }) => {
     await expect(page.getByRole('button', { name: /criar conta/i })).toHaveCount(0);
-    await expect(page.getByText(/o acesso das clínicas é criado pela pixel pro/i)).toBeVisible();
+    await expect(page.getByText(/o acesso das clínicas é criado pelo suporte/i)).toBeVisible();
   });
 
   test('esqueci minha senha pede o e-mail antes', async ({ page }) => {

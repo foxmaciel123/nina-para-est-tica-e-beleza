@@ -99,7 +99,7 @@ const Contacts: React.FC = () => {
             <Users className="w-12 h-12 mb-4 opacity-50" />
             <p className="text-lg font-medium">Nenhuma cliente por aqui ainda</p>
             <p className="text-sm text-slate-500 mt-1">
-              {searchTerm ? 'Tente buscar por outro nome ou telefone' : 'Assim que a Nina iniciar conversas, sua base aparece aqui.'}
+              {searchTerm ? 'Tente buscar por outro nome ou telefone' : 'Assim que a assistente iniciar conversas, sua base aparece aqui.'}
             </p>
           </div>
         ) : (

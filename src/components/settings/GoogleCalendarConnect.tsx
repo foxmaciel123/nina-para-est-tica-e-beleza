@@ -112,7 +112,7 @@ export const GoogleCalendarConnect: React.FC = () => {
             Google Calendar
           </h4>
           <p className="text-sm text-muted-foreground mt-1">
-            Sync bidirecional: agendamentos da Nina aparecem no Google, e mudanças no Google voltam pra Nina.
+            Sync bidirecional: agendamentos da assistente aparecem no Google, e mudanças no Google voltam pra assistente.
           </p>
         </div>
         {creds ? (
@@ -137,7 +137,7 @@ export const GoogleCalendarConnect: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div className="rounded-lg border border-border bg-card/40 p-2.5">
-              <div className="text-muted-foreground">Nina → Google</div>
+              <div className="text-muted-foreground">Assistente → Google</div>
               <div className="text-foreground font-medium mt-0.5">
                 {creds.last_sync_at
                   ? new Date(creds.last_sync_at).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
@@ -145,7 +145,7 @@ export const GoogleCalendarConnect: React.FC = () => {
               </div>
             </div>
             <div className="rounded-lg border border-border bg-card/40 p-2.5">
-              <div className="text-muted-foreground">Google → Nina</div>
+              <div className="text-muted-foreground">Google → Assistente</div>
               <div className="text-foreground font-medium mt-0.5">
                 {creds.last_incoming_sync_at
                   ? new Date(creds.last_incoming_sync_at).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
@@ -180,7 +180,7 @@ export const GoogleCalendarConnect: React.FC = () => {
             )}
           </Button>
           <p className="text-xs text-muted-foreground mt-3">
-            ⚠️ Setup externo: o administrador precisa configurar <code className="text-foreground">GOOGLE_OAUTH_CLIENT_ID</code> / <code className="text-foreground">_SECRET</code> / <code className="text-foreground">_REDIRECT_URI</code> + <code className="text-foreground">GOOGLE_CALENDAR_WEBHOOK_URL</code> nos secrets do Lovable Cloud. O webhook precisa renovação diária via cron (chamando <code className="text-foreground">google-calendar-watch</code> com <code className="text-foreground">{`{ renew_all: true }`}</code>).
+            ⚠️ Setup externo: o administrador precisa configurar <code className="text-foreground">GOOGLE_OAUTH_CLIENT_ID</code> / <code className="text-foreground">_SECRET</code> / <code className="text-foreground">_REDIRECT_URI</code> + <code className="text-foreground">GOOGLE_CALENDAR_WEBHOOK_URL</code> no servidor. O webhook precisa renovação diária via cron (chamando <code className="text-foreground">google-calendar-watch</code> com <code className="text-foreground">{`{ renew_all: true }`}</code>).
           </p>
         </div>
       )}

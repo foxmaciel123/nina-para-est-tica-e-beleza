@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
 import { z } from 'zod';
+import { BrandIcon, BrandEyebrow } from '@/components/BrandMark';
 
 
 // Validation schemas
@@ -115,7 +116,7 @@ const Auth: React.FC = () => {
     setSendingReset(false);
     if (error && !/rate|seconds/i.test(error.message)) {
       console.error('[Auth] reset password:', error);
-      setForgotSent('Não conseguimos enviar o e-mail agora. Fale com a Pixel Pro para receber um novo link de acesso.');
+      setForgotSent('Não conseguimos enviar o e-mail agora. Fale com o suporte para receber um novo link de acesso.');
       return;
     }
     setForgotSent('Se este e-mail tiver acesso, você vai receber um link para criar uma nova senha em instantes.');
@@ -139,17 +140,8 @@ const Auth: React.FC = () => {
       <div className="w-full max-w-md relative z-10">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent mb-4 shadow-lg shadow-primary/30">
-            <img
-              src="/src/assets/icon-nina-beleza.svg"
-              alt="Nina Beleza"
-              className="w-10 h-10"
-              onError={(e) => {
-                e.currentTarget.style.display = 'none';
-              }}
-            />
-          </div>
-          <p className="text-[11px] uppercase tracking-[0.35em] text-accent font-semibold">Nina Beleza · Estética com IA</p>
+          <BrandIcon className="mx-auto mb-4 h-16 w-16 rounded-2xl shadow-primary/30" />
+          <BrandEyebrow className="text-[11px] uppercase tracking-[0.35em] text-accent font-semibold" />
           <h1 className="text-2xl font-bold text-foreground mt-2" data-testid="auth-title">
             {isLogin ? 'Bem-vinda de volta' : 'Sua clínica brilhando com IA'}
           </h1>
@@ -251,7 +243,7 @@ const Auth: React.FC = () => {
               </button>
             )}
             <p className="text-muted-foreground text-xs">
-              O acesso das clínicas é criado pela Pixel Pro.
+              O acesso das clínicas é criado pelo suporte.
             </p>
           </div>
         </div>

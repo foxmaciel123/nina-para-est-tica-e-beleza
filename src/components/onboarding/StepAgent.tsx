@@ -128,7 +128,7 @@ export const StepAgent: React.FC<StepAgentProps> = ({
             id="systemPrompt"
             value={systemPrompt}
             onChange={(e) => onSystemPromptChange(e.target.value)}
-            placeholder="Descreva como a Nina deve atender suas clientes: tom de voz acolhedor, protocolos da clínica, profissionais responsáveis, regras de agendamento, regiões atendidas..."
+            placeholder="Descreva como a assistente deve atender suas clientes: tom de voz acolhedor, protocolos da clínica, profissionais responsáveis, regras de agendamento, regiões atendidas..."
             className="min-h-[200px] resize-none focus:ring-accent"
           />
           <p className="text-xs text-muted-foreground">
@@ -148,7 +148,7 @@ export const StepAgent: React.FC<StepAgentProps> = ({
           <ul className="text-xs text-muted-foreground space-y-1">
             <li>• Liste os protocolos/procedimentos que sua clínica realiza</li>
             <li>• Defina o tom de voz (acolhedor, sofisticado, próximo)</li>
-            <li>• Avise o que a Nina NÃO pode fazer (diagnóstico, preço sem avaliação)</li>
+            <li>• Avise o que a assistente NÃO pode fazer (diagnóstico, preço sem avaliação)</li>
             <li>• Inclua nome do profissional principal e horários de atendimento</li>
           </ul>
         </motion.div>

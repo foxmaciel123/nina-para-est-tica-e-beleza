@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { bypassAuth } from './helpers/auth';
 
-test.describe('Nina Beleza · toggle de tema', () => {
+test.describe('Toggle de tema', () => {
   test.beforeEach(async ({ page }) => {
     await bypassAuth(page);
     await page.goto('/dashboard');

@@ -11,7 +11,7 @@ const corsHeaders = {
 
 const ELEVENLABS_API_URL = "https://api.elevenlabs.io/v1/text-to-speech";
 
-// Tool definition for appointment creation — Nina Beleza & Estética
+// Tool definition for appointment creation — Beleza & Estética
 const createAppointmentTool = {
   type: "function",
   function: {
@@ -1568,6 +1568,7 @@ function processPromptTemplate(prompt: string, contact: any, settings?: any): st
     'cliente_nome': contact?.name || contact?.call_name || 'Cliente',
     'cliente_telefone': contact?.phone_number || '',
     'clinica_nome': settings?.company_name || 'nossa clínica',
+    'assistente_nome': settings?.sdr_name || 'assistente',
     'profissional': 'equipe',
   };
   

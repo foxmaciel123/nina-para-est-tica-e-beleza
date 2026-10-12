@@ -156,7 +156,7 @@ export const AppConfigCard: React.FC = () => {
         </summary>
         <div className="mt-2 p-3 rounded-lg bg-background/50 border border-border text-xs space-y-2">
           <p className="text-foreground"><strong>supabase_url:</strong> mesma URL que está em <code className="text-primary">.env</code> como <code>VITE_SUPABASE_URL</code> — ex: <code>https://xxxxx.supabase.co</code></p>
-          <p className="text-foreground"><strong>service_role_key:</strong> no painel do Lovable Cloud / Supabase → Settings → API → <code>service_role secret</code>. ⚠️ Esse valor NÃO é a publishable key. Tem permissão total no banco — guarde só aqui.</p>
+          <p className="text-foreground"><strong>service_role_key:</strong> no painel do Supabase → Settings → API → <code>service_role secret</code>. ⚠️ Esse valor NÃO é a publishable key. Tem permissão total no banco — guarde só aqui.</p>
         </div>
       </details>
     </div>

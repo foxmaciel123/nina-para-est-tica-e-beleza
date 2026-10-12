@@ -1,12 +1,12 @@
 import { Contact, Conversation, MessageDirection, MessageType, StatMetric, TeamMember, Appointment, Deal, KanbanColumn } from "./types";
 
 /**
- * Mock data — Nina Beleza & Estética
+ * Mock data — Beleza & Estética
  * Vocabulário pensado para clínicas de estética, salões de beleza e profissionais autônomos.
  */
 
 export const STATS: StatMetric[] = [
-  { label: 'Atendimentos da Nina hoje', value: '142', trend: '+12%', trendUp: true },
+  { label: 'Atendimentos da IA hoje', value: '142', trend: '+12%', trendUp: true },
   { label: 'Receita estimada', value: 'R$ 4.250', trend: '+5%', trendUp: true },
   { label: 'Tempo médio de resposta', value: '4m 12s', trend: '-2%', trendUp: true },
   { label: 'Novas clientes interessadas', value: '28', trend: '-5%', trendUp: false },

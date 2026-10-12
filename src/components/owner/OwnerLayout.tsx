@@ -1,11 +1,12 @@
 import React from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Building2, Wallet, Cpu, AlertTriangle, ArrowLeftRight, LogOut, Crown } from 'lucide-react';
+import { LayoutDashboard, Building2, Wallet, Cpu, AlertTriangle, ArrowLeftRight, LogOut, Crown, Palette } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrganization } from '@/hooks/useOrganization';
 import ThemeToggle from '@/components/ThemeToggle';
 import ScreenErrorBoundary from '@/components/ScreenErrorBoundary';
+import { useBrand } from '@/hooks/useBrand';
 
 export interface OwnerNavItem {
   label: string;
@@ -29,7 +30,13 @@ const GROUPS: OwnerNavGroup[] = [
   },
   { label: 'Financeiro', items: [{ label: 'Vencimentos', to: '/dono/vencimentos', icon: Wallet }] },
   { label: 'IA', items: [{ label: 'Consumo de IA', to: '/dono/consumo-ia', icon: Cpu }] },
-  { label: 'Sistema', items: [{ label: 'Alertas', to: '/dono/alertas', icon: AlertTriangle }] },
+  {
+    label: 'Sistema',
+    items: [
+      { label: 'Alertas', to: '/dono/alertas', icon: AlertTriangle },
+      { label: 'Marca', to: '/dono/marca', icon: Palette },
+    ],
+  },
 ];
 
 const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -46,6 +53,7 @@ export const OwnerFrame: React.FC<{
 }> = ({ header, groups, children }) => {
   const { user, signOut } = useAuth();
   const { organization } = useOrganization();
+  const { brand } = useBrand();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -64,7 +72,7 @@ export const OwnerFrame: React.FC<{
           </div>
           <div className="leading-tight">
             <div className="text-sm font-bold">Painel do Dono</div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Nina Beleza · Plataforma</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground" data-testid="brand-name">{brand.name} · Plataforma</div>
           </div>
         </div>
 

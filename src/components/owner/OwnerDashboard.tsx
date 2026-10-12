@@ -85,7 +85,7 @@ const OwnerDashboard: React.FC = () => {
         }
       >
         {attention.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nada pendente. Mensalidades em dia e a Nina respondendo em todas as clínicas.</p>
+          <p className="text-sm text-muted-foreground">Nada pendente. Mensalidades em dia e a assistente respondendo em todas as clínicas.</p>
         ) : (
           <ul className="flex flex-col">
             {attention.map((alert, i) => (

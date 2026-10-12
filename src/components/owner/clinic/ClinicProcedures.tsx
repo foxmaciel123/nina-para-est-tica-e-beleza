@@ -134,7 +134,7 @@ const ClinicProcedures: React.FC = () => {
       <PageHeader
         eyebrow="Clínica · Procedimentos"
         title="Procedimentos"
-        description="O que a clínica oferece. A Nina usa essa lista para explicar procedimentos, preços e cuidados."
+        description="O que a clínica oferece. A assistente usa essa lista para explicar procedimentos, preços e cuidados."
         actions={
           <Button onClick={() => { setForm(emptyForm()); setFormError(null); }} className="gap-2">
             <Plus className="h-4 w-4" /> Novo procedimento
@@ -145,7 +145,7 @@ const ClinicProcedures: React.FC = () => {
 
       <Panel>
         {items.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhum procedimento cadastrado. Cadastre os principais para a Nina responder com segurança sobre preços e cuidados.</p>
+          <p className="text-sm text-muted-foreground">Nenhum procedimento cadastrado. Cadastre os principais para a assistente responder com segurança sobre preços e cuidados.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[620px] text-sm">
@@ -167,7 +167,7 @@ const ClinicProcedures: React.FC = () => {
                     <td className="px-3 py-2.5 text-right tabular-nums">{p.duration_minutes} min</td>
                     <td className="px-3 py-2.5">
                       <span className="tabular-nums">{priceText(p)}</span>
-                      {!p.price_visible && p.price_min != null && <span className="ml-1 text-xs text-muted-foreground">(Nina não informa)</span>}
+                      {!p.price_visible && p.price_min != null && <span className="ml-1 text-xs text-muted-foreground">(a assistente não informa)</span>}
                     </td>
                     <td className="px-3 py-2.5">{p.is_active ? <Chip tone="ok">Ativo</Chip> : <Chip tone="neutral">Inativo</Chip>}</td>
                     <td className="px-3 py-2.5">
@@ -194,7 +194,7 @@ const ClinicProcedures: React.FC = () => {
             <form onSubmit={save} className="flex flex-col gap-4" noValidate>
               <DialogHeader>
                 <DialogTitle>{form.id ? 'Editar procedimento' : 'Novo procedimento'}</DialogTitle>
-                <DialogDescription>Essas informações são usadas pela Nina nas conversas desta clínica.</DialogDescription>
+                <DialogDescription>Essas informações são usadas pela assistente nas conversas desta clínica.</DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="flex flex-col gap-2 sm:col-span-2">
@@ -222,8 +222,8 @@ const ClinicProcedures: React.FC = () => {
               </div>
               <div className="flex items-center justify-between gap-4 rounded-lg border border-border p-3">
                 <div>
-                  <Label htmlFor="proc-price-visible" className="text-sm font-medium">Nina pode informar o preço</Label>
-                  <p className="text-xs text-muted-foreground">Desligado, a Nina convida para a avaliação em vez de passar valores.</p>
+                  <Label htmlFor="proc-price-visible" className="text-sm font-medium">A assistente pode informar o preço</Label>
+                  <p className="text-xs text-muted-foreground">Desligado, a assistente convida para a avaliação em vez de passar valores.</p>
                 </div>
                 <Switch id="proc-price-visible" checked={form.price_visible} onCheckedChange={(v) => set('price_visible', v)} />
               </div>
@@ -259,7 +259,7 @@ const ClinicProcedures: React.FC = () => {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Remover {removing?.name}?</AlertDialogTitle>
-            <AlertDialogDescription>A Nina deixa de oferecer esse procedimento. Para só pausar, edite e desligue “Procedimento ativo”.</AlertDialogDescription>
+            <AlertDialogDescription>A assistente deixa de oferecer esse procedimento. Para só pausar, edite e desligue “Procedimento ativo”.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Voltar</AlertDialogCancel>

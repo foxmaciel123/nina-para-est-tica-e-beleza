@@ -109,7 +109,7 @@ const ClinicWhatsapp: React.FC = () => {
 
       {!config ? (
         <Panel>
-          <p className="text-sm text-muted-foreground">Esta clínica ainda não tem a configuração da Nina. Ela é criada no cadastro da clínica ou no primeiro acesso da dona.</p>
+          <p className="text-sm text-muted-foreground">Esta clínica ainda não tem a configuração da assistente. Ela é criada no cadastro da clínica ou no primeiro acesso da dona.</p>
         </Panel>
       ) : (
         <>

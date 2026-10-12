@@ -20,7 +20,7 @@ BEGIN
   VALUES (user2, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'config-teste@teste.invalid', '{}'::jsonb, now(), now());
   INSERT INTO public.organization_members (organization_id, user_id, role) VALUES (org2, user2, 'admin');
   INSERT INTO public.nina_settings (organization_id, company_name, sdr_name, whatsapp_verify_token)
-  VALUES (org2, 'Clínica Teste B', 'Nina', 'nina-beleza-teste');
+  VALUES (org2, 'Clínica Teste B', 'Assistente', 'nina-beleza-teste');
   UPDATE public.nina_settings SET whatsapp_phone_number_id = 'PNID-ORG1-TESTE' WHERE organization_id = org1;
 
   -- ===== admin de outra clínica não usa as funções do dono =====

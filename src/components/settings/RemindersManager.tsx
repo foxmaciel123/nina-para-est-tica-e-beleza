@@ -156,7 +156,7 @@ export const RemindersManager: React.FC = () => {
             Lembretes automáticos
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            A Nina envia lembretes pré e pós cada agendamento. Você controla o conteúdo aqui.
+            A assistente envia lembretes pré e pós cada agendamento. Você controla o conteúdo aqui.
           </p>
         </div>
         <Button variant="ghost" size="sm" onClick={load} className="gap-2">
@@ -330,7 +330,7 @@ export const RemindersManager: React.FC = () => {
               <div className="rounded-xl border border-dashed border-border bg-card/30 p-8 text-center">
                 <Bell className="w-10 h-10 mx-auto text-muted-foreground mb-2" />
                 <p className="text-foreground font-medium">Nenhum template cadastrado</p>
-                <p className="text-sm text-muted-foreground mt-1">A Nina não enviará lembretes até você cadastrar pelo menos 1 template.</p>
+                <p className="text-sm text-muted-foreground mt-1">A assistente não enviará lembretes até você cadastrar pelo menos 1 template.</p>
               </div>
             ) : templates.map((t) => (
               <div key={t.id} className="rounded-xl border border-border bg-card/60 p-3 hover:bg-card transition-colors">
@@ -376,7 +376,7 @@ export const RemindersManager: React.FC = () => {
               <AlertTriangle className="w-10 h-10 mx-auto text-amber-400 mb-2" />
               <p className="text-foreground font-medium">Cron jobs ainda não foram agendados</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Aplique a migration mais recente no Lovable Cloud pra ativar.
+                Fale com o suporte para ativar.
               </p>
             </div>
           ) : (

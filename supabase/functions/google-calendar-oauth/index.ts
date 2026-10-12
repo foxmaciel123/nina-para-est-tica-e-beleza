@@ -74,7 +74,7 @@ serve(async (req) => {
   if (!clientId || !clientSecret || !redirectUri) {
     return new Response(
       JSON.stringify({
-        error: 'A integração com o Google Agenda ainda não foi ativada pela Pixel Pro.',
+        error: 'A integração com o Google Agenda ainda não foi ativada pelo administrador da plataforma.',
         todo: 'Defina GOOGLE_OAUTH_CLIENT_ID e GOOGLE_OAUTH_CLIENT_SECRET em /opt/nina/nina-functions.env'
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

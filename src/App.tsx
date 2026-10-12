@@ -18,6 +18,7 @@ import OwnerClinics from './components/owner/OwnerClinics';
 import OwnerBilling from './components/owner/OwnerBilling';
 import OwnerAiUsage from './components/owner/OwnerAiUsage';
 import OwnerAlerts from './components/owner/OwnerAlerts';
+import OwnerBrand from './components/owner/OwnerBrand';
 import OwnerClinicLayout from './components/owner/clinic/OwnerClinicLayout';
 import ClinicSummary from './components/owner/clinic/ClinicSummary';
 import ClinicWhatsapp from './components/owner/clinic/ClinicWhatsapp';
@@ -31,6 +32,7 @@ import { CompanySettingsProvider } from './hooks/useCompanySettings';
 import { AuthProvider } from './hooks/useAuth';
 import { OrganizationProvider } from './hooks/useOrganization';
 import { ThemeProvider, useTheme } from './hooks/useTheme';
+import { BrandProvider } from './hooks/useBrand';
 import { Toaster } from 'sonner';
 import { OnboardingWizard } from './components/OnboardingWizard';
 import { useOnboardingStatus } from './hooks/useOnboardingStatus';
@@ -83,6 +85,7 @@ const ThemedToaster: React.FC = () => {
 const App: React.FC = () => {
   return (
     <ThemeProvider>
+      <BrandProvider>
       <AuthProvider>
         <OrganizationProvider>
         <CompanySettingsProvider>
@@ -118,6 +121,7 @@ const App: React.FC = () => {
                 <Route path="/dono/vencimentos" element={<OwnerBilling />} />
                 <Route path="/dono/consumo-ia" element={<OwnerAiUsage />} />
                 <Route path="/dono/alertas" element={<OwnerAlerts />} />
+                <Route path="/dono/marca" element={<OwnerBrand />} />
               </Route>
               <Route path="/dono/clinicas/:id" element={<ProtectedRoute><RequireOwner><OwnerClinicLayout /></RequireOwner></ProtectedRoute>}>
                 <Route index element={<ClinicSummary />} />
@@ -136,6 +140,7 @@ const App: React.FC = () => {
         </CompanySettingsProvider>
         </OrganizationProvider>
       </AuthProvider>
+      </BrandProvider>
     </ThemeProvider>
   );
 };

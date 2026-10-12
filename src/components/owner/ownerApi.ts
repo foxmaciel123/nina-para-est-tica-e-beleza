@@ -41,7 +41,7 @@ export interface ClinicConfig {
   whatsapp_verify_token: string | null;
 }
 
-// Configuração completa da clínica (formulários do dono). null = clínica sem configuração da Nina.
+// Configuração completa da clínica (formulários do dono). null = clínica sem configuração da assistente.
 export function useClinicConfig(orgId: string) {
   const [config, setConfig] = useState<ClinicConfig | null>(null);
   const [loading, setLoading] = useState(true);

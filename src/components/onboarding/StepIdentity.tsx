@@ -54,7 +54,7 @@ export const StepIdentity: React.FC<StepIdentityProps> = ({
         </motion.div>
         <h3 className="text-xl font-semibold text-foreground mb-2">Identidade da sua Clínica</h3>
         <p className="text-muted-foreground text-sm max-w-md mx-auto">
-          Configure como sua clínica/salão e sua assistente Nina aparecem no atendimento.
+          Configure como sua clínica/salão e sua assistente aparecem no atendimento.
         </p>
       </motion.div>
 
@@ -72,7 +72,7 @@ export const StepIdentity: React.FC<StepIdentityProps> = ({
             className="focus:ring-primary"
             data-testid="onboarding-company"
           />
-          <p className="text-xs text-muted-foreground">Aparece no topo do app e nas mensagens da Nina</p>
+          <p className="text-xs text-muted-foreground">Aparece no topo do app e nas mensagens da assistente</p>
         </motion.div>
 
         <motion.div variants={itemVariants} className="space-y-2">
@@ -84,7 +84,7 @@ export const StepIdentity: React.FC<StepIdentityProps> = ({
             id="sdrName"
             value={sdrName}
             onChange={(e) => onSdrNameChange(e.target.value)}
-            placeholder="Ex: Nina, Bella, Lis, Sofia..."
+            placeholder="Ex: Bella, Lis, Sofia, Clara..."
             className="focus:ring-primary"
             data-testid="onboarding-agent"
           />
@@ -111,7 +111,7 @@ export const StepIdentity: React.FC<StepIdentityProps> = ({
             </p>
             <p className="text-muted-foreground">
               <span className="text-muted-foreground/70">Assistente:</span>{' '}
-              <span className="text-primary font-medium">{sdrName || 'Nina'}</span>
+              <span className="text-primary font-medium">{sdrName || 'Assistente'}</span>
             </p>
           </div>
         </motion.div>

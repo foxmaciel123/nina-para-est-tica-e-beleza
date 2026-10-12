@@ -96,7 +96,7 @@ const NewClinicDialog: React.FC<{ open: boolean; onClose: () => void; onCreated:
                 <CheckCircle2 className="h-5 w-5 text-emerald-500" /> Clínica criada
               </DialogTitle>
               <DialogDescription>
-                {clinicName} já tem funil, etiquetas e a Nina de estética prontos. Falta só a dona criar a senha.
+                {clinicName} já tem funil, etiquetas e a assistente de estética prontos. Falta só a dona criar a senha.
               </DialogDescription>
             </DialogHeader>
             <AccessLinkBox link={created.access_link} email={created.email} />

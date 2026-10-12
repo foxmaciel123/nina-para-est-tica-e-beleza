@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { bypassAuth } from './helpers/auth';
 
-test.describe('Nina Beleza · Settings — abas verticais beleza', () => {
+test.describe('Settings — abas verticais beleza', () => {
   test.beforeEach(async ({ page }) => {
     await bypassAuth(page);
     await page.goto('/settings');

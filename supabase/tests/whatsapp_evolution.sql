@@ -15,7 +15,7 @@ DECLARE
 BEGIN
   INSERT INTO public.organizations (id, name, created_at) VALUES (org2, 'Clínica Teste QR', now() - interval '5 days');
   INSERT INTO public.nina_settings (organization_id, company_name, sdr_name, whatsapp_verify_token)
-  VALUES (org2, 'Clínica Teste QR', 'Nina', 'nina-beleza-qr');
+  VALUES (org2, 'Clínica Teste QR', 'Assistente', 'nina-beleza-qr');
 
   PERFORM set_config('request.jwt.claims', json_build_object('sub', owner_id, 'role', 'authenticated')::text, true);
   SET LOCAL ROLE authenticated;

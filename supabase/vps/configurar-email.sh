@@ -1,18 +1,18 @@
 #!/bin/bash
-# Configura o servidor de e-mail (SMTP) do login da Nina.
+# Configura o servidor de e-mail (SMTP) do login do sistema.
 # Rode na VPS:  bash /opt/nina/configurar-email.sh
 # A senha é digitada aqui e fica só no /opt/nina/.env (nunca passa pelo chat).
 set -e
 cd /opt/nina
 
-echo "Configuração do e-mail de recuperação de senha da Nina"
+echo "Configuração do e-mail de recuperação de senha"
 echo "Use os dados SMTP do seu provedor (ex.: e-mail da Hostinger: smtp.hostinger.com, porta 465)."
 read -rp "Servidor SMTP: " SMTP_HOST
 read -rp "Porta [465]: " SMTP_PORT; SMTP_PORT=${SMTP_PORT:-465}
 read -rp "Usuário (e-mail completo): " SMTP_USER
 read -rsp "Senha (não aparece ao digitar): " SMTP_PASS; echo
 read -rp "Remetente [${SMTP_USER}]: " SMTP_FROM; SMTP_FROM=${SMTP_FROM:-$SMTP_USER}
-read -rp "Nome do remetente [Nina Beleza]: " SMTP_NAME; SMTP_NAME=${SMTP_NAME:-Nina Beleza}
+read -rp "Nome do remetente [Atendimento]: " SMTP_NAME; SMTP_NAME=${SMTP_NAME:-Atendimento}
 
 cp .env ".env.bak.$(date +%Y%m%d%H%M%S)"
 set_env() {

@@ -130,7 +130,7 @@ const PromptGeneratorSheet: React.FC<PromptGeneratorSheetProps> = ({
 
       if (data?.prompt) {
         setGeneratedPrompt(data.prompt);
-        toast.success('Prompt da Nina gerado com sucesso!');
+        toast.success('Prompt da assistente gerado com sucesso!');
       }
     } catch (error) {
       console.error('Error generating prompt:', error);
@@ -162,10 +162,10 @@ const PromptGeneratorSheet: React.FC<PromptGeneratorSheetProps> = ({
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <Wand2 className="w-5 h-5 text-primary" />
-            Gerar Prompt da Nina — Beleza & Estética
+            Gerar prompt da assistente — Beleza & Estética
           </SheetTitle>
           <SheetDescription>
-            Preencha os dados da sua clínica/salão. A Nina vai ganhar um prompt sob medida pro seu tipo de atendimento, com proibições clínicas e fluxo de qualificação adequado.
+            Preencha os dados da sua clínica/salão. A assistente vai ganhar um prompt sob medida pro seu tipo de atendimento, com proibições clínicas e fluxo de qualificação adequado.
           </SheetDescription>
         </SheetHeader>
 
@@ -184,7 +184,7 @@ const PromptGeneratorSheet: React.FC<PromptGeneratorSheetProps> = ({
                   type="text"
                   value={formData.assistant_name}
                   onChange={(e) => setFormData({ ...formData, assistant_name: e.target.value })}
-                  placeholder="ex: Nina, Sofia, Beatriz"
+                  placeholder="ex: Sofia, Beatriz, Clara"
                   className={inputClass}
                 />
               </div>
@@ -256,7 +256,7 @@ const PromptGeneratorSheet: React.FC<PromptGeneratorSheetProps> = ({
                 className={`${textareaClass} font-mono text-xs`}
               />
               <p className="text-xs text-muted-foreground">
-                Use bullets. A Nina vai citar esses protocolos quando relevante, mas nunca prescrever.
+                Use bullets. A assistente vai citar esses protocolos quando relevante, mas nunca prescrever.
               </p>
             </div>
             <div className="space-y-2">
@@ -352,7 +352,7 @@ const PromptGeneratorSheet: React.FC<PromptGeneratorSheetProps> = ({
               🌿 Política de preço & conversão
             </h3>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Como a Nina lida com preço</label>
+              <label className="text-sm font-medium text-foreground">Como a assistente lida com preço</label>
               <select
                 value={formData.pricing_policy}
                 onChange={(e) => setFormData({ ...formData, pricing_policy: e.target.value })}
@@ -387,7 +387,7 @@ const PromptGeneratorSheet: React.FC<PromptGeneratorSheetProps> = ({
               {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                  Gerando o prompt da {formData.assistant_name || 'Nina'}...
+                  Gerando o prompt da {formData.assistant_name || 'assistente'}...
                 </>
               ) : (
                 <>

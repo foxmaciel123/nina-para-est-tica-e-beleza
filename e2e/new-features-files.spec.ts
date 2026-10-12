@@ -13,7 +13,7 @@ const repo = resolve(__dirname, '..');
  * Testes mais profundos de comportamento ficam nas specs *.spec.ts que
  * usam helpers/auth.
  */
-test.describe('Nina Beleza · features novas — presença e conteúdo', () => {
+test.describe('Features novas — presença e conteúdo', () => {
   test('docs/INTEGRATIONS.md descreve contrato de 4 operações', () => {
     const doc = readFileSync(resolve(repo, 'docs', 'INTEGRATIONS.md'), 'utf-8');
     expect(doc).toMatch(/Calendar Adapter/);
@@ -131,7 +131,7 @@ test.describe('Nina Beleza · features novas — presença e conteúdo', () => {
     expect(code).toMatch(/Business Account ID/);
   });
 
-  test('prompt da Nina veta vocabulário agressivo de venda', () => {
+  test('prompt padrão veta vocabulário agressivo de venda', () => {
     const promptFile = readFileSync(
       resolve(repo, 'src/prompts/default-nina-prompt.ts'),
       'utf-8'

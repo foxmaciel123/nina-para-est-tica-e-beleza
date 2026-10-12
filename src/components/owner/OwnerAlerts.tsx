@@ -87,7 +87,7 @@ const OwnerAlerts: React.FC = () => {
 
       {alerts.length === 0 && !error ? (
         <Panel>
-          <p className="text-sm text-muted-foreground">Nenhum alerta agora. Mensalidades em dia, WhatsApp conectado e a Nina respondendo.</p>
+          <p className="text-sm text-muted-foreground">Nenhum alerta agora. Mensalidades em dia, WhatsApp conectado e a assistente respondendo.</p>
         </Panel>
       ) : (
         groups.filter((g) => g.items.length > 0).map((g) => (

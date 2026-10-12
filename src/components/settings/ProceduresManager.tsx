@@ -108,7 +108,7 @@ export const ProceduresManager: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza? A Nina vai parar de oferecer este procedimento.')) return;
+    if (!confirm('Tem certeza? A assistente vai parar de oferecer este procedimento.')) return;
     const { error } = await (supabase as any).from('procedures').delete().eq('id', id);
     if (error) toast.error('Erro ao remover');
     else {
@@ -134,7 +134,7 @@ export const ProceduresManager: React.FC = () => {
             Catálogo de Procedimentos
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Tudo que a Nina pode oferecer. Ela só fala sobre o que está cadastrado aqui.
+            Tudo que a A assistente pode oferecer. Ela só fala sobre o que está cadastrado aqui.
           </p>
         </div>
         <Button onClick={() => setEditing(emptyForm())} className="gap-2">
@@ -150,7 +150,7 @@ export const ProceduresManager: React.FC = () => {
           <Sparkles className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
           <p className="text-foreground font-medium mb-1">Nenhum procedimento cadastrado</p>
           <p className="text-sm text-muted-foreground mb-4">
-            Cadastre os protocolos da sua clínica pra Nina poder oferecer com segurança.
+            Cadastre os protocolos da sua clínica pra assistente poder oferecer com segurança.
           </p>
           <Button onClick={() => setEditing(emptyForm())} variant="ghost" className="gap-2">
             <Plus className="w-4 h-4" />
@@ -269,7 +269,7 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ editing, setEditing, onSa
         <textarea
           value={editing.description || ''}
           onChange={(e) => setEditing({ ...editing, description: e.target.value })}
-          placeholder="Como a Nina pode descrever pra cliente"
+          placeholder="Como a A assistente pode descrever pra cliente"
           rows={2}
           className={textareaClass}
         />
@@ -315,7 +315,7 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ editing, setEditing, onSa
             onChange={(e) => setEditing({ ...editing, price_visible: e.target.checked })}
             className="accent-primary"
           />
-          <span className="text-sm text-foreground">Nina pode falar o preço</span>
+          <span className="text-sm text-foreground">A assistente pode falar o preço</span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer">
           <input

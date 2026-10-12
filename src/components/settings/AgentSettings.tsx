@@ -94,7 +94,7 @@ const AgentSettings = forwardRef<AgentSettingsRef, {}>((props, ref) => {
       if (error) throw error;
 
       // Se não existe registro (banco novo) — popula state com defaults
-      // beleza pra UI já refletir o prompt da Nina e o admin não ver
+      // beleza pra UI já refletir o prompt da assistente e o admin não ver
       // textarea vazia. O save vai fazer upsert.
       if (!data) {
         console.log('[AgentSettings] No global settings found — using DEFAULT_NINA_PROMPT as starting point');
@@ -107,7 +107,7 @@ const AgentSettings = forwardRef<AgentSettingsRef, {}>((props, ref) => {
       }
 
       // Load settings from global data — se override é null, cai no DEFAULT
-      // (a Nina já é a versão beleza por padrão).
+      // (a assistente já é a versão beleza por padrão).
       setSettings({
         id: data.id,
         system_prompt_override: data.system_prompt_override ?? DEFAULT_NINA_PROMPT,

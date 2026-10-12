@@ -5,12 +5,12 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-test.describe('Nina Beleza · branding & SEO', () => {
+test.describe('Branding & SEO (white label)', () => {
   test('metadata.json descreve o vertical de beleza', async () => {
     const meta = JSON.parse(
       readFileSync(resolve(__dirname, '..', 'metadata.json'), 'utf-8')
     );
-    expect(meta.name).toMatch(/Nina Beleza/i);
+    expect(meta.name).not.toMatch(/nina/i);
     expect(meta.description.toLowerCase()).toContain('estética');
     expect(meta.description.toLowerCase()).toContain('clínica');
   });
@@ -22,7 +22,7 @@ test.describe('Nina Beleza · branding & SEO', () => {
     expect(pkg.name).toBe('nina-beleza-estetica');
   });
 
-  test('prompt padrão da Nina foi reescrito para beleza/estética', async () => {
+  test('prompt padrão foi reescrito para beleza/estética e sem nome fixo', async () => {
     const promptFile = readFileSync(
       resolve(__dirname, '..', 'src', 'prompts', 'default-nina-prompt.ts'),
       'utf-8'
@@ -40,6 +40,8 @@ test.describe('Nina Beleza · branding & SEO', () => {
     expect(promptFile).not.toContain('Viver de IA');
     expect(promptFile).not.toContain('SaaS');
     expect(promptFile).not.toContain('SDR no WhatsApp com IA');
+    expect(promptFile).not.toMatch(/Você é a Nina/);
+    expect(promptFile).toContain('{{ assistente_nome }}');
   });
 
   test('mock data inclui procedimentos do mercado de beleza', async () => {
@@ -61,7 +63,8 @@ test.describe('Nina Beleza · branding & SEO', () => {
     await page.goto('/auth');
     const ogTitle = await page.locator('meta[property="og:title"]').getAttribute('content');
     const ogDesc = await page.locator('meta[property="og:description"]').getAttribute('content');
-    expect(ogTitle).toMatch(/Nina Beleza/i);
+    expect(ogTitle).not.toMatch(/nina/i);
+    expect(await page.title()).not.toMatch(/nina/i);
     expect(ogDesc?.toLowerCase()).toContain('beleza');
   });
 });

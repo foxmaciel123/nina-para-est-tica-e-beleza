@@ -65,7 +65,7 @@ const componentLabels: Record<string, string> = {
   lovable_ai: 'IA Backend',
   pipeline: 'Funil de Clientes',
   profile: 'Perfil',
-  nina_settings: 'Configurações da Nina',
+  nina_settings: 'Configurações da assistente',
 };
 
 export const StepFinish: React.FC<StepFinishProps> = ({
@@ -107,7 +107,7 @@ export const StepFinish: React.FC<StepFinishProps> = ({
   const completedSteps = steps.filter(s => s.isComplete);
   const requiredIncomplete = steps.filter(s => s.isRequired && !s.isComplete);
 
-  const assistantName = sdrName || 'Nina';
+  const assistantName = sdrName || 'Assistente';
   const clinicName = companyName || 'sua clínica';
 
   const getStatusIcon = (status: 'ok' | 'warning' | 'error') => {
@@ -225,7 +225,7 @@ export const StepFinish: React.FC<StepFinishProps> = ({
         )}
       </motion.div>
 
-      {/* Teste real: cliente → Nina (end-to-end) */}
+      {/* Teste real: cliente → assistente (end-to-end) */}
       <motion.div variants={itemVariants} className="max-w-md mx-auto pt-4 border-t border-border/50">
         <div className="rounded-2xl border border-primary/30 bg-card/60 p-5">
           <div className="flex items-start gap-3 mb-4">
@@ -258,7 +258,7 @@ export const StepFinish: React.FC<StepFinishProps> = ({
           <div className="mt-4 p-3 rounded-lg bg-accent/10 border border-accent/20 flex items-start gap-2">
             <MessageSquare className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
             <p className="text-xs text-foreground/80">
-              A conversa vai aparecer em <strong className="text-foreground">Atendimento</strong> com o status "Nina respondendo". Se ela demorar mais de 30s, confira o Phone Number ID e o Webhook nas configurações.
+              A conversa vai aparecer em <strong className="text-foreground">Atendimento</strong> com o status "IA respondendo". Se ela demorar mais de 30s, confira o Phone Number ID e o Webhook nas configurações.
             </p>
           </div>
         </div>
