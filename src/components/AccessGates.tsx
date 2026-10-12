@@ -36,13 +36,14 @@ const SupportContact: React.FC = () => {
 // Telas da clínica: exige clínica vinculada e ativa.
 // Repassa o contexto do AppLayout (setShowOnboarding etc.) para as telas filhas.
 export const RequireClinic: React.FC = () => {
-  const { organization, isSuspended, isPlatformOwner, loading } = useOrganization();
+  const { organization, agency, isSuspended, isPlatformOwner, loading } = useOrganization();
   const layoutContext = useOutletContext();
 
   if (loading) return <FullLoader />;
 
   if (!organization) {
     if (isPlatformOwner) return <Navigate to="/dono" replace />;
+    if (agency) return <Navigate to="/agencia" replace />;
     return (
       <Notice icon={<Building2 className="h-8 w-8 text-muted-foreground" />} title="Conta sem clínica">
         <p>Seu usuário ainda não está vinculado a nenhuma clínica. Peça para o suporte concluir o seu cadastro.</p>
@@ -72,5 +73,24 @@ export const RequireOwner: React.FC<{ children: React.ReactNode }> = ({ children
   const { isPlatformOwner, loading } = useOrganization();
   if (loading) return <div className="h-screen"><FullLoader /></div>;
   if (!isPlatformOwner) return <Navigate to="/dashboard" replace />;
+  return <>{children}</>;
+};
+
+// Painel da agência: exige agência ativa
+export const RequireAgency: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { agency, loading } = useOrganization();
+  if (loading) return <div className="h-screen"><FullLoader /></div>;
+  if (!agency) return <Navigate to="/dashboard" replace />;
+  if (agency.status !== 'active') {
+    return (
+      <div className="h-screen">
+        <Notice icon={<CirclePause className="h-8 w-8 text-red-500" />} title="Acesso suspenso">
+          <p>O acesso da <strong className="text-foreground">{agency.name}</strong> ao painel está suspenso.</p>
+          <p>Fale com o suporte para reativar.</p>
+          <SupportContact />
+        </Notice>
+      </div>
+    );
+  }
   return <>{children}</>;
 };

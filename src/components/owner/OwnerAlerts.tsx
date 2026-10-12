@@ -4,6 +4,7 @@ import { AlertOctagon, AlertTriangle, Info, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { ErrorNote, PageHeader, PageLoader, Panel } from './ownerUi';
+import { clinicPathForAlert, usePanel } from './panelScope';
 
 type AlertItem = Database['public']['Functions']['owner_alerts']['Returns'][number];
 
@@ -17,6 +18,7 @@ const severityOf = (s: string) => SEVERITY[(s as keyof typeof SEVERITY)] ?? SEVE
 
 export const AlertRow: React.FC<{ alert: AlertItem }> = ({ alert }) => {
   const sev = severityOf(alert.severity);
+  const panel = usePanel();
   const content = (
     <>
       <sev.icon className={`mt-0.5 h-4 w-4 flex-shrink-0 ${sev.className}`} aria-label={sev.label} />
@@ -35,7 +37,7 @@ export const AlertRow: React.FC<{ alert: AlertItem }> = ({ alert }) => {
     <li className="border-b border-border/60 last:border-0">
       {alert.organization_id ? (
         <Link
-          to={`/dono/clinicas/${alert.organization_id}${alert.kind.startsWith('billing') ? '/cobranca' : alert.kind === 'whatsapp_pending' || alert.kind === 'send_failures' ? '/whatsapp' : ''}`}
+          to={clinicPathForAlert(panel.base, alert.organization_id, alert.kind)}
           className="flex items-start gap-3 rounded-md px-1 py-3 hover:bg-muted/40"
         >
           {content}
@@ -48,6 +50,7 @@ export const AlertRow: React.FC<{ alert: AlertItem }> = ({ alert }) => {
 };
 
 const OwnerAlerts: React.FC = () => {
+  const panel = usePanel();
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -79,7 +82,7 @@ const OwnerAlerts: React.FC = () => {
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-8 p-6" data-testid="owner-alerts">
       <PageHeader
-        eyebrow="Painel do Dono · Sistema"
+        eyebrow={`${panel.title} · ${panel.kind === 'agency' ? 'Visão' : 'Sistema'}`}
         title="Alertas"
         description="Calculados na hora. Quando a causa é resolvida, o alerta some sozinho."
       />

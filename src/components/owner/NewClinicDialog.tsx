@@ -6,10 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { supabase } from '@/integrations/supabase/client';
 import { ownerAction } from './ownerApi';
+import { usePanel } from './panelScope';
 
 // Link de primeiro acesso para o dono copiar e mandar no WhatsApp da dona
-export const AccessLinkBox: React.FC<{ link: string; email: string }> = ({ link, email }) => {
+export const AccessLinkBox: React.FC<{ link: string; email: string; who?: string; resendHint?: string }> = ({
+  link, email, who = 'a dona', resendHint = 'no resumo da clínica',
+}) => {
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(link);
@@ -27,8 +31,8 @@ export const AccessLinkBox: React.FC<{ link: string; email: string }> = ({ link,
         </Button>
       </div>
       <p className="text-xs text-muted-foreground">
-        Mande para a dona no WhatsApp. Ela abre o link, cria a senha e entra com o e-mail <strong className="text-foreground">{email}</strong>.
-        O link vale por 24 horas e só pode ser usado uma vez. Se expirar, use “Reenviar acesso” no resumo da clínica.
+        Mande para {who} no WhatsApp. O link abre a tela de criar senha; depois é só entrar com o e-mail <strong className="text-foreground">{email}</strong>.
+        O link vale por 24 horas e só pode ser usado uma vez. Se expirar, use “Reenviar acesso” {resendHint}.
       </p>
     </div>
   );
@@ -42,6 +46,9 @@ interface Created {
 
 const NewClinicDialog: React.FC<{ open: boolean; onClose: () => void; onCreated: () => void }> = ({ open, onClose, onCreated }) => {
   const navigate = useNavigate();
+  const panel = usePanel();
+  const [agencies, setAgencies] = useState<{ id: string; name: string }[]>([]);
+  const [agencyId, setAgencyId] = useState('');
   const [clinicName, setClinicName] = useState('');
   const [ownerName, setOwnerName] = useState('');
   const [email, setEmail] = useState('');
@@ -55,8 +62,13 @@ const NewClinicDialog: React.FC<{ open: boolean; onClose: () => void; onCreated:
   useEffect(() => {
     if (!open) return;
     setClinicName(''); setOwnerName(''); setEmail(''); setPhone(''); setFee(''); setDueDate('');
-    setError(null); setCreated(null);
-  }, [open]);
+    setError(null); setCreated(null); setAgencyId('');
+    // O dono pode criar a clínica já dentro de uma agência
+    if (panel.kind === 'owner') {
+      supabase.rpc('owner_agencies_overview' as any).then(({ data }) =>
+        setAgencies(((data as any[]) ?? []).filter((a) => a.status === 'active')));
+    }
+  }, [open, panel.kind]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,6 +88,7 @@ const NewClinicDialog: React.FC<{ open: boolean; onClose: () => void; onCreated:
         contact_phone: phone.trim(),
         monthly_fee: feeValue,
         first_due_date: dueDate || null,
+        agency_id: agencyId || null,
       });
       setCreated(result);
       onCreated();
@@ -102,7 +115,7 @@ const NewClinicDialog: React.FC<{ open: boolean; onClose: () => void; onCreated:
             <AccessLinkBox link={created.access_link} email={created.email} />
             <DialogFooter>
               <Button variant="outline" onClick={onClose}>Fechar</Button>
-              <Button onClick={() => navigate(`/dono/clinicas/${created.organization_id}`)}>Abrir clínica</Button>
+              <Button onClick={() => navigate(`${panel.base}/clinicas/${created.organization_id}`)}>Abrir clínica</Button>
             </DialogFooter>
           </div>
         ) : (
@@ -128,6 +141,20 @@ const NewClinicDialog: React.FC<{ open: boolean; onClose: () => void; onCreated:
                 <Label htmlFor="new-clinic-email">E-mail de acesso da dona</Label>
                 <Input id="new-clinic-email" type="email" placeholder="ana@bellapele.com.br" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
+              {panel.kind === 'owner' && agencies.length > 0 && (
+                <div className="flex flex-col gap-2 sm:col-span-2">
+                  <Label htmlFor="new-clinic-agency">Agência</Label>
+                  <select
+                    id="new-clinic-agency"
+                    value={agencyId}
+                    onChange={(e) => setAgencyId(e.target.value)}
+                    className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="">Nenhuma (cliente direto seu)</option>
+                    {agencies.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                  </select>
+                </div>
+              )}
               <div className="flex flex-col gap-2">
                 <Label htmlFor="new-clinic-fee">Mensalidade (R$)</Label>
                 <Input id="new-clinic-fee" inputMode="decimal" placeholder="397,00" value={fee} onChange={(e) => setFee(e.target.value)} />

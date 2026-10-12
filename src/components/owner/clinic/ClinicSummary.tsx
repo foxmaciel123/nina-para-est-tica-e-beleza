@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { BillingChip, Chip, PageHeader, Panel, formatBRL, formatDate, formatNumber, formatRelative, formatUSD } from '../ownerUi';
 import { ClinicDetail, useClinic } from './OwnerClinicLayout';
 import { ClinicHistory, ResendAccessButton } from './ClinicHistory';
+import { usePanel } from '../panelScope';
 
 const EditClinicDialog: React.FC<{ open: boolean; onClose: () => void; detail: ClinicDetail; onSaved: () => void }> = ({ open, onClose, detail, onSaved }) => {
   const org = detail.organization;
@@ -62,7 +63,7 @@ const EditClinicDialog: React.FC<{ open: boolean; onClose: () => void; detail: C
         <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
           <DialogHeader>
             <DialogTitle>Editar dados da clínica</DialogTitle>
-            <DialogDescription>Esses dados aparecem só para você no Painel do Dono.</DialogDescription>
+            <DialogDescription>Esses dados aparecem só no painel de gestão, a clínica não vê.</DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2">
             <Label htmlFor="clinic-name">Nome da clínica</Label>
@@ -100,7 +101,62 @@ const EditClinicDialog: React.FC<{ open: boolean; onClose: () => void; detail: C
   );
 };
 
+// Dono: em qual agência a clínica está (ou cliente direto) e troca de agência
+const ClinicAgencyDialog: React.FC<{ open: boolean; onClose: () => void; detail: ClinicDetail; onSaved: () => void }> = ({ open, onClose, detail, onSaved }) => {
+  const [agencies, setAgencies] = useState<{ id: string; name: string }[]>([]);
+  const [value, setValue] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    setValue(detail.organization.agency_id ?? '');
+    supabase.rpc('owner_agencies_overview' as any).then(({ data }) => setAgencies((data as any[]) ?? []));
+  }, [open, detail.organization.agency_id]);
+
+  const save = async () => {
+    setSaving(true);
+    const { error } = await supabase.rpc('owner_set_clinic_agency' as any, { p_org: detail.organization.id, p_agency: value || null });
+    setSaving(false);
+    if (error) return toast.error('Não foi possível trocar a agência. Tente de novo.');
+    toast.success(value ? 'Clínica passada para a agência' : 'Clínica agora é cliente direto');
+    onClose();
+    onSaved();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Agência responsável</DialogTitle>
+          <DialogDescription>A agência passa a ver, configurar e cobrar esta clínica pelo painel dela. Você continua com acesso total.</DialogDescription>
+        </DialogHeader>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="clinic-agency">Agência</Label>
+          <select
+            id="clinic-agency"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+          >
+            <option value="">Nenhuma (cliente direto seu)</option>
+            {agencies.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+          </select>
+        </div>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose} disabled={saving}>Voltar</Button>
+          <Button type="button" onClick={save} disabled={saving}>
+            {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Salvar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const ClinicSummary: React.FC = () => {
+  const panel = usePanel();
+  const [changingAgency, setChangingAgency] = useState(false);
   const { detail, reload } = useClinic();
   const [editing, setEditing] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -136,7 +192,8 @@ const ClinicSummary: React.FC = () => {
     { label: 'Conversas', value: formatNumber(usage.conversations) },
     { label: 'Respostas da IA', value: formatNumber(usage.ai_messages) },
     { label: 'Agendamentos', value: formatNumber(usage.appointments) },
-    { label: 'Custo da IA', value: formatUSD(usage.ai_cost_usd) },
+    // Custo da IA: só o dono recebe esse dado do servidor
+    ...(usage.ai_cost_usd !== undefined ? [{ label: 'Custo da IA', value: formatUSD(usage.ai_cost_usd) }] : []),
   ];
 
   return (
@@ -209,6 +266,15 @@ const ClinicSummary: React.FC = () => {
                 <dd className="text-right font-medium">{value}</dd>
               </div>
             ))}
+            {panel.kind === 'owner' && (
+              <div className="flex items-center justify-between gap-4 border-b border-border/60 py-2">
+                <dt className="text-muted-foreground">Agência</dt>
+                <dd className="flex items-center gap-2 text-right font-medium" data-testid="clinic-agency">
+                  {org.agency_name ?? 'Cliente direto'}
+                  <button type="button" onClick={() => setChangingAgency(true)} className="text-xs font-semibold text-accent hover:underline">Trocar</button>
+                </dd>
+              </div>
+            )}
             <div className="flex items-center justify-between gap-4 py-2">
               <dt className="text-muted-foreground">Pagamento</dt>
               <dd><BillingChip state={billing.state} /></dd>
@@ -244,6 +310,9 @@ const ClinicSummary: React.FC = () => {
       <ClinicHistory orgId={org.id} refreshKey={`${historyKey}-${org.status}-${org.name}-${org.monthly_fee}`} />
 
       <EditClinicDialog open={editing} onClose={() => setEditing(false)} detail={detail} onSaved={reload} />
+      {panel.kind === 'owner' && (
+        <ClinicAgencyDialog open={changingAgency} onClose={() => setChangingAgency(false)} detail={detail} onSaved={() => { reload(); setHistoryKey((k) => k + 1); }} />
+      )}
 
       <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <AlertDialogContent>

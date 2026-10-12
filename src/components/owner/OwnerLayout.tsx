@@ -1,12 +1,13 @@
 import React from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Building2, Wallet, Cpu, AlertTriangle, ArrowLeftRight, LogOut, Crown, Palette } from 'lucide-react';
+import { LayoutDashboard, Building2, Wallet, Cpu, AlertTriangle, ArrowLeftRight, LogOut, Crown, Palette, Briefcase } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrganization } from '@/hooks/useOrganization';
 import ThemeToggle from '@/components/ThemeToggle';
 import ScreenErrorBoundary from '@/components/ScreenErrorBoundary';
 import { useBrand } from '@/hooks/useBrand';
+import { usePanel } from './panelScope';
 
 export interface OwnerNavItem {
   label: string;
@@ -25,6 +26,7 @@ const GROUPS: OwnerNavGroup[] = [
     label: 'Visão',
     items: [
       { label: 'Dashboard', to: '/dono/dashboard', icon: LayoutDashboard },
+      { label: 'Agências', to: '/dono/agencias', icon: Briefcase },
       { label: 'Clínicas', to: '/dono/clinicas', icon: Building2 },
     ],
   },
@@ -52,8 +54,10 @@ export const OwnerFrame: React.FC<{
   children: React.ReactNode;
 }> = ({ header, groups, children }) => {
   const { user, signOut } = useAuth();
-  const { organization } = useOrganization();
+  const { organization, agency } = useOrganization();
   const { brand } = useBrand();
+  const panel = usePanel();
+  const PanelIcon = panel.kind === 'agency' ? Briefcase : Crown;
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -68,17 +72,19 @@ export const OwnerFrame: React.FC<{
       <aside className="flex flex-shrink-0 flex-col gap-4 border-b border-border/50 bg-card/50 p-3 md:w-60 md:border-b-0 md:border-r md:p-4">
         <div className="flex items-center gap-2.5 px-1">
           <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/15 text-accent">
-            <Crown className="h-5 w-5" />
+            <PanelIcon className="h-5 w-5" />
           </div>
           <div className="leading-tight">
-            <div className="text-sm font-bold">Painel do Dono</div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground" data-testid="brand-name">{brand.name} · Plataforma</div>
+            <div className="text-sm font-bold">{panel.title}</div>
+            <div className="text-[10px] uppercase tracking-wider text-muted-foreground" data-testid="brand-name">
+              {panel.kind === 'agency' ? agency?.name : `${brand.name} · Plataforma`}
+            </div>
           </div>
         </div>
 
         {header}
 
-        <nav className="flex gap-1 overflow-x-auto md:flex-col md:gap-4 md:overflow-visible" aria-label="Menu do dono">
+        <nav className="flex gap-1 overflow-x-auto md:flex-col md:gap-4 md:overflow-visible" aria-label={`Menu · ${panel.title}`}>
           {groups.map((group) => (
             <div key={group.label} className="flex gap-1 md:flex-col">
               <span className="hidden px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground md:block">

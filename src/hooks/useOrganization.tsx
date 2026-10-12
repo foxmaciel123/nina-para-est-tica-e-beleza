@@ -9,8 +9,16 @@ export interface Organization {
   role: string;
 }
 
+export interface Agency {
+  id: string;
+  name: string;
+  status: string;
+  role: string;
+}
+
 interface OrganizationContextType {
   organization: Organization | null;
+  agency: Agency | null;
   isPlatformOwner: boolean;
   isSuspended: boolean;
   loading: boolean;
@@ -25,20 +33,23 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
   // token / volta à aba, e isso não pode recarregar a clínica nem as telas.
   const userId = user?.id ?? null;
   const [organization, setOrganization] = useState<Organization | null>(null);
+  const [agency, setAgency] = useState<Agency | null>(null);
   const [isPlatformOwner, setIsPlatformOwner] = useState(false);
   const [loadedFor, setLoadedFor] = useState<string | null | undefined>(undefined);
 
   const refresh = useCallback(async () => {
     if (!userId) {
       setOrganization(null);
+      setAgency(null);
       setIsPlatformOwner(false);
       setLoadedFor(null);
       return;
     }
 
-    const [orgResult, ownerResult] = await Promise.all([
+    const [orgResult, ownerResult, agencyResult] = await Promise.all([
       supabase.rpc('my_organization'),
       supabase.rpc('is_platform_owner'),
+      supabase.rpc('my_agency' as any),
     ]);
 
     // Falha de rede numa atualização não derruba a clínica já carregada
@@ -50,6 +61,8 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
 
     setOrganization(orgResult.data?.[0] ?? null);
     setIsPlatformOwner(ownerResult.data === true);
+    const agencyRows = agencyResult.error ? null : (agencyResult.data as unknown as Agency[] | null);
+    setAgency(Array.isArray(agencyRows) ? agencyRows[0] ?? null : null);
     setLoadedFor(userId);
   }, [userId]);
 
@@ -64,6 +77,7 @@ export const OrganizationProvider = ({ children }: { children: ReactNode }) => {
     <OrganizationContext.Provider
       value={{
         organization,
+        agency,
         isPlatformOwner,
         isSuspended: organization?.status === 'suspended',
         loading,

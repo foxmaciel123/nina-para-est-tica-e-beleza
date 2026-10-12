@@ -4,11 +4,13 @@ import { ArrowLeft, LayoutDashboard, MessageCircle, Bot, Wallet, AlertTriangle, 
 import { supabase } from '@/integrations/supabase/client';
 import { OwnerFrame, OwnerNavGroup } from '../OwnerLayout';
 import { PageLoader, StatusChip } from '../ownerUi';
+import { usePanel } from '../panelScope';
 
 export interface ClinicDetail {
   organization: {
     id: string; name: string; status: string; created_at: string;
     monthly_fee: number; contact_name: string | null; contact_phone: string | null; notes: string | null;
+    agency_id?: string | null; agency_name?: string | null;
   };
   billing: { state: string; next_due_date: string | null; overdue_amount: number };
   members: { email: string; role: string; full_name: string | null; joined_at: string; last_sign_in_at: string | null }[];
@@ -24,7 +26,7 @@ export interface ClinicDetail {
   } | null;
   usage_30d: {
     contacts_total: number; new_contacts: number; conversations: number; messages_received: number;
-    ai_messages: number; appointments: number; ai_tokens: number; ai_cost_usd: number;
+    ai_messages: number; appointments: number; ai_tokens?: number; ai_cost_usd?: number; // custo: só o dono recebe
   };
   daily_ai_messages: { day: string; count: number }[];
 }
@@ -38,6 +40,7 @@ export const useClinic = () => useOutletContext<ClinicContext>();
 
 const OwnerClinicLayout: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const panel = usePanel();
   const [detail, setDetail] = useState<ClinicDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,7 +61,7 @@ const OwnerClinicLayout: React.FC = () => {
     reload();
   }, [reload]);
 
-  const base = `/dono/clinicas/${id}`;
+  const base = `${panel.base}/clinicas/${id}`;
   const groups: OwnerNavGroup[] = [
     {
       label: 'Clínica',
@@ -75,7 +78,7 @@ const OwnerClinicLayout: React.FC = () => {
 
   const header = (
     <div className="flex flex-col gap-2 px-1">
-      <Link to="/dono/clinicas" className="inline-flex w-fit items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground">
+      <Link to={`${panel.base}/clinicas`} className="inline-flex w-fit items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground">
         <ArrowLeft className="h-3.5 w-3.5" /> Clínicas
       </Link>
       {detail && (
@@ -93,7 +96,7 @@ const OwnerClinicLayout: React.FC = () => {
         <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
           <AlertTriangle className="h-8 w-8 text-destructive" />
           <p className="text-muted-foreground">{error}</p>
-          <Link to="/dono/clinicas" className="text-sm font-semibold text-accent hover:underline">Voltar para as clínicas</Link>
+          <Link to={`${panel.base}/clinicas`} className="text-sm font-semibold text-accent hover:underline">Voltar para as clínicas</Link>
         </div>
       ) : !detail ? (
         <PageLoader />

@@ -1,13 +1,15 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { seedClinicDefaults } from '../_shared/clinic-defaults.ts';
 
-// Ações do Painel do Dono que precisam da service_role (criar usuário, gerar
-// link de acesso, chamar a API da Meta com o token salvo). Só o dono da
-// plataforma pode chamar.
+// Ações dos painéis do Dono e da Agência que precisam da service_role (criar
+// usuário, gerar link de acesso, chamar a API da Meta com o token salvo).
+// Clínicas: o dono (qualquer uma) ou a agência (só as dela). Agências: só o dono.
 //
-// POST { action: 'create_clinic', clinic_name, owner_name, email, contact_phone?, monthly_fee?, first_due_date? }
+// POST { action: 'create_clinic', clinic_name, owner_name, email, contact_phone?, monthly_fee?, first_due_date?, agency_id? }
 // POST { action: 'resend_access', organization_id }
 // POST { action: 'test_whatsapp', organization_id }
+// POST { action: 'create_agency', agency_name, owner_name, email, contact_phone?, fee_per_clinic? }   (só o dono)
+// POST { action: 'resend_agency_access', agency_id }                                                 (só o dono)
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,7 +24,13 @@ class UserError extends Error {}
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
 
-// Página do painel onde a dona cria a senha
+interface Caller {
+  userId: string;
+  isOwner: boolean;
+  agencyId: string | null; // agência ativa do usuário
+}
+
+// Página do painel onde a pessoa cria a senha
 function accessRedirect(req: Request): string {
   const origin = req.headers.get('origin') || Deno.env.get('NINA_SITE_URL') || '';
   return `${origin.replace(/\/$/, '')}/primeiro-acesso`;
@@ -41,11 +49,33 @@ async function generateAccessLink(supabase: any, email: string, redirectTo: stri
   return data.properties.action_link;
 }
 
-async function log(supabase: any, orgId: string, actorId: string, action: string, details: Record<string, unknown> = {}) {
-  await supabase.from('owner_audit_log').insert({ organization_id: orgId, actor_id: actorId, action, details });
+async function log(
+  supabase: any, orgId: string | null, actorId: string, action: string,
+  details: Record<string, unknown> = {}, agencyId: string | null = null,
+) {
+  await supabase.from('owner_audit_log').insert({ organization_id: orgId, agency_id: agencyId, actor_id: actorId, action, details });
 }
 
-async function createClinic(supabase: any, req: Request, actorId: string, body: any) {
+async function assertCanManage(supabase: any, caller: Caller, orgId: string) {
+  const { data, error } = await supabase.rpc('can_user_manage_org', { p_user: caller.userId, p_org: orgId });
+  if (error || data !== true) throw new UserError('Você não tem acesso a esta clínica.');
+}
+
+// Conta com e-mail já confirmado; a senha é criada pelo link de primeiro acesso
+async function createAccount(supabase: any, email: string, fullName: string, takenMessage: string): Promise<string> {
+  const { data, error } = await supabase.auth.admin.createUser({
+    email,
+    email_confirm: true,
+    user_metadata: { full_name: fullName },
+  });
+  if (error) {
+    if (/already|registered|exists/i.test(error.message ?? '')) throw new UserError(takenMessage);
+    throw error;
+  }
+  return data.user.id;
+}
+
+async function createClinic(supabase: any, req: Request, caller: Caller, body: any) {
   const clinicName = String(body.clinic_name ?? '').trim();
   const ownerName = String(body.owner_name ?? '').trim();
   const email = String(body.email ?? '').trim().toLowerCase();
@@ -59,27 +89,24 @@ async function createClinic(supabase: any, req: Request, actorId: string, body: 
   if (!Number.isFinite(monthlyFee) || monthlyFee < 0) throw new UserError('Informe uma mensalidade válida.');
   if (firstDueDate && !/^\d{4}-\d{2}-\d{2}$/.test(firstDueDate)) throw new UserError('Data do primeiro vencimento inválida.');
 
+  // A agência sempre cria para ela mesma; o dono cria direto ou para uma agência
+  const agencyId: string | null = caller.isOwner ? (body.agency_id ? String(body.agency_id) : null) : caller.agencyId;
+  if (!caller.isOwner && !agencyId) throw new UserError('Acesso restrito.');
+  if (caller.isOwner && agencyId) {
+    const { data: agency } = await supabase.from('agencies').select('id').eq('id', agencyId).maybeSingle();
+    if (!agency) throw new UserError('Agência não encontrada.');
+  }
+
   const { data: org, error: orgError } = await supabase
     .from('organizations')
-    .insert({ name: clinicName, monthly_fee: monthlyFee, contact_name: ownerName, contact_phone: contactPhone })
+    .insert({ name: clinicName, monthly_fee: monthlyFee, contact_name: ownerName, contact_phone: contactPhone, agency_id: agencyId })
     .select('id')
     .single();
   if (orgError) throw orgError;
 
   let userId: string | null = null;
   try {
-    const { data: created, error: userError } = await supabase.auth.admin.createUser({
-      email,
-      email_confirm: true,
-      user_metadata: { full_name: ownerName },
-    });
-    if (userError) {
-      if (/already|registered|exists/i.test(userError.message ?? '')) {
-        throw new UserError('Já existe uma conta com esse e-mail. Use outro e-mail para a dona da clínica.');
-      }
-      throw userError;
-    }
-    userId = created.user.id;
+    userId = await createAccount(supabase, email, ownerName, 'Já existe uma conta com esse e-mail. Use outro e-mail para a dona da clínica.');
 
     // handle_new_user cria perfil e papel 'user'; a dona é admin da clínica dela
     await supabase.from('user_roles').delete().eq('user_id', userId);
@@ -101,7 +128,7 @@ async function createClinic(supabase: any, req: Request, actorId: string, body: 
     }
 
     const link = await generateAccessLink(supabase, email, accessRedirect(req));
-    await log(supabase, org.id, actorId, 'clinic_created', { name: clinicName, email });
+    await log(supabase, org.id, caller.userId, 'clinic_created', { name: clinicName, email }, agencyId);
     return { organization_id: org.id, access_link: link, email };
   } catch (err) {
     // Desfaz tudo: clínica (cascata em configurações/membros) e usuário criado
@@ -111,8 +138,9 @@ async function createClinic(supabase: any, req: Request, actorId: string, body: 
   }
 }
 
-async function resendAccess(supabase: any, req: Request, actorId: string, body: any) {
+async function resendAccess(supabase: any, req: Request, caller: Caller, body: any) {
   const orgId = String(body.organization_id ?? '');
+  await assertCanManage(supabase, caller, orgId);
   const { data: member } = await supabase
     .from('organization_members')
     .select('user_id')
@@ -127,12 +155,13 @@ async function resendAccess(supabase: any, req: Request, actorId: string, body: 
   if (error || !userData?.user?.email) throw new UserError('Não encontrei o e-mail da administradora.');
 
   const link = await generateAccessLink(supabase, userData.user.email, accessRedirect(req));
-  await log(supabase, orgId, actorId, 'access_link_sent', { email: userData.user.email });
+  await log(supabase, orgId, caller.userId, 'access_link_sent', { email: userData.user.email });
   return { access_link: link, email: userData.user.email };
 }
 
-async function testWhatsapp(supabase: any, body: any) {
+async function testWhatsapp(supabase: any, caller: Caller, body: any) {
   const orgId = String(body.organization_id ?? '');
+  await assertCanManage(supabase, caller, orgId);
   const { data: s } = await supabase
     .from('nina_settings')
     .select('whatsapp_phone_number_id, whatsapp_access_token')
@@ -162,25 +191,94 @@ async function testWhatsapp(supabase: any, body: any) {
   };
 }
 
+async function createAgency(supabase: any, req: Request, caller: Caller, body: any) {
+  const agencyName = String(body.agency_name ?? '').trim();
+  const ownerName = String(body.owner_name ?? '').trim();
+  const email = String(body.email ?? '').trim().toLowerCase();
+  const contactPhone = String(body.contact_phone ?? '').trim() || null;
+  const rawFee = body.fee_per_clinic;
+  const fee = rawFee === null || rawFee === undefined || rawFee === '' ? null : Number(rawFee);
+
+  if (!agencyName) throw new UserError('Informe o nome da agência.');
+  if (!ownerName) throw new UserError('Informe o nome do responsável.');
+  if (!EMAIL_RE.test(email)) throw new UserError('Informe um e-mail válido.');
+  if (fee !== null && (!Number.isFinite(fee) || fee < 0)) throw new UserError('Informe um valor por clínica válido.');
+
+  const { data: agency, error: agencyError } = await supabase
+    .from('agencies')
+    .insert({ name: agencyName, contact_name: ownerName, contact_phone: contactPhone, fee_per_clinic: fee })
+    .select('id')
+    .single();
+  if (agencyError) throw agencyError;
+
+  let userId: string | null = null;
+  try {
+    userId = await createAccount(supabase, email, ownerName, 'Já existe uma conta com esse e-mail. Use outro e-mail para a agência.');
+    const { error: memberError } = await supabase.from('agency_members').insert({ agency_id: agency.id, user_id: userId, role: 'admin' });
+    if (memberError) throw memberError;
+
+    const link = await generateAccessLink(supabase, email, accessRedirect(req));
+    await log(supabase, null, caller.userId, 'agency_created', { name: agencyName, email }, agency.id);
+    return { agency_id: agency.id, access_link: link, email };
+  } catch (err) {
+    await supabase.from('agencies').delete().eq('id', agency.id);
+    if (userId) await supabase.auth.admin.deleteUser(userId);
+    throw err;
+  }
+}
+
+async function resendAgencyAccess(supabase: any, req: Request, caller: Caller, body: any) {
+  const agencyId = String(body.agency_id ?? '');
+  const { data: member } = await supabase
+    .from('agency_members')
+    .select('user_id')
+    .eq('agency_id', agencyId)
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (!member) throw new UserError('Esta agência não tem uma conta de acesso.');
+
+  const { data: userData, error } = await supabase.auth.admin.getUserById(member.user_id);
+  if (error || !userData?.user?.email) throw new UserError('Não encontrei o e-mail da agência.');
+
+  const link = await generateAccessLink(supabase, userData.user.email, accessRedirect(req));
+  await log(supabase, null, caller.userId, 'agency_access_link_sent', { email: userData.user.email }, agencyId);
+  return { access_link: link, email: userData.user.email };
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   if (req.method !== 'POST') return json({ error: 'Método não permitido' }, 405);
 
   const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
 
-  // Só o dono da plataforma
+  // Dono da plataforma ou agência ativa
   const token = (req.headers.get('authorization') || '').replace('Bearer ', '');
   const { data: { user } } = await supabase.auth.getUser(token);
   if (!user) return json({ error: 'Faça login novamente.' }, 401);
   const { data: profile } = await supabase.from('profiles').select('is_platform_owner').eq('user_id', user.id).maybeSingle();
-  if (!profile?.is_platform_owner) return json({ error: 'Acesso restrito ao dono da plataforma.' }, 403);
+  const { data: agencyMember } = await supabase
+    .from('agency_members')
+    .select('agency_id, agencies!inner(status)')
+    .eq('user_id', user.id)
+    .maybeSingle();
+  const caller: Caller = {
+    userId: user.id,
+    isOwner: !!profile?.is_platform_owner,
+    agencyId: agencyMember?.agencies?.status === 'active' ? agencyMember.agency_id : null,
+  };
+  if (!caller.isOwner && !caller.agencyId) return json({ error: 'Acesso restrito.' }, 403);
 
   try {
     const body = await req.json();
+    const ownerOnly = body.action === 'create_agency' || body.action === 'resend_agency_access';
+    if (ownerOnly && !caller.isOwner) return json({ error: 'Acesso restrito ao dono da plataforma.' }, 403);
     switch (body.action) {
-      case 'create_clinic': return json(await createClinic(supabase, req, user.id, body));
-      case 'resend_access': return json(await resendAccess(supabase, req, user.id, body));
-      case 'test_whatsapp': return json(await testWhatsapp(supabase, body));
+      case 'create_clinic': return json(await createClinic(supabase, req, caller, body));
+      case 'resend_access': return json(await resendAccess(supabase, req, caller, body));
+      case 'test_whatsapp': return json(await testWhatsapp(supabase, caller, body));
+      case 'create_agency': return json(await createAgency(supabase, req, caller, body));
+      case 'resend_agency_access': return json(await resendAgencyAccess(supabase, req, caller, body));
       default: return json({ error: 'Ação desconhecida' }, 400);
     }
   } catch (err) {

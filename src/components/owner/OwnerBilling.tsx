@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { ChargesTable, Charge, ClinicOption, NewChargeDialog } from './billing';
 import { ErrorNote, PageHeader, PageLoader, Panel, Stat, formatBRL } from './ownerUi';
+import { usePanel } from './panelScope';
 
 type Filter = 'open' | 'overdue' | 'paid' | 'all';
 
@@ -15,6 +16,7 @@ const FILTERS: { id: Filter; label: string }[] = [
 ];
 
 const OwnerBilling: React.FC = () => {
+  const panel = usePanel();
   const [charges, setCharges] = useState<Charge[]>([]);
   const [clinics, setClinics] = useState<ClinicOption[]>([]);
   const [filter, setFilter] = useState<Filter>('open');
@@ -30,7 +32,9 @@ const OwnerBilling: React.FC = () => {
       setError('Não foi possível carregar as cobranças.');
     } else {
       setCharges(c.data ?? []);
-      setClinics((o.data ?? []).map((x) => ({ id: x.id, name: x.name, monthly_fee: Number(x.monthly_fee) })));
+      // No painel do dono, as mensalidades de clínicas de agência são cobradas pela agência
+      const rows = (o.data ?? []) as Array<{ id: string; name: string; monthly_fee: number; agency_id?: string | null }>;
+      setClinics(rows.filter((x) => panel.kind === 'agency' || !x.agency_id).map((x) => ({ id: x.id, name: x.name, monthly_fee: Number(x.monthly_fee) })));
     }
     setLoading(false);
   };
@@ -62,9 +66,11 @@ const OwnerBilling: React.FC = () => {
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6 p-6" data-testid="owner-billing">
       <PageHeader
-        eyebrow="Painel do Dono · Financeiro"
+        eyebrow={`${panel.title} · Financeiro`}
         title="Vencimentos"
-        description="Mensalidades cobradas por fora (Pix ou boleto). Registre aqui quando a clínica pagar."
+        description={panel.kind === 'agency'
+          ? 'Mensalidades que a agência cobra das clínicas (Pix ou boleto). Registre aqui quando a clínica pagar.'
+          : 'Mensalidades das suas clínicas diretas, cobradas por fora (Pix ou boleto). Registre aqui quando a clínica pagar.'}
         actions={
           <Button onClick={() => setCreating(true)} disabled={clinics.length === 0} className="gap-2">
             <Plus className="h-4 w-4" /> Nova cobrança

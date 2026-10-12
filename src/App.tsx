@@ -11,7 +11,7 @@ import Scheduling from './components/Scheduling';
 import Kanban from './components/Kanban';
 import Auth from './pages/Auth';
 import ProtectedRoute from './components/ProtectedRoute';
-import { RequireClinic, RequireOwner } from './components/AccessGates';
+import { RequireAgency, RequireClinic, RequireOwner } from './components/AccessGates';
 import OwnerLayout from './components/owner/OwnerLayout';
 import OwnerDashboard from './components/owner/OwnerDashboard';
 import OwnerClinics from './components/owner/OwnerClinics';
@@ -19,6 +19,10 @@ import OwnerBilling from './components/owner/OwnerBilling';
 import OwnerAiUsage from './components/owner/OwnerAiUsage';
 import OwnerAlerts from './components/owner/OwnerAlerts';
 import OwnerBrand from './components/owner/OwnerBrand';
+import OwnerAgencies from './components/owner/OwnerAgencies';
+import { PanelScopeProvider } from './components/owner/panelScope';
+import AgencyLayout from './components/agency/AgencyLayout';
+import AgencyDashboard from './components/agency/AgencyDashboard';
 import OwnerClinicLayout from './components/owner/clinic/OwnerClinicLayout';
 import ClinicSummary from './components/owner/clinic/ClinicSummary';
 import ClinicWhatsapp from './components/owner/clinic/ClinicWhatsapp';
@@ -117,6 +121,7 @@ const App: React.FC = () => {
               <Route element={<ProtectedRoute><RequireOwner><OwnerLayout /></RequireOwner></ProtectedRoute>}>
                 <Route path="/dono" element={<Navigate to="/dono/dashboard" replace />} />
                 <Route path="/dono/dashboard" element={<OwnerDashboard />} />
+                <Route path="/dono/agencias" element={<OwnerAgencies />} />
                 <Route path="/dono/clinicas" element={<OwnerClinics />} />
                 <Route path="/dono/vencimentos" element={<OwnerBilling />} />
                 <Route path="/dono/consumo-ia" element={<OwnerAiUsage />} />
@@ -124,6 +129,23 @@ const App: React.FC = () => {
                 <Route path="/dono/marca" element={<OwnerBrand />} />
               </Route>
               <Route path="/dono/clinicas/:id" element={<ProtectedRoute><RequireOwner><OwnerClinicLayout /></RequireOwner></ProtectedRoute>}>
+                <Route index element={<ClinicSummary />} />
+                <Route path="whatsapp" element={<ClinicWhatsapp />} />
+                <Route path="agente-ia" element={<ClinicAgent />} />
+                <Route path="horarios" element={<ClinicHours />} />
+                <Route path="procedimentos" element={<ClinicProcedures />} />
+                <Route path="cobranca" element={<ClinicBilling />} />
+              </Route>
+
+              {/* Painel da Agência: mesma moldura e telas de clínica, só com as clínicas da agência */}
+              <Route element={<ProtectedRoute><RequireAgency><PanelScopeProvider kind="agency"><AgencyLayout /></PanelScopeProvider></RequireAgency></ProtectedRoute>}>
+                <Route path="/agencia" element={<Navigate to="/agencia/dashboard" replace />} />
+                <Route path="/agencia/dashboard" element={<AgencyDashboard />} />
+                <Route path="/agencia/clinicas" element={<OwnerClinics />} />
+                <Route path="/agencia/alertas" element={<OwnerAlerts />} />
+                <Route path="/agencia/mensalidades" element={<OwnerBilling />} />
+              </Route>
+              <Route path="/agencia/clinicas/:id" element={<ProtectedRoute><RequireAgency><PanelScopeProvider kind="agency"><OwnerClinicLayout /></PanelScopeProvider></RequireAgency></ProtectedRoute>}>
                 <Route index element={<ClinicSummary />} />
                 <Route path="whatsapp" element={<ClinicWhatsapp />} />
                 <Route path="agente-ia" element={<ClinicAgent />} />

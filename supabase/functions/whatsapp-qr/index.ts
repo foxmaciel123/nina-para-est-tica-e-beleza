@@ -2,7 +2,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { evo, evolutionConfigured, toNumber } from '../_shared/evolution.ts';
 
 // Conexão do WhatsApp por QR code (Evolution API exclusiva da Nina).
-// Pode chamar: o dono da plataforma (informando organization_id) ou a admin
+// Pode chamar: o dono ou a agência da clínica (informando organization_id) ou a admin
 // da própria clínica (sem organization_id).
 //
 // POST { action: 'status' | 'connect' | 'disconnect', organization_id? }
@@ -24,9 +24,11 @@ async function resolveOrg(supabase: any, userId: string, requested?: string): Pr
   const { data: profile } = await supabase.from('profiles').select('is_platform_owner').eq('user_id', userId).maybeSingle();
   const isOwner = !!profile?.is_platform_owner;
 
+  // Clínica informada: dono (qualquer uma) ou a agência dona da clínica
   if (requested) {
-    if (!isOwner) throw new UserError('Acesso restrito ao dono da plataforma.');
-    return { orgId: requested, isOwner };
+    const { data: allowed } = await supabase.rpc('can_user_manage_org', { p_user: userId, p_org: requested });
+    if (allowed !== true) throw new UserError('Você não tem acesso a esta clínica.');
+    return { orgId: requested, isOwner: true };
   }
 
   const { data: member } = await supabase

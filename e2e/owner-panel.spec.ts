@@ -54,6 +54,14 @@ const detailB = {
   daily_ai_messages: days.map(({ day, count }) => ({ day, count })),
 };
 
+const AGENCY_ID = '33333333-3333-4333-8333-333333333333';
+const agencies = [
+  { id: AGENCY_ID, name: 'Bella Marketing', status: 'active', created_at: '2026-10-01T12:00:00Z', admin_email: 'contato@bella.test',
+    contact_name: 'Carlos', contact_phone: '11 97777-0000', fee_per_clinic: 99, clinics_active: 1, clinics_total: 1, monthly_total: 99, notes: null },
+  { id: '44444444-4444-4444-8444-444444444444', name: 'Glow Digital', status: 'active', created_at: '2026-10-05T12:00:00Z', admin_email: 'oi@glow.test',
+    contact_name: null, contact_phone: null, fee_per_clinic: null, clinics_active: 0, clinics_total: 0, monthly_total: null, notes: null },
+];
+
 const BRAND = { name: 'Marca QA', tagline: 'Estética com IA', logo_url: null, icon_url: null, accent_color: '#0A4F95', support_email: 'ajuda@marca.test', support_whatsapp: '11 90000-0000' };
 
 async function setup(page: Page, opts: { owner?: boolean; orgStatus?: string } = {}) {
@@ -99,6 +107,8 @@ async function setup(page: Page, opts: { owner?: boolean; orgStatus?: string } =
     { action: 'clinic_created', details: { email: 'dona@harmoniza.test' }, actor_email: 'qa@clinica.test', created_at: '2026-09-10T12:00:00Z' },
   ]);
   await mockRpc(page, 'public_brand', BRAND);
+  await mockRpc(page, 'owner_agencies_overview', agencies);
+  for (const name of ['owner_update_agency', 'owner_set_agency_status', 'owner_set_clinic_agency']) await mockRpc(page, name, null);
   for (const name of ['owner_update_platform_brand', 'owner_update_clinic_whatsapp', 'owner_update_clinic_agent', 'owner_update_clinic_hours', 'owner_save_procedure']) {
     await mockRpc(page, name, null);
   }
@@ -133,6 +143,7 @@ async function expectHealthy(page: Page, errors: string[]) {
 
 const ownerPages = [
   { path: '/dono/dashboard', heading: 'Dashboard', shot: 'dono-dashboard', expectText: 'Mensalidade atrasada' },
+  { path: '/dono/agencias', heading: 'Agências', shot: 'dono-agencias', expectText: 'Bella Marketing' },
   { path: '/dono/clinicas', heading: 'Clínicas', shot: 'dono-clinicas', expectText: 'Harmoniza Face' },
   { path: '/dono/vencimentos', heading: 'Vencimentos', shot: 'dono-vencimentos', expectText: 'Em atraso' },
   { path: '/dono/consumo-ia', heading: 'Consumo de IA', shot: 'dono-consumo-ia', expectText: 'Por clínica' },
@@ -403,6 +414,136 @@ test.describe('White label', () => {
     await page.goto('/dashboard');
     await expect(page.getByText('Acesso suspenso')).toBeVisible();
     await expect(page.getByTestId('support-contact')).toContainText('ajuda@marca.test');
+    await expectHealthy(page, errors);
+  });
+});
+
+test.describe('Agências', () => {
+  test('dono cadastra agência e recebe o link de acesso', async ({ page }) => {
+    const errors = await setup(page);
+    await page.route(/\/functions\/v1\/owner-actions/, async (route) => {
+      const body = route.request().postDataJSON();
+      expect(body).toMatchObject({ action: 'create_agency', agency_name: 'Agência Nova', fee_per_clinic: 89.9 });
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ agency_id: 'x', access_link: 'https://api.test/verify?token=ag', email: body.email }) });
+    });
+    await page.goto('/dono/agencias');
+    await expect(page.getByText('A combinar')).toBeVisible();
+    await page.getByTestId('new-agency-button').click();
+    await page.getByLabel('Nome da agência').fill('Agência Nova');
+    await page.getByLabel('Responsável').fill('Rita');
+    await page.getByLabel('E-mail de acesso').fill('rita@nova.test');
+    await page.getByLabel('Valor por clínica ativa (R$)').fill('89,90');
+    await page.getByRole('button', { name: 'Criar agência' }).click();
+    await expect(page.getByTestId('agency-created')).toBeVisible();
+    await expect(page.getByTestId('access-link')).toHaveText('https://api.test/verify?token=ag');
+    await expectHealthy(page, errors);
+  });
+
+  test('dono edita o valor por clínica da agência', async ({ page }) => {
+    const errors = await setup(page);
+    await page.goto('/dono/agencias');
+    await page.getByRole('button', { name: 'Editar' }).nth(1).click();
+    await page.getByLabel('Valor por clínica ativa (R$)').fill('79');
+    const saved = page.waitForRequest(/\/rpc\/owner_update_agency/);
+    await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+    expect((await saved).postDataJSON()).toMatchObject({ p_name: 'Glow Digital', p_fee_per_clinic: 79 });
+    await expectHealthy(page, errors);
+  });
+
+  test('dono vê a agência da clínica e pode trocar', async ({ page }) => {
+    const errors = await setup(page);
+    await page.goto(`/dono/clinicas/${ORG_B}`);
+    await expect(page.getByTestId('clinic-agency')).toContainText('Cliente direto');
+    await page.getByTestId('clinic-agency').getByRole('button', { name: 'Trocar' }).click();
+    await page.getByLabel('Agência', { exact: true }).selectOption(AGENCY_ID);
+    const saved = page.waitForRequest(/\/rpc\/owner_set_clinic_agency/);
+    await page.getByRole('button', { name: 'Salvar', exact: true }).click();
+    expect((await saved).postDataJSON()).toMatchObject({ p_org: ORG_B, p_agency: AGENCY_ID });
+    await expectHealthy(page, errors);
+  });
+});
+
+async function setupAgency(page: Page, status = 'active') {
+  const errors = await setup(page, { owner: false });
+  await mockRpc(page, 'my_organization', []);
+  await mockRpc(page, 'my_agency', [{ id: AGENCY_ID, name: 'Bella Marketing', status, role: 'admin' }]);
+  await mockRpc(page, 'agency_dashboard_summary', {
+    agency_name: 'Bella Marketing', clinics_active: 1, clinics_suspended: 0, whatsapp_connected: 0, ai_responses_30d: 90,
+    fee_per_clinic: 99, mrr: 297, received_month: 0, overdue_count: 1, overdue_amount: 297,
+  });
+  await mockRpc(page, 'owner_organizations_overview', [{ ...clinics[1], agency_id: AGENCY_ID, agency_name: 'Bella Marketing' }]);
+  // O servidor não manda custo de IA para a agência
+  const { ai_tokens: _tokens, ai_cost_usd: _cost, ...usage } = detailB.usage_30d;
+  await mockRpc(page, 'owner_organization_detail', {
+    ...detailB, usage_30d: usage,
+    organization: { ...detailB.organization, agency_id: AGENCY_ID, agency_name: 'Bella Marketing' },
+  });
+  return errors;
+}
+
+test.describe('Painel da Agência', () => {
+  const agencyPages = [
+    { path: '/agencia/dashboard', heading: 'Visão geral · Bella Marketing', shot: 'agencia-visao', expectText: 'Sua fatura do mês' },
+    { path: '/agencia/clinicas', heading: 'Clínicas', shot: 'agencia-clinicas', expectText: 'Harmoniza Face' },
+    { path: '/agencia/alertas', heading: 'Alertas', shot: 'agencia-alertas', expectText: 'WhatsApp não conectado' },
+    { path: '/agencia/mensalidades', heading: 'Vencimentos', shot: 'agencia-mensalidades', expectText: 'Em atraso' },
+    { path: `/agencia/clinicas/${ORG_B}`, heading: 'Harmoniza Face', shot: 'agencia-clinica', expectText: 'Uso nos últimos 30 dias' },
+    { path: `/agencia/clinicas/${ORG_B}/agente-ia`, heading: 'Agente IA', shot: 'agencia-agente', expectText: 'Carregar prompt padrão' },
+    { path: `/agencia/clinicas/${ORG_B}/cobranca`, heading: 'Cobrança', shot: 'agencia-cobranca', expectText: 'Histórico' },
+  ];
+  for (const p of agencyPages) {
+    test(`abre ${p.path}`, async ({ page }) => {
+      const errors = await setupAgency(page);
+      await page.goto(p.path);
+      await expect(page.getByTestId('owner-shell')).toBeVisible();
+      await expect(page.getByText('Painel da Agência').first()).toBeVisible();
+      await expect(page.getByRole('heading', { level: 2, name: p.heading })).toBeVisible();
+      await expect(page.getByText(p.expectText).first()).toBeVisible();
+      await page.screenshot({ path: `test-results/screens/${p.shot}.png`, fullPage: true });
+      await expectHealthy(page, errors);
+    });
+  }
+
+  test('agência entra direto no painel dela e não vê o do dono', async ({ page }) => {
+    const errors = await setupAgency(page);
+    await page.goto('/dashboard');
+    await expect(page).toHaveURL(/\/agencia\/dashboard$/);
+    await expect(page.getByRole('link', { name: 'Agências' })).toHaveCount(0);
+    await expect(page.getByRole('link', { name: 'Consumo de IA' })).toHaveCount(0);
+    await page.goto('/dono/dashboard');
+    await expect(page).not.toHaveURL(/\/dono/);
+    await expectHealthy(page, errors);
+  });
+
+  test('agência não vê custo de IA da clínica', async ({ page }) => {
+    const errors = await setupAgency(page);
+    await page.goto(`/agencia/clinicas/${ORG_B}`);
+    await expect(page.getByText('Respostas da IA').first()).toBeVisible();
+    await expect(page.getByText('Custo da IA')).toHaveCount(0);
+    await expect(page.getByTestId('clinic-agency')).toHaveCount(0);
+    await expectHealthy(page, errors);
+  });
+
+  test('agência cria clínica e recebe o link', async ({ page }) => {
+    const errors = await setupAgency(page);
+    await page.goto('/agencia/clinicas');
+    await page.getByTestId('new-clinic-button').click();
+    await expect(page.getByLabel('Agência', { exact: true })).toHaveCount(0);
+    await page.getByLabel('Nome da clínica').fill('Clínica Lumière');
+    await page.getByLabel('Nome da dona').fill('Lúcia');
+    await page.getByLabel('E-mail de acesso da dona').fill('lucia@lumiere.test');
+    await page.getByRole('button', { name: 'Criar clínica' }).click();
+    await expect(page.getByTestId('clinic-created')).toBeVisible();
+    await page.getByRole('button', { name: 'Abrir clínica' }).click();
+    await expect(page).toHaveURL(new RegExp(`/agencia/clinicas/${ORG_B}$`));
+    await expectHealthy(page, errors);
+  });
+
+  test('agência suspensa vê o aviso', async ({ page }) => {
+    const errors = await setupAgency(page, 'suspended');
+    await page.goto('/agencia/dashboard');
+    await expect(page.getByText('Acesso suspenso')).toBeVisible();
+    await expect(page.getByTestId('owner-shell')).toHaveCount(0);
     await expectHealthy(page, errors);
   });
 });

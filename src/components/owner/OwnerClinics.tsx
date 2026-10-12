@@ -10,11 +10,17 @@ import {
   BillingChip, ErrorNote, PageHeader, PageLoader, StatusChip, WhatsAppChip,
   formatBRL, formatDay, formatNumber, formatRelative,
 } from './ownerUi';
+import { usePanel } from './panelScope';
 
-type ClinicRow = Database['public']['Functions']['owner_organizations_overview']['Returns'][number];
+type ClinicRow = Database['public']['Functions']['owner_organizations_overview']['Returns'][number] & {
+  agency_id?: string | null;
+  agency_name?: string | null;
+};
 
 const OwnerClinics: React.FC = () => {
   const navigate = useNavigate();
+  const panel = usePanel();
+  const isOwner = panel.kind === 'owner';
   const [clinics, setClinics] = useState<ClinicRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +36,7 @@ const OwnerClinics: React.FC = () => {
       console.error('[OwnerClinics]', rpcError);
       setError('Não foi possível carregar as clínicas.');
     } else {
-      setClinics(data ?? []);
+      setClinics((data ?? []) as ClinicRow[]);
     }
     setLoading(false);
   };
@@ -42,19 +48,22 @@ const OwnerClinics: React.FC = () => {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return clinics;
-    return clinics.filter((c) => c.name.toLowerCase().includes(q) || (c.admin_email ?? '').toLowerCase().includes(q));
+    return clinics.filter((c) =>
+      c.name.toLowerCase().includes(q) || (c.admin_email ?? '').toLowerCase().includes(q) || (c.agency_name ?? '').toLowerCase().includes(q));
   }, [clinics, query]);
 
   if (loading) return <PageLoader />;
 
-  const open = (id: string) => navigate(`/dono/clinicas/${id}`);
+  const open = (id: string) => navigate(`${panel.base}/clinicas/${id}`);
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6 p-6" data-testid="owner-clinics">
       <PageHeader
-        eyebrow="Painel do Dono · Visão"
+        eyebrow={`${panel.title} · Visão`}
         title="Clínicas"
-        description="Todas as clínicas, com mensalidade e uso dos últimos 30 dias."
+        description={isOwner
+          ? 'Todas as clínicas (suas e das agências), com mensalidade e uso dos últimos 30 dias.'
+          : 'As clínicas da agência, com mensalidade e uso dos últimos 30 dias.'}
         actions={
           <>
           <Button onClick={() => setCreating(true)} className="gap-2" data-testid="new-clinic-button">
@@ -66,7 +75,7 @@ const OwnerClinics: React.FC = () => {
               id="owner-clinic-search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar por nome ou e-mail"
+              placeholder={isOwner ? 'Buscar por nome, e-mail ou agência' : 'Buscar por nome ou e-mail'}
               className="pl-9"
               aria-label="Buscar clínica"
             />
@@ -84,6 +93,7 @@ const OwnerClinics: React.FC = () => {
           <thead>
             <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
               <th className="px-4 py-3 font-semibold">Clínica</th>
+              {isOwner && <th className="px-4 py-3 font-semibold">Agência</th>}
               <th className="px-4 py-3 font-semibold">Acesso</th>
               <th className="px-4 py-3 font-semibold">Mensalidade</th>
               <th className="px-4 py-3 font-semibold">Pagamento</th>
@@ -102,6 +112,7 @@ const OwnerClinics: React.FC = () => {
                   <div className="font-semibold">{c.name}</div>
                   <div className="text-xs text-muted-foreground">{c.admin_email ?? 'sem administrador'}</div>
                 </td>
+                {isOwner && <td className="px-4 py-3 text-muted-foreground">{c.agency_name ?? 'Direta'}</td>}
                 <td className="px-4 py-3"><StatusChip status={c.status} /></td>
                 <td className="px-4 py-3 tabular-nums">{Number(c.monthly_fee) > 0 ? formatBRL(c.monthly_fee) : '—'}</td>
                 <td className="px-4 py-3">
@@ -128,7 +139,7 @@ const OwnerClinics: React.FC = () => {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={10} className="px-4 py-10 text-center text-muted-foreground">
+                <td colSpan={isOwner ? 11 : 10} className="px-4 py-10 text-center text-muted-foreground">
                   {clinics.length === 0 ? 'Nenhuma clínica cadastrada ainda.' : 'Nenhuma clínica encontrada para essa busca.'}
                 </td>
               </tr>

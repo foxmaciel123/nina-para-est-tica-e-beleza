@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Building2, Wallet, CircleDollarSign, AlertTriangle, Cpu, Bot, ChevronRight } from 'lucide-react';
+import { Building2, Wallet, CircleDollarSign, AlertTriangle, Cpu, Bot, ChevronRight, Briefcase } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { ErrorNote, PageHeader, PageLoader, Panel, Stat, formatBRL, formatNumber, formatUSD } from './ownerUi';
@@ -18,6 +18,9 @@ interface Summary {
   due_soon_count: number;
   ai_responses_30d: number;
   ai_cost_month_usd: number;
+  agencies_active?: number;
+  clinics_via_agencies?: number;
+  agency_fees_month?: number;
 }
 
 const OwnerDashboard: React.FC = () => {
@@ -55,8 +58,8 @@ const OwnerDashboard: React.FC = () => {
       {error && <ErrorNote message={error} onRetry={load} />}
 
       {summary && (
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
-          <Stat label="Receita prevista no mês" value={formatBRL(summary.mrr)} hint="Soma das mensalidades das clínicas ativas" icon={Wallet} />
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <Stat label="Receita prevista no mês" value={formatBRL(summary.mrr)} hint="Mensalidades das suas clínicas diretas ativas" icon={Wallet} />
           <Stat label="Recebido no mês" value={formatBRL(summary.received_month)} icon={CircleDollarSign} />
           <Stat
             label="Em atraso"
@@ -73,6 +76,13 @@ const OwnerDashboard: React.FC = () => {
           />
           <Stat label="Respostas da IA · 30 dias" value={formatNumber(summary.ai_responses_30d)} icon={Bot} />
           <Stat label="Custo da IA no mês" value={formatUSD(summary.ai_cost_month_usd)} hint="Estimado pelos tokens usados" icon={Cpu} />
+          <Stat
+            label="Agências ativas"
+            value={formatNumber(summary.agencies_active ?? 0)}
+            hint={`${formatNumber(summary.clinics_via_agencies ?? 0)} clínica(s) ativa(s) por agências`}
+            icon={Briefcase}
+          />
+          <Stat label="A receber das agências no mês" value={formatBRL(summary.agency_fees_month ?? 0)} hint="Clínicas ativas × valor combinado de cada agência" icon={Wallet} />
         </div>
       )}
 

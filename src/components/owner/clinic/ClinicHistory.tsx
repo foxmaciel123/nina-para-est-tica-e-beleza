@@ -61,7 +61,7 @@ export const ClinicHistory: React.FC<{ orgId: string; refreshKey: unknown }> = (
       {rows === null ? (
         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
       ) : rows.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Nenhuma alteração feita pelo Painel do Dono ainda.</p>
+        <p className="text-sm text-muted-foreground">Nenhuma alteração registrada ainda.</p>
       ) : (
         <ul className="flex flex-col">
           {rows.map((r, i) => {
