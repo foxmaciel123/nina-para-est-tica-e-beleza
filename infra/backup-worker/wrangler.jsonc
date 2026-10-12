@@ -1,0 +1,9 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "nina-backups",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "r2_buckets": [{ "binding": "BACKUPS", "bucket_name": "nina-backups" }],
+  "vars": { "RETENTION_DAYS": "30" }
+  // Secret: npx wrangler secret put BACKUP_TOKEN  (o mesmo valor do /opt/nina/backup-remote.env)
+}

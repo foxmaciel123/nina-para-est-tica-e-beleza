@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Chip, ErrorNote, PageHeader, PageLoader, Panel, WhatsAppChip, formatNumber, formatRelative } from '../ownerUi';
 import { ownerAction, rpcErrorMessage, useClinicConfig } from '../ownerApi';
 import { useClinic } from './OwnerClinicLayout';
+import WhatsAppQrPanel from '@/components/whatsapp/WhatsAppQrPanel';
 
 const WEBHOOK_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/whatsapp-webhook`;
 
@@ -49,6 +50,8 @@ const ClinicWhatsapp: React.FC = () => {
   const [phoneId, setPhoneId] = useState('');
   const [wabaId, setWabaId] = useState('');
   const [token, setToken] = useState('');
+  const [appSecret, setAppSecret] = useState('');
+  const [hasAppSecret, setHasAppSecret] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
@@ -59,16 +62,20 @@ const ClinicWhatsapp: React.FC = () => {
     setPhoneId(config.whatsapp_phone_number_id ?? '');
     setWabaId(config.whatsapp_business_account_id ?? '');
     setToken('');
-  }, [config]);
+    setAppSecret('');
+    supabase.rpc('owner_has_app_secret', { p_org: orgId }).then(({ data }) => setHasAppSecret(data === true));
+  }, [config, orgId]);
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!phoneId.trim()) return setFormError('Informe o Phone Number ID.');
     if (!config?.has_whatsapp_token && !token.trim()) return setFormError('Informe o token de acesso.');
+    if (!hasAppSecret && !appSecret.trim()) return setFormError('Informe o App Secret do aplicativo da Meta.');
     setFormError(null);
     setSaving(true);
     const { error: rpcError } = await supabase.rpc('owner_update_clinic_whatsapp', {
-      p_org: orgId, p_phone_number_id: phoneId, p_business_account_id: wabaId, p_access_token: token || null,
+      p_org: orgId, p_phone_number_id: phoneId, p_business_account_id: wabaId,
+      p_access_token: token || null, p_app_secret: appSecret || null,
     });
     setSaving(false);
     if (rpcError) {
@@ -106,7 +113,11 @@ const ClinicWhatsapp: React.FC = () => {
         </Panel>
       ) : (
         <>
-          <Panel title="Credenciais" actions={<WhatsAppChip connected={!!wa?.connected} />}>
+          <Panel title="Conexão por QR code">
+            <WhatsAppQrPanel organizationId={orgId} onChange={() => { reload(); reloadDetail(); }} />
+          </Panel>
+
+          <Panel title="API oficial da Meta" actions={<WhatsAppChip connected={!!wa?.connected && wa?.provider !== 'evolution'} />}>
             <form onSubmit={save} className="flex flex-col gap-4" noValidate>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="flex flex-col gap-2">
@@ -128,6 +139,20 @@ const ClinicWhatsapp: React.FC = () => {
                   value={token}
                   onChange={(e) => setToken(e.target.value)}
                 />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="wa-app-secret">App Secret</Label>
+                <Input
+                  id="wa-app-secret"
+                  type="password"
+                  autoComplete="off"
+                  placeholder={hasAppSecret ? 'App Secret salvo. Deixe em branco para manter.' : 'Chave secreta do aplicativo da Meta'}
+                  value={appSecret}
+                  onChange={(e) => setAppSecret(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Meta for Developers → app → Configurações → Básico. Sem ele, as mensagens do WhatsApp são recusadas por segurança.
+                </p>
               </div>
               {formError && <p className="text-sm text-destructive" role="alert">{formError}</p>}
               {test && (

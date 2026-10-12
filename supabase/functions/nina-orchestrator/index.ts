@@ -357,13 +357,22 @@ async function uploadAudioToStorage(
       return null;
     }
 
-    // Get public URL
-    const { data: urlData } = supabase.storage
+    // Pasta privada: link assinado por 24 h, só para o WhatsApp buscar o áudio.
+    // O supabase-js monta o link com o endereço interno; troca pelo público.
+    const { data: signed, error: signError } = await supabase.storage
       .from('audio-messages')
-      .getPublicUrl(fileName);
+      .createSignedUrl(fileName, 24 * 60 * 60);
+    if (signError || !signed?.signedUrl) {
+      console.error('[Nina] Error signing audio URL:', signError);
+      return null;
+    }
 
-    console.log('[Nina] Audio uploaded:', urlData.publicUrl);
-    return urlData.publicUrl;
+    const internalBase = Deno.env.get('SUPABASE_URL')!.replace(/\/$/, '');
+    const publicBase = (Deno.env.get('SUPABASE_PUBLIC_URL') || internalBase).replace(/\/$/, '');
+    const audioUrl = signed.signedUrl.replace(internalBase, publicBase);
+
+    console.log('[Nina] Audio uploaded:', fileName);
+    return audioUrl;
   } catch (error) {
     console.error('[Nina] Error uploading audio to storage:', error);
     return null;

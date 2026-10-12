@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getAiApiKey, logAiUsage, transcribeAudioWithGemini } from "../_shared/ai.ts";
+import { evoMediaBase64 } from "../_shared/evolution.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -77,11 +78,12 @@ serve(async (req) => {
         // Get the phone_number_id from the first message
         const phoneNumberId = messages[0].phone_number_id;
 
-        // Get owner settings for this phone_number_id
+        // Clínica dona do número: Meta (phone_number_id) ou QR code ("evo:<instância>")
+        const isEvolution = String(phoneNumberId).startsWith('evo:');
         const { data: ownerSettings } = await supabase
           .from('nina_settings')
-          .select('user_id, organization_id, whatsapp_access_token')
-          .eq('whatsapp_phone_number_id', phoneNumberId)
+          .select('user_id, organization_id, whatsapp_access_token, whatsapp_provider, evolution_instance')
+          .eq(isEvolution ? 'evolution_instance' : 'whatsapp_phone_number_id', isEvolution ? String(phoneNumberId).slice(4) : phoneNumberId)
           .maybeSingle();
 
         // Get all message_ids from the queue entries
@@ -254,9 +256,12 @@ async function combineAndTranscribeMessages(
     // Handle audio transcription
     if (messageData.type === 'audio') {
       const audioMediaId = messageData.audio?.id;
-      if (audioMediaId && settings?.whatsapp_access_token && aiApiKey) {
+      const viaEvolution = !!settings?.evolution_instance && String(queueMsg.phone_number_id).startsWith('evo:');
+      if (audioMediaId && (viaEvolution || settings?.whatsapp_access_token) && aiApiKey) {
         console.log('[MessageGrouper] Transcribing audio:', audioMediaId);
-        const audioBuffer = await downloadWhatsAppMedia(settings, audioMediaId);
+        const audioBuffer = viaEvolution
+          ? (await evoMediaBase64(settings.evolution_instance, audioMediaId))?.buffer ?? null
+          : await downloadWhatsAppMedia(settings, audioMediaId);
         if (audioBuffer) {
           const transcription = await transcribeAudio(audioBuffer, (model, usage) =>
             logAiUsage(supabase, settings?.organization_id, 'transcription', model, usage)

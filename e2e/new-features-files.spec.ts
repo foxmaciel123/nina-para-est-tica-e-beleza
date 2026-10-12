@@ -25,38 +25,41 @@ test.describe('Nina Beleza · features novas — presença e conteúdo', () => {
     expect(doc).toMatch(/iClinic/);
   });
 
-  test('migration de cron + app_config existe', () => {
-    const path = resolve(repo, 'supabase/migrations/20260525140501_cron_jobs_and_app_config.sql');
-    expect(existsSync(path)).toBe(true);
-    const sql = readFileSync(path, 'utf-8');
-    expect(sql).toMatch(/CREATE EXTENSION IF NOT EXISTS pg_cron/);
-    expect(sql).toMatch(/CREATE EXTENSION IF NOT EXISTS pg_net/);
-    expect(sql).toMatch(/nina-appointment-reminders/);
-    expect(sql).toMatch(/nina-gcal-watch-renew/);
-    expect(sql).toMatch(/app_config/);
+  test('migrations do SaaS existem (multi-clínica, dono, cobrança, configuração, QR, segurança)', () => {
+    const files = [
+      '20261004194000_export_full_schema.sql',
+      '20261005000000_multi_tenant_foundation.sql',
+      '20261005010000_owner_panel.sql',
+      '20261005020000_owner_billing_usage_alerts.sql',
+      '20261005030000_owner_clinic_config.sql',
+      '20261005040000_whatsapp_evolution.sql',
+      '20261012000000_security_hardening.sql',
+    ];
+    for (const f of files) expect(existsSync(resolve(repo, 'supabase/migrations', f))).toBe(true);
+    const mt = readFileSync(resolve(repo, 'supabase/migrations/20261005000000_multi_tenant_foundation.sql'), 'utf-8');
+    expect(mt).toMatch(/current_org_id/);
+    expect(mt).toMatch(/organization_id = public\.current_org_id\(\)/);
   });
 
-  test('migration two-way sync Google Calendar existe', () => {
-    const path = resolve(repo, 'supabase/migrations/20260524033504_google_calendar_two_way_sync.sql');
-    expect(existsSync(path)).toBe(true);
-    const sql = readFileSync(path, 'utf-8');
-    expect(sql).toMatch(/watch_channel_id/);
-    expect(sql).toMatch(/sync_token/);
-    expect(sql).toMatch(/last_sync_source/);
-    expect(sql).toMatch(/google_calendar_sync_log/);
+  test('webhook da Meta valida a assinatura X-Hub-Signature-256', () => {
+    const code = readFileSync(resolve(repo, 'supabase/functions/whatsapp-webhook/index.ts'), 'utf-8');
+    expect(code).toMatch(/verifyMetaSignature/);
+    expect(code).toMatch(/x-hub-signature-256/);
+    expect(code).toMatch(/status: 403/);
   });
 
-  test('migration F3 (procedures/calendar/reminders/photos) existe', () => {
-    const path = resolve(repo, 'supabase/migrations/20260522223353_f3_procedures_calendar_reminders_photos.sql');
-    expect(existsSync(path)).toBe(true);
-    const sql = readFileSync(path, 'utf-8');
-    expect(sql).toMatch(/CREATE TABLE.+procedures/i);
-    expect(sql).toMatch(/CREATE TABLE.+appointment_reminders/i);
-    expect(sql).toMatch(/CREATE TABLE.+contact_photos/i);
-    expect(sql).toMatch(/CREATE TABLE.+google_calendar_credentials/i);
-    expect(sql).toMatch(/contact-photos/);
+  test('OAuth do Google usa state assinado e login real', () => {
+    const code = readFileSync(resolve(repo, 'supabase/functions/google-calendar-oauth/index.ts'), 'utf-8');
+    expect(code).toMatch(/signState/);
+    expect(code).toMatch(/verifyState/);
+    expect(code).not.toMatch(/searchParams\.get\('user_id'\)/);
   });
 
+  test('tela de login não oferece cadastro público', () => {
+    const code = readFileSync(resolve(repo, 'src/pages/Auth.tsx'), 'utf-8');
+    expect(code).toMatch(/Esqueci minha senha/);
+    expect(code).not.toMatch(/'Criar conta' : 'Fazer login'/);
+  });
   test('edge functions de Google Calendar 2-way existem', () => {
     const fns = [
       'supabase/functions/google-calendar-oauth/index.ts',

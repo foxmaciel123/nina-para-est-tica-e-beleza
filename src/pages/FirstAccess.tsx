@@ -62,7 +62,7 @@ const FirstAccess: React.FC = () => {
       <div className="flex w-full max-w-md flex-col gap-6 rounded-2xl border border-border bg-card/60 p-8 backdrop-blur-sm" data-testid="first-access">
         <div className="flex flex-col gap-1 text-center">
           <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-accent">Nina Beleza · Estética com IA</p>
-          <h1 className="text-2xl font-bold tracking-tight">Crie sua senha</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Crie sua nova senha</h1>
           {user?.email && <p className="text-sm text-muted-foreground">Acesso de <strong className="text-foreground">{user.email}</strong></p>}
         </div>
 

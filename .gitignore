@@ -28,3 +28,6 @@ playwright-report/
 test-results/
 /blob-report/
 /playwright/.cache/
+
+# Configs locais de teste (ex.: Playwright com o Chrome instalado)
+*.local.config.ts

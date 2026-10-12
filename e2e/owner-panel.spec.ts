@@ -214,7 +214,32 @@ test.describe('Cadastro e configuração de clínica pelo dono', () => {
     await expect(page.getByRole('alert')).toHaveText('Informe o token de acesso.');
     await page.locator('#wa-token').fill('EAAG-token-de-teste');
     await page.getByRole('button', { name: 'Salvar WhatsApp' }).click();
+    await expect(page.getByRole('alert')).toHaveText('Informe o App Secret do aplicativo da Meta.');
+    await page.locator('#wa-app-secret').fill('app-secret-de-teste');
+    await page.getByRole('button', { name: 'Salvar WhatsApp' }).click();
     await expect(page.getByText('WhatsApp da clínica salvo')).toBeVisible();
+    await expectHealthy(page, errors);
+  });
+
+  test('QR code: gera, conecta e mostra o número', async ({ page }) => {
+    const errors = await setup(page);
+    let connected = false;
+    await page.route(/\/functions\/v1\/whatsapp-qr/, async (route) => {
+      const body = route.request().postDataJSON();
+      expect(body.organization_id).toBe(ORG_B);
+      let reply: Record<string, unknown> = { provider: 'meta', status: 'none', phone: null };
+      if (body.action === 'connect') {
+        reply = { provider: 'meta', status: 'connecting', phone: null, qr: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==' };
+        connected = true;
+      } else if (body.action === 'status' && connected) {
+        reply = { provider: 'evolution', status: 'open', phone: '5511988887777' };
+      }
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(reply) });
+    });
+    await page.goto(`/dono/clinicas/${ORG_B}/whatsapp`);
+    await page.getByTestId('qr-connect').click();
+    await expect(page.getByTestId('qr-code').or(page.getByTestId('qr-connected'))).toBeVisible();
+    await expect(page.getByTestId('qr-connected')).toContainText('+55 (11) 98888-7777', { timeout: 10_000 });
     await expectHealthy(page, errors);
   });
 

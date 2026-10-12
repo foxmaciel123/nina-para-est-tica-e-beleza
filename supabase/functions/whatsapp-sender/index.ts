@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { isOrgActive } from "../_shared/tenant.ts";
+import { evoSend } from "../_shared/evolution.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -113,7 +114,7 @@ serve(async (req) => {
           if (!settings) {
             const { data: settingsData } = await supabase
               .from('nina_settings')
-              .select('whatsapp_access_token, whatsapp_phone_number_id')
+              .select('whatsapp_access_token, whatsapp_phone_number_id, whatsapp_provider, evolution_instance, evolution_status')
               .eq('organization_id', orgId)
               .maybeSingle();
 
@@ -122,7 +123,11 @@ serve(async (req) => {
               throw new Error('Settings not found');
             }
 
-            if (!settingsData.whatsapp_access_token || !settingsData.whatsapp_phone_number_id) {
+            if (settingsData.whatsapp_provider === 'evolution') {
+              if (!settingsData.evolution_instance || settingsData.evolution_status !== 'open') {
+                throw new Error('WhatsApp (QR code) desconectado');
+              }
+            } else if (!settingsData.whatsapp_access_token || !settingsData.whatsapp_phone_number_id) {
               console.error('[Sender] WhatsApp not configured in settings');
               throw new Error('WhatsApp not configured');
             }
@@ -204,6 +209,16 @@ async function sendMessage(supabase: any, settings: any, queueItem: any) {
 
   const recipient = contact.whatsapp_id || contact.phone_number;
 
+  const whatsappMessageId = settings.whatsapp_provider === 'evolution'
+    ? await evoSend(settings.evolution_instance, recipient, queueItem)
+    : await sendViaMeta(settings, recipient, queueItem);
+  console.log('[Sender] Message sent, WA ID:', whatsappMessageId);
+
+  await recordSentMessage(supabase, queueItem, whatsappMessageId);
+}
+
+// WhatsApp Cloud API (oficial da Meta)
+async function sendViaMeta(settings: any, recipient: string, queueItem: any): Promise<string | null> {
   // Build WhatsApp API payload
   let payload: any = {
     messaging_product: 'whatsapp',
@@ -265,9 +280,11 @@ async function sendMessage(supabase: any, settings: any, queueItem: any) {
     throw new Error(responseData.error?.message || 'WhatsApp API error');
   }
 
-  const whatsappMessageId = responseData.messages?.[0]?.id;
-  console.log('[Sender] Message sent, WA ID:', whatsappMessageId);
+  return responseData.messages?.[0]?.id ?? null;
+}
 
+// Grava a mensagem enviada e atualiza a conversa (igual para os dois provedores)
+async function recordSentMessage(supabase: any, queueItem: any, whatsappMessageId: string | null) {
   // Update or create message record in database
   if (queueItem.message_id) {
     // UPDATE existing message (for human messages)

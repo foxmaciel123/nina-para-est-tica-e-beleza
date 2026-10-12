@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,6 +22,8 @@ const Auth: React.FC = () => {
   const [fullName, setFullName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; fullName?: string }>({});
+  const [sendingReset, setSendingReset] = useState(false);
+  const [forgotSent, setForgotSent] = useState<string | null>(null);
   
   const { signIn, signUp, user, loading } = useAuth();
   const navigate = useNavigate();
@@ -94,6 +97,28 @@ const Auth: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  // Link para criar nova senha (mesma página do primeiro acesso). Mensagem neutra
+  // para não revelar se o e-mail existe.
+  const handleForgotPassword = async () => {
+    const emailResult = emailSchema.safeParse(email);
+    if (!emailResult.success) {
+      setErrors({ email: 'Digite seu e-mail acima para receber o link' });
+      return;
+    }
+    setErrors({});
+    setSendingReset(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/primeiro-acesso`,
+    });
+    setSendingReset(false);
+    if (error && !/rate|seconds/i.test(error.message)) {
+      console.error('[Auth] reset password:', error);
+      setForgotSent('Não conseguimos enviar o e-mail agora. Fale com a Pixel Pro para receber um novo link de acesso.');
+      return;
+    }
+    setForgotSent('Se este e-mail tiver acesso, você vai receber um link para criar uma nova senha em instantes.');
   };
 
   if (loading) {
@@ -211,19 +236,22 @@ const Auth: React.FC = () => {
             </Button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-border text-center">
-            <p className="text-muted-foreground text-sm">
-              {isLogin ? 'Não tem uma conta?' : 'Já tem uma conta?'}
+          <div className="mt-6 pt-6 border-t border-border text-center space-y-2">
+            {forgotSent ? (
+              <p className="text-sm text-muted-foreground" role="status">{forgotSent}</p>
+            ) : (
               <button
                 type="button"
-                onClick={() => {
-                  setIsLogin(!isLogin);
-                  setErrors({});
-                }}
-                className="ml-1 text-primary hover:text-primary/80 font-medium transition-colors"
+                onClick={handleForgotPassword}
+                disabled={sendingReset}
+                className="text-sm text-primary hover:text-primary/80 font-medium transition-colors disabled:opacity-60"
+                data-testid="forgot-password"
               >
-                {isLogin ? 'Criar conta' : 'Fazer login'}
+                {sendingReset ? 'Enviando link…' : 'Esqueci minha senha'}
               </button>
+            )}
+            <p className="text-muted-foreground text-xs">
+              O acesso das clínicas é criado pela Pixel Pro.
             </p>
           </div>
         </div>

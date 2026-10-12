@@ -101,6 +101,13 @@ export async function bypassAuth(page: Page) {
     await route.fulfill({ status: 200, contentType: 'application/json', body: 'null' });
   });
 
+  // Por padrão a usuária é admin de uma clínica ativa e não é dona da plataforma
+  // (sem isso o painel mostra "Conta sem clínica"). Testes podem sobrescrever com mockRpc.
+  await mockRpc(page, 'my_organization', [
+    { id: '00000000-0000-4000-8000-0000000000aa', name: 'Clínica QA', status: 'active', role: 'admin' },
+  ]);
+  await mockRpc(page, 'is_platform_owner', false);
+
   // Bloqueia chamadas a edge functions (functions/v1/*) com 200 vazio
   await page.route(/\/functions\/v1\//, async (route) => {
     await route.fulfill({

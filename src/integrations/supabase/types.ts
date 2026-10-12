@@ -1571,9 +1571,16 @@ export type Database = {
       owner_ai_usage: { Args: { p_days?: number }; Returns: Json }
       owner_get_clinic_config: { Args: { p_org: string }; Returns: Json }
       owner_update_clinic_whatsapp: {
-        Args: { p_org: string; p_phone_number_id: string; p_business_account_id: string; p_access_token?: string | null }
+        Args: {
+          p_org: string
+          p_phone_number_id: string
+          p_business_account_id: string
+          p_access_token?: string | null
+          p_app_secret?: string | null
+        }
         Returns: undefined
       }
+      owner_has_app_secret: { Args: { p_org: string }; Returns: boolean }
       owner_update_clinic_agent: { Args: { p_org: string; p_settings: Json }; Returns: undefined }
       owner_update_clinic_hours: {
         Args: { p_org: string; p_start: string; p_end: string; p_days: number[] }

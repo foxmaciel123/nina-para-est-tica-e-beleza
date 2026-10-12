@@ -1,5 +1,6 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react';
-import { Save, MessageSquare, Mic, Eye, EyeOff, Copy, Check, Loader2, Send, ChevronDown, Volume2, Download, Upload, FileAudio, HelpCircle } from 'lucide-react';
+import { Save, MessageSquare, Mic, Eye, EyeOff, Copy, Check, Loader2, Send, ChevronDown, Volume2, Download, Upload, FileAudio, HelpCircle, QrCode } from 'lucide-react';
+import WhatsAppQrPanel from '@/components/whatsapp/WhatsAppQrPanel';
 import { Button } from '../Button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -13,6 +14,7 @@ interface NinaSettings {
   whatsapp_phone_number_id: string | null;
   whatsapp_business_account_id: string | null;
   whatsapp_verify_token: string | null;
+  whatsapp_app_secret: string | null;
   elevenlabs_api_key: string | null;
   elevenlabs_voice_id: string;
   elevenlabs_model: string | null;
@@ -106,6 +108,7 @@ const ApiSettings = forwardRef<ApiSettingsRef>((props, ref) => {
     whatsapp_phone_number_id: null,
     whatsapp_business_account_id: null,
     whatsapp_verify_token: generateUniqueToken(),
+    whatsapp_app_secret: null,
     elevenlabs_api_key: null,
     elevenlabs_voice_id: '33B4UnXyTNbgLmdEDh5P',
     elevenlabs_model: 'eleven_turbo_v2_5',
@@ -185,6 +188,7 @@ const ApiSettings = forwardRef<ApiSettingsRef>((props, ref) => {
         whatsapp_phone_number_id: data.whatsapp_phone_number_id,
         whatsapp_business_account_id: (data as any).whatsapp_business_account_id || null,
         whatsapp_verify_token: uniqueToken,
+        whatsapp_app_secret: (data as any).whatsapp_app_secret || null,
         elevenlabs_api_key: data.elevenlabs_api_key,
         elevenlabs_voice_id: data.elevenlabs_voice_id,
         elevenlabs_model: data.elevenlabs_model,
@@ -219,6 +223,9 @@ const ApiSettings = forwardRef<ApiSettingsRef>((props, ref) => {
           whatsapp_phone_number_id: settings.whatsapp_phone_number_id,
           whatsapp_business_account_id: settings.whatsapp_business_account_id,
           whatsapp_verify_token: settings.whatsapp_verify_token,
+          whatsapp_app_secret: settings.whatsapp_app_secret,
+          // salvar credenciais da Meta volta o envio para a API oficial
+          ...(settings.whatsapp_phone_number_id && settings.whatsapp_access_token ? { whatsapp_provider: 'meta' } : {}),
           elevenlabs_api_key: settings.elevenlabs_api_key,
           elevenlabs_voice_id: settings.elevenlabs_voice_id,
           elevenlabs_model: settings.elevenlabs_model,
@@ -464,6 +471,15 @@ const ApiSettings = forwardRef<ApiSettingsRef>((props, ref) => {
 
   return (
     <div className="space-y-6">
+      {/* WhatsApp por QR code (alternativa à API oficial) */}
+      <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="mb-4 flex items-center gap-3">
+          <QrCode className="w-5 h-5 text-cyan-400" />
+          <h3 className="font-semibold text-white">WhatsApp por QR code</h3>
+        </div>
+        <WhatsAppQrPanel />
+      </div>
+
       {/* WhatsApp Cloud API + Webhook */}
       <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
         <div className="flex items-center justify-between mb-4">
@@ -559,6 +575,24 @@ const ApiSettings = forwardRef<ApiSettingsRef>((props, ref) => {
             />
             <p className="text-[10px] text-slate-500 mt-1">
               Meta Business Suite → Configurações → WhatsApp Accounts → ID da conta
+            </p>
+          </div>
+
+          <div className="lg:col-span-2">
+            <label htmlFor="whatsapp-app-secret" className="text-xs font-medium text-slate-400 mb-1.5 block">
+              App Secret <span className="text-red-400">*</span>
+            </label>
+            <input
+              id="whatsapp-app-secret"
+              type="password"
+              autoComplete="off"
+              value={settings.whatsapp_app_secret || ''}
+              onChange={(e) => setSettings({ ...settings, whatsapp_app_secret: e.target.value })}
+              placeholder="Chave secreta do aplicativo da Meta"
+              className="h-9 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
+            />
+            <p className="text-[10px] text-slate-500 mt-1">
+              Meta for Developers → seu app → Configurações do app → Básico → “Chave secreta do aplicativo”. Sem ela, as mensagens do WhatsApp são recusadas por segurança.
             </p>
           </div>
         </div>

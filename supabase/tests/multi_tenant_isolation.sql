@@ -13,8 +13,9 @@ GRANT ALL ON _t TO authenticated;
 
 DO $$
 DECLARE
-  org1 uuid := (SELECT id FROM public.organizations ORDER BY created_at LIMIT 1);
-  admin1 uuid := (SELECT user_id FROM public.organization_members WHERE organization_id = (SELECT id FROM public.organizations ORDER BY created_at LIMIT 1) AND role = 'admin' LIMIT 1);
+  -- clínica A = a mais antiga que tem administradora (outros testes podem criar clínicas sem membros)
+  org1 uuid := (SELECT o.id FROM public.organizations o WHERE EXISTS (SELECT 1 FROM public.organization_members m WHERE m.organization_id = o.id AND m.role = 'admin') ORDER BY o.created_at LIMIT 1);
+  admin1 uuid := (SELECT m.user_id FROM public.organization_members m WHERE m.organization_id = (SELECT o.id FROM public.organizations o WHERE EXISTS (SELECT 1 FROM public.organization_members x WHERE x.organization_id = o.id AND x.role = 'admin') ORDER BY o.created_at LIMIT 1) AND m.role = 'admin' ORDER BY m.created_at LIMIT 1);
   org2 uuid := gen_random_uuid();
   user2 uuid := gen_random_uuid();
   stage2 uuid;

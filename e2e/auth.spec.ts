@@ -27,12 +27,23 @@ test.describe('Nina Beleza · página de autenticação', () => {
     ).toBeVisible();
   });
 
-  test('toggle para criar conta troca os textos para vertical beleza', async ({ page }) => {
-    await page.getByRole('button', { name: /criar conta/i }).click();
-    await expect(page.getByTestId('auth-title')).toHaveText(/sua clínica brilhando com ia/i);
-    await expect(
-      page.getByText(/sua assistente ia já atende, qualifica e agenda no whatsapp/i)
-    ).toBeVisible();
+  test('não oferece cadastro público (acesso criado pela Pixel Pro)', async ({ page }) => {
+    await expect(page.getByRole('button', { name: /criar conta/i })).toHaveCount(0);
+    await expect(page.getByText(/o acesso das clínicas é criado pela pixel pro/i)).toBeVisible();
+  });
+
+  test('esqueci minha senha pede o e-mail antes', async ({ page }) => {
+    await page.getByTestId('forgot-password').click();
+    await expect(page.getByText(/digite seu e-mail acima/i)).toBeVisible();
+  });
+
+  test('esqueci minha senha responde sem revelar se o e-mail existe', async ({ page }) => {
+    await page.route(/\/auth\/v1\/recover/, (route) =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: '{}' })
+    );
+    await page.getByLabel('Email').fill('cliente@suaclinica.com.br');
+    await page.getByTestId('forgot-password').click();
+    await expect(page.getByText(/se este e-mail tiver acesso/i)).toBeVisible();
   });
 
   test('valida senha curta sem chamar Supabase', async ({ page }) => {

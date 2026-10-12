@@ -18,7 +18,8 @@ export interface ClinicDetail {
     business_hours: string | null; business_days: number[] | null; audio_response_enabled: boolean; ai_scheduling_enabled: boolean;
   } | null;
   whatsapp: {
-    connected: boolean; phone_number_id: string | null; business_account_id: string | null; has_token: boolean;
+    connected: boolean; provider?: string; evolution_status?: string | null; evolution_phone?: string | null;
+    phone_number_id: string | null; business_account_id: string | null; has_token: boolean;
     verify_token: string | null; last_received_at: string | null; last_sent_at: string | null; failed_sends_7d: number;
   } | null;
   usage_30d: {

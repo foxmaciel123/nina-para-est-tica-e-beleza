@@ -21,6 +21,40 @@ const corsHeaders = {
 //      Após consent, Google redireciona pra ?action=callback&code=...&state=...
 //      → salva tokens em google_calendar_credentials e fecha popup.
 
+// state assinado (HMAC-SHA256) para o callback não aceitar um user_id forjado
+const STATE_TTL_MS = 15 * 60 * 1000;
+
+const b64url = (bytes: Uint8Array) =>
+  btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+async function hmac(data: string): Promise<string> {
+  const secret = Deno.env.get('OAUTH_STATE_SECRET') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  return b64url(new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(data))));
+}
+
+async function signState(payload: Record<string, unknown>): Promise<string> {
+  const body = b64url(new TextEncoder().encode(JSON.stringify(payload)));
+  return `${body}.${await hmac(body)}`;
+}
+
+async function verifyState(state: string): Promise<{ user_id: string; professional_id: string | null } | null> {
+  const [body, sig] = state.split('.');
+  if (!body || !sig) return null;
+  const expected = await hmac(body);
+  if (expected.length !== sig.length) return null;
+  let diff = 0;
+  for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ sig.charCodeAt(i);
+  if (diff !== 0) return null;
+  try {
+    const payload = JSON.parse(atob(body.replace(/-/g, '+').replace(/_/g, '/')));
+    if (typeof payload.ts !== 'number' || Date.now() - payload.ts > STATE_TTL_MS) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
 const SCOPES = [
   'https://www.googleapis.com/auth/calendar.events',
   'https://www.googleapis.com/auth/userinfo.email'
@@ -40,8 +74,8 @@ serve(async (req) => {
   if (!clientId || !clientSecret || !redirectUri) {
     return new Response(
       JSON.stringify({
-        error: 'Google OAuth não configurado',
-        todo: 'Defina GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET, GOOGLE_OAUTH_REDIRECT_URI nos secrets do Lovable Cloud'
+        error: 'A integração com o Google Agenda ainda não foi ativada pela Pixel Pro.',
+        todo: 'Defina GOOGLE_OAUTH_CLIENT_ID e GOOGLE_OAUTH_CLIENT_SECRET em /opt/nina/nina-functions.env'
       }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -53,17 +87,19 @@ serve(async (req) => {
 
   try {
     if (action === 'authorize') {
-      const userId = url.searchParams.get('user_id');
-      const professionalId = url.searchParams.get('professional_id');
-
-      if (!userId) {
-        return new Response(JSON.stringify({ error: 'user_id obrigatório' }), {
-          status: 400,
+      // Usuário vem do token de login, nunca do endereço
+      const token = (req.headers.get('authorization') || '').replace('Bearer ', '');
+      const { data: { user } } = await supabase.auth.getUser(token);
+      if (!user) {
+        return new Response(JSON.stringify({ error: 'Faça login novamente.' }), {
+          status: 401,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
       }
+      const userId = user.id;
+      const professionalId = url.searchParams.get('professional_id');
 
-      const state = btoa(JSON.stringify({ user_id: userId, professional_id: professionalId, ts: Date.now() }));
+      const state = await signState({ user_id: userId, professional_id: professionalId, ts: Date.now() });
       const authorizeUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
       authorizeUrl.searchParams.set('client_id', clientId);
       authorizeUrl.searchParams.set('redirect_uri', redirectUri);
@@ -87,7 +123,10 @@ serve(async (req) => {
         return new Response('Missing code/state', { status: 400, headers: corsHeaders });
       }
 
-      const stateData = JSON.parse(atob(state));
+      const stateData = await verifyState(state);
+      if (!stateData) {
+        return new Response('Link de autorização inválido ou expirado. Tente conectar de novo.', { status: 400, headers: corsHeaders });
+      }
 
       // Troca code por tokens
       const tokenResp = await fetch('https://oauth2.googleapis.com/token', {
@@ -156,7 +195,7 @@ serve(async (req) => {
         <p style="font-family:sans-serif">Google Calendar conectado com sucesso ✨<br>Você já pode fechar esta janela.</p>
         <script>
           if (window.opener) {
-            window.opener.postMessage({ type: 'google-calendar-connected', email: '${userInfo.email}' }, '*');
+            window.opener.postMessage({ type: 'google-calendar-connected', email: ${JSON.stringify(String(userInfo.email ?? '')).replace(/</g, '\\u003c')} }, '*');
             setTimeout(() => window.close(), 1500);
           }
         </script>

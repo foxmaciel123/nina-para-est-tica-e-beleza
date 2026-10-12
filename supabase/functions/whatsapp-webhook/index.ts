@@ -12,6 +12,21 @@ const corsHeaders = {
 
 const GROUPING_DELAY_MS = 10000; // 10 seconds
 
+// Valida o cabeçalho X-Hub-Signature-256 ("sha256=<hex>") enviado pela Meta
+async function verifyMetaSignature(rawBody: string, header: string | null, appSecret: string | null | undefined): Promise<boolean> {
+  if (!appSecret || !header?.startsWith('sha256=')) return false;
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(appSecret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'],
+  );
+  const mac = new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(rawBody)));
+  const expected = Array.from(mac, (b) => b.toString(16).padStart(2, '0')).join('');
+  const received = header.slice('sha256='.length).toLowerCase();
+  if (received.length !== expected.length) return false;
+  let diff = 0;
+  for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ received.charCodeAt(i);
+  return diff === 0;
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -51,8 +66,14 @@ serve(async (req) => {
 
     // POST request = Incoming message from WhatsApp
     if (req.method === 'POST') {
-      const body = await req.json();
-      console.log('[Webhook] Received payload:', JSON.stringify(body, null, 2));
+      // A assinatura da Meta é calculada sobre o corpo cru: ler antes de interpretar
+      const rawBody = await req.text();
+      let body: any;
+      try {
+        body = JSON.parse(rawBody);
+      } catch {
+        return new Response('Bad request', { status: 400, headers: corsHeaders });
+      }
 
       // Extract message data from WhatsApp Cloud API format
       const entry = body.entry?.[0];
@@ -74,7 +95,7 @@ serve(async (req) => {
       // Clínica dona do número que recebeu a mensagem
       const { data: ownerSettings } = await supabase
         .from('nina_settings')
-        .select('organization_id, user_id')
+        .select('organization_id, user_id, whatsapp_app_secret')
         .eq('whatsapp_phone_number_id', phoneNumberId)
         .maybeSingle();
 
@@ -87,6 +108,13 @@ serve(async (req) => {
           status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         });
+      }
+
+      // Só aceita o que a Meta assinou com o App Secret da clínica
+      const signatureOk = await verifyMetaSignature(rawBody, req.headers.get('x-hub-signature-256'), ownerSettings?.whatsapp_app_secret);
+      if (!signatureOk) {
+        console.warn('[Webhook] Assinatura inválida ou App Secret não cadastrado para', phoneNumberId);
+        return new Response('Forbidden', { status: 403, headers: corsHeaders });
       }
 
       // Handle status updates (delivered, read, etc)

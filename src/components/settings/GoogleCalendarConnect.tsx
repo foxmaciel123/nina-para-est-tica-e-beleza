@@ -54,17 +54,15 @@ export const GoogleCalendarConnect: React.FC = () => {
     if (!user) return;
     setConnecting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('google-calendar-oauth', {
-        body: null,
-        method: 'GET',
-        headers: {},
-      } as any);
-
-      // Como o invoke não suporta query params nativo, usamos URL direta
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-calendar-oauth?action=authorize&user_id=${user.id}`;
+      // O servidor identifica a usuária pelo login (token da sessão), não pelo endereço
+      const { data: { session } } = await supabase.auth.getSession();
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-calendar-oauth?action=authorize`;
 
       const resp = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` }
+        headers: {
+          'Authorization': `Bearer ${session?.access_token ?? ''}`,
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        }
       });
       const json = await resp.json();
 
