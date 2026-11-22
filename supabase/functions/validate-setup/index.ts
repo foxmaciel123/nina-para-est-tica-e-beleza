@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getUserOrgId } from "../_shared/tenant.ts";
+import { GRAPH_API } from "../_shared/meta.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -82,7 +83,7 @@ serve(async (req) => {
         // Test WhatsApp API connection
         try {
           const waResponse = await fetch(
-            `https://graph.facebook.com/v18.0/${settings.whatsapp_phone_number_id}`,
+            `${GRAPH_API}/${settings.whatsapp_phone_number_id}`,
             {
               headers: { Authorization: `Bearer ${settings.whatsapp_access_token}` },
             }

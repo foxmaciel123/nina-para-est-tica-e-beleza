@@ -2,13 +2,13 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { isOrgActive } from "../_shared/tenant.ts";
 import { evoSend } from "../_shared/evolution.ts";
+import { GRAPH_API } from "../_shared/meta.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const WHATSAPP_API_URL = "https://graph.facebook.com/v18.0";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -155,7 +155,8 @@ serve(async (req) => {
           
           // Mark as failed with retry
           const newRetryCount = (item.retry_count || 0) + 1;
-          const shouldRetry = newRetryCount < 3;
+          // Erros que não mudam tentando de novo (e insistir piora a qualidade do número)
+          const shouldRetry = newRetryCount < 3 && !(error instanceof PermanentSendError);
           
           await supabase
             .from('send_queue')
@@ -217,6 +218,9 @@ async function sendMessage(supabase: any, settings: any, queueItem: any) {
   await recordSentMessage(supabase, queueItem, whatsappMessageId);
 }
 
+// Recusa da Meta que não adianta repetir
+class PermanentSendError extends Error {}
+
 // WhatsApp Cloud API (oficial da Meta)
 async function sendViaMeta(settings: any, recipient: string, queueItem: any): Promise<string | null> {
   // Build WhatsApp API payload
@@ -262,7 +266,7 @@ async function sendViaMeta(settings: any, recipient: string, queueItem: any): Pr
 
   // Send via WhatsApp Cloud API
   const response = await fetch(
-    `${WHATSAPP_API_URL}/${settings.whatsapp_phone_number_id}/messages`,
+    `${GRAPH_API}/${settings.whatsapp_phone_number_id}/messages`,
     {
       method: 'POST',
       headers: {
@@ -277,6 +281,12 @@ async function sendViaMeta(settings: any, recipient: string, queueItem: any): Pr
 
   if (!response.ok) {
     console.error('[Sender] WhatsApp API error:', responseData);
+    const code = responseData.error?.code;
+    // Fora da janela de 24 h a Meta só aceita modelo (template) aprovado
+    if (code === 131047) throw new PermanentSendError('Cliente sem conversa nas últimas 24 h: a Meta só deixa enviar modelo aprovado (template).');
+    if (code === 131026) throw new PermanentSendError('Esse número não recebe mensagens no WhatsApp.');
+    if (code === 131048 || code === 131056) throw new PermanentSendError('A Meta limitou envios desse número por excesso ou spam. Aguarde e reduza envios ativos.');
+    if (code === 190) throw new Error('Token do WhatsApp inválido ou expirado.');
     throw new Error(responseData.error?.message || 'WhatsApp API error');
   }
 
