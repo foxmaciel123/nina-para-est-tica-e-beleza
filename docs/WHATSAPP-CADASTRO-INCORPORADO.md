@@ -34,3 +34,10 @@ e o número não é registrado.
 7. Meta → app → WhatsApp → Configuração → Webhook: URL e token mostrados na Nina, assinar `messages`.
 8. Pedir acesso avançado das duas permissões (análise do app, com vídeo do fluxo) e o
    status de Tech Provider. Antes da aprovação o botão só funciona para quem tem função no app.
+
+## Antes da aprovação da Meta (análise do app)
+
+- Enquanto a análise do app não for aprovada, o app fica com acesso padrão: só quem tem função no app consegue conectar, e só pelo botão verde (modo nuvem) com um número que não tem WhatsApp.
+- O botão "Já uso o WhatsApp Business no celular" (coexistência) devolve o erro #3441107 ("This partner's app isn't set up yet to connect WhatsApp Business app numbers") até o Provedor de Tecnologia concluir a análise do app.
+- Webhook: além de `messages`, deixe assinados `account_update`, `history`, `smb_app_state_sync` e `smb_message_echoes` (exigidos pela coexistência; a função ignora esses campos por enquanto).
+- A análise pede 2 vídeos: (1) `whatsapp_business_messaging`: a Nina enviando uma mensagem e o WhatsApp recebendo; (2) `whatsapp_business_management`: criar um modelo de mensagem pela Nina (DISPARO > Modelos de mensagem > Criar modelo). Também exige ícone 1024x1024, política de privacidade e categoria.

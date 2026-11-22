@@ -6,6 +6,7 @@ import { Button } from '../Button';
 import { db, useOutboundInfo } from '../outbound/useOutbound';
 import { WhatsAppStatus } from '../outbound/TemplatePicker';
 import NewCampaignDialog from './NewCampaignDialog';
+import TemplatesPanel from './TemplatesPanel';
 
 type Campaign = {
   id: string; name: string; status: string; template_name: string; template_category: string | null;
@@ -99,6 +100,8 @@ const Disparo: React.FC = () => {
       </div>
 
       <div className="mb-6"><WhatsAppStatus info={info} loading={infoLoading} error={infoError} /></div>
+
+      <div className="mb-6"><TemplatesPanel enabled={info?.provider === 'meta'} onChanged={reload} /></div>
 
       <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {[
