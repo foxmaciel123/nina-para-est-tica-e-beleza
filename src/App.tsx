@@ -19,6 +19,7 @@ import OwnerBilling from './components/owner/OwnerBilling';
 import OwnerAiUsage from './components/owner/OwnerAiUsage';
 import OwnerAlerts from './components/owner/OwnerAlerts';
 import OwnerBrand from './components/owner/OwnerBrand';
+import OwnerWhatsappApp from './components/owner/OwnerWhatsappApp';
 import OwnerAgencies from './components/owner/OwnerAgencies';
 import { PanelScopeProvider } from './components/owner/panelScope';
 import AgencyLayout from './components/agency/AgencyLayout';
@@ -31,6 +32,7 @@ import ClinicBilling from './components/owner/clinic/ClinicBilling';
 import ClinicHours from './components/owner/clinic/ClinicHours';
 import ClinicProcedures from './components/owner/clinic/ClinicProcedures';
 import FirstAccess from './pages/FirstAccess';
+import Privacy from './pages/Privacy';
 import Disparo from './components/disparo/Disparo';
 import FollowUp from './components/followup/FollowUp';
 
@@ -94,6 +96,7 @@ const App: React.FC = () => {
               {/* Public Routes */}
               <Route path="/auth" element={<Auth />} />
               <Route path="/primeiro-acesso" element={<FirstAccess />} />
+              <Route path="/privacidade" element={<Privacy />} />
 
               {/* Protected Routes (With Sidebar) */}
               <Route element={
@@ -125,6 +128,7 @@ const App: React.FC = () => {
                 <Route path="/dono/consumo-ia" element={<OwnerAiUsage />} />
                 <Route path="/dono/alertas" element={<OwnerAlerts />} />
                 <Route path="/dono/marca" element={<OwnerBrand />} />
+                <Route path="/dono/whatsapp" element={<OwnerWhatsappApp />} />
               </Route>
               <Route path="/dono/clinicas/:id" element={<ProtectedRoute><RequireOwner><OwnerClinicLayout /></RequireOwner></ProtectedRoute>}>
                 <Route index element={<ClinicSummary />} />

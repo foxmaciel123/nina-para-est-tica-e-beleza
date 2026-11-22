@@ -9,6 +9,7 @@ import { Chip, ErrorNote, PageHeader, PageLoader, Panel, WhatsAppChip, formatNum
 import { ownerAction, rpcErrorMessage, useClinicConfig } from '../ownerApi';
 import { useClinic } from './OwnerClinicLayout';
 import WhatsAppQrPanel from '@/components/whatsapp/WhatsAppQrPanel';
+import ConnectWhatsAppButton from '@/components/whatsapp/ConnectWhatsAppButton';
 
 const WEBHOOK_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/whatsapp-webhook`;
 
@@ -146,11 +147,15 @@ const ClinicWhatsapp: React.FC = () => {
         </Panel>
       ) : (
         <>
+          <Panel title="Conectar WhatsApp (API oficial, sem token)">
+            <ConnectWhatsAppButton organizationId={orgId} onConnected={() => { reload(); reloadDetail(); }} />
+          </Panel>
+
           <Panel title="Conexão por QR code">
             <WhatsAppQrPanel organizationId={orgId} onChange={() => { reload(); reloadDetail(); }} />
           </Panel>
 
-          <Panel title="API oficial da Meta" actions={<WhatsAppChip connected={!!wa?.connected && wa?.provider !== 'evolution'} />}>
+          <Panel title="API oficial da Meta (preencher à mão)" actions={<WhatsAppChip connected={!!wa?.connected && wa?.provider !== 'evolution'} />}>
             <form onSubmit={save} className="flex flex-col gap-4" noValidate>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="flex flex-col gap-2">
