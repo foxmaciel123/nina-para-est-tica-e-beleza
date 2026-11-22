@@ -1581,6 +1581,12 @@ export type Database = {
         Returns: undefined
       }
       owner_has_app_secret: { Args: { p_org: string }; Returns: boolean }
+      meta_signup_config: { Args: never; Returns: { app_id: string | null; config_id: string | null }[] }
+      owner_get_meta_app: {
+        Args: never
+        Returns: { app_id: string | null; config_id: string | null; has_app_secret: boolean; verify_token: string | null }[]
+      }
+      owner_set_meta_app: { Args: { p_app_id: string; p_config_id: string; p_app_secret?: string | null }; Returns: undefined }
       owner_update_clinic_agent: { Args: { p_org: string; p_settings: Json }; Returns: undefined }
       owner_update_clinic_hours: {
         Args: { p_org: string; p_start: string; p_end: string; p_days: number[] }

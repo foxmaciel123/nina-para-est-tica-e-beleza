@@ -19,6 +19,7 @@ import OwnerBilling from './components/owner/OwnerBilling';
 import OwnerAiUsage from './components/owner/OwnerAiUsage';
 import OwnerAlerts from './components/owner/OwnerAlerts';
 import OwnerBrand from './components/owner/OwnerBrand';
+import OwnerWhatsappApp from './components/owner/OwnerWhatsappApp';
 import OwnerAgencies from './components/owner/OwnerAgencies';
 import { PanelScopeProvider } from './components/owner/panelScope';
 import AgencyLayout from './components/agency/AgencyLayout';
@@ -125,6 +126,7 @@ const App: React.FC = () => {
                 <Route path="/dono/consumo-ia" element={<OwnerAiUsage />} />
                 <Route path="/dono/alertas" element={<OwnerAlerts />} />
                 <Route path="/dono/marca" element={<OwnerBrand />} />
+                <Route path="/dono/whatsapp" element={<OwnerWhatsappApp />} />
               </Route>
               <Route path="/dono/clinicas/:id" element={<ProtectedRoute><RequireOwner><OwnerClinicLayout /></RequireOwner></ProtectedRoute>}>
                 <Route index element={<ClinicSummary />} />

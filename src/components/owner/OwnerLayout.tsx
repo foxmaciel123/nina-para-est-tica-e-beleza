@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Building2, Wallet, Cpu, AlertTriangle, ArrowLeftRight, LogOut, Crown, Palette, Briefcase } from 'lucide-react';
+import { LayoutDashboard, Building2, Wallet, Cpu, AlertTriangle, ArrowLeftRight, LogOut, Crown, Palette, Briefcase, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useOrganization } from '@/hooks/useOrganization';
@@ -37,6 +37,7 @@ const GROUPS: OwnerNavGroup[] = [
     items: [
       { label: 'Alertas', to: '/dono/alertas', icon: AlertTriangle },
       { label: 'Marca', to: '/dono/marca', icon: Palette },
+      { label: 'App WhatsApp', to: '/dono/whatsapp', icon: MessageCircle },
     ],
   },
 ];

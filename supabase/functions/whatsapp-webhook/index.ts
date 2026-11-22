@@ -55,7 +55,17 @@ serve(async (req) => {
             .maybeSingle()
         : { data: null };
 
-      if (mode === 'subscribe' && settings) {
+      // App da Meta da plataforma (botão Conectar WhatsApp): token próprio em app_config
+      const { data: platform } = token && !settings
+        ? await supabase
+            .from('app_config')
+            .select('key')
+            .eq('key', 'meta_webhook_verify_token')
+            .eq('value', token)
+            .maybeSingle()
+        : { data: null };
+
+      if (mode === 'subscribe' && (settings || platform)) {
         console.log('[Webhook] Verification successful');
         return new Response(challenge, { status: 200, headers: corsHeaders });
       } else {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react';
 import { Save, MessageSquare, Mic, Eye, EyeOff, Copy, Check, Loader2, Send, ChevronDown, Volume2, Download, Upload, FileAudio, HelpCircle, QrCode } from 'lucide-react';
 import WhatsAppQrPanel from '@/components/whatsapp/WhatsAppQrPanel';
+import ConnectWhatsAppButton from '@/components/whatsapp/ConnectWhatsAppButton';
 import { Button } from '../Button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -471,6 +472,15 @@ const ApiSettings = forwardRef<ApiSettingsRef>((props, ref) => {
 
   return (
     <div className="space-y-6">
+      {/* Conectar WhatsApp pela API oficial (Cadastro Incorporado da Meta) */}
+      <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
+        <div className="mb-4 flex items-center gap-3">
+          <MessageSquare className="w-5 h-5 text-emerald-400" />
+          <h3 className="font-semibold text-white">Conectar WhatsApp (API oficial)</h3>
+        </div>
+        <ConnectWhatsAppButton onConnected={() => loadSettings()} />
+      </div>
+
       {/* WhatsApp por QR code (alternativa à API oficial) */}
       <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
         <div className="mb-4 flex items-center gap-3">
