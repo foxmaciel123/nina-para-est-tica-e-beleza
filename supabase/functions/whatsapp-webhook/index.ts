@@ -230,6 +230,20 @@ serve(async (req) => {
                 .eq('id', contact.id);
             }
 
+            // 1b. Veio de anúncio de clique para o WhatsApp? A Meta manda o
+            // "referral" (id do anúncio, título, ctwa_clid) na 1ª mensagem.
+            if (message.referral && (message.referral.source_id || message.referral.ctwa_clid)) {
+              const { error: touchError } = await supabase.rpc('record_lead_touch', {
+                p_org: orgId,
+                p_contact: contact.id,
+                p_message_id: message.id,
+                p_referral: message.referral,
+                p_channel: 'meta',
+              });
+              if (touchError) console.warn('[Webhook] Falha ao gravar origem do anúncio:', touchError.message);
+              else console.log('[Webhook] Lead de anúncio:', message.referral.source_id);
+            }
+
             // 2. Get or create conversation IMMEDIATELY
             let { data: conversation } = await supabase
               .from('conversations')

@@ -2,9 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   Search, MoreVertical, Phone, Paperclip, Send, Check, CheckCheck,
   Smile, Play, Loader2, MessageSquare, Info, X, Mail,
-  Tag, Bot, User, Pause, Brain, Plus, Camera
+  Tag, Bot, User, Pause, Brain, Plus, Camera,
+  BadgeDollarSign,
 } from 'lucide-react';
 import ContactPhotosSheet from './ContactPhotosSheet';
+import RegisterSaleDialog from './ads/RegisterSaleDialog';
 import { MessageDirection, MessageType, UIConversation, UIMessage, ConversationStatus, TagDefinition } from '../types';
 import { Button } from './Button';
 import { useConversations } from '../hooks/useConversations';
@@ -21,6 +23,7 @@ const ChatInterface: React.FC = () => {
   const [inputText, setInputText] = useState('');
   const [showProfileInfo, setShowProfileInfo] = useState(true);
   const [showPhotosSheet, setShowPhotosSheet] = useState(false);
+  const [showSaleDialog, setShowSaleDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [availableTags, setAvailableTags] = useState<TagDefinition[]>([]);
   const [isTagSelectorOpen, setIsTagSelectorOpen] = useState(false);
@@ -459,6 +462,16 @@ const ChatInterface: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="text-slate-400 hover:text-emerald-400"
+                  onClick={() => setShowSaleDialog(true)}
+                  title="Registrar venda"
+                  data-testid="register-sale"
+                >
+                  <BadgeDollarSign className="w-5 h-5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
                   className={`text-slate-400 hover:text-white ${showProfileInfo ? 'bg-slate-800 text-cyan-400' : ''}`}
                   onClick={() => setShowProfileInfo(!showProfileInfo)}
                   title="Ver Informações"
@@ -809,6 +822,13 @@ const ChatInterface: React.FC = () => {
           </div>
         </div>
       )}
+
+      <RegisterSaleDialog
+        open={showSaleDialog}
+        onOpenChange={setShowSaleDialog}
+        contactId={activeChat?.contactId || null}
+        contactName={activeChat?.contactName}
+      />
 
       <ContactPhotosSheet
         open={showPhotosSheet}
