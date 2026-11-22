@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import ScreenErrorBoundary from './components/ScreenErrorBoundary';
 import Sidebar from './components/Sidebar';
@@ -39,20 +39,14 @@ import { ThemeProvider, useTheme } from './hooks/useTheme';
 import { BrandProvider } from './hooks/useBrand';
 import { Toaster } from 'sonner';
 import { OnboardingWizard } from './components/OnboardingWizard';
-import { useOnboardingStatus } from './hooks/useOnboardingStatus';
 
 // Componente de Layout que envolve a aplicação principal
 const AppLayout: React.FC = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const { isComplete, hasSeenWizard, loading } = useOnboardingStatus();
   const location = useLocation();
 
-  // Show wizard automatically on first load if not complete and never seen
-  useEffect(() => {
-    if (!loading && !isComplete && !hasSeenWizard) {
-      setShowOnboarding(true);
-    }
-  }, [loading, isComplete, hasSeenWizard]);
+  // A Configuração Inicial NÃO abre sozinha: o menu lateral e o painel
+  // mostram o aviso "Configuração pendente" e ela só abre quando clicam.
 
   return (
     <div className="flex h-screen w-full bg-background text-foreground overflow-hidden">
@@ -60,7 +54,7 @@ const AppLayout: React.FC = () => {
       <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[128px] pointer-events-none -translate-x-1/2 -translate-y-1/2 z-0"></div>
       <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[128px] pointer-events-none translate-x-1/2 translate-y-1/2 z-0"></div>
       
-      <Sidebar />
+      <Sidebar onOpenOnboarding={() => setShowOnboarding(true)} />
       
       <main className="flex-1 h-full overflow-hidden relative z-10 flex flex-col">
         {/* Top Border Gradient */}

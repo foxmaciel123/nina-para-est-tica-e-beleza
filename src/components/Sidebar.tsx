@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, MessageSquare, Settings as SettingsIcon, LogOut, ShieldCheck, Calendar, Kanban, Sparkles, Crown } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, Settings as SettingsIcon, LogOut, ShieldCheck, Calendar, Kanban, Sparkles, Crown, AlertCircle } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useCompanySettings } from '@/hooks/useCompanySettings';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { useBrand } from '@/hooks/useBrand';
 import { BrandIcon } from '@/components/BrandMark';
 import ThemeToggle from './ThemeToggle';
+import { useOnboardingStatus } from '@/hooks/useOnboardingStatus';
 
 const menuItems = [
   { id: 'dashboard', label: 'Visão Geral', icon: LayoutDashboard },
@@ -54,7 +55,38 @@ const LogoIcon = () => {
   );
 };
 
-const SidebarContent = () => {
+// Aviso discreto no menu: a Configuração Inicial só abre quando clicam aqui
+const SetupPendingLink = ({ onClick }: { onClick: () => void }) => {
+  const { open } = useSidebar();
+  const { loading, requiredComplete, steps } = useOnboardingStatus();
+  if (loading || requiredComplete) return null;
+  const missing = steps.filter(s => s.isRequired && !s.isComplete).length;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      data-testid="setup-pending"
+      title="Configuração pendente: clique para continuar"
+      className="mt-3 flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-2 py-2 text-left text-amber-400 transition-colors hover:bg-amber-500/20"
+    >
+      <span className="relative flex h-5 w-5 flex-shrink-0 items-center justify-center">
+        <AlertCircle className="h-5 w-5" />
+        <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-amber-400" />
+      </span>
+      {open && (
+        <span className="flex flex-col overflow-hidden">
+          <span className="text-sm font-medium whitespace-nowrap">Configuração pendente</span>
+          <span className="text-[11px] text-amber-400/80 whitespace-nowrap">
+            {missing} {missing === 1 ? 'passo falta' : 'passos faltam'}
+          </span>
+        </span>
+      )}
+    </button>
+  );
+};
+
+const SidebarContent = ({ onOpenOnboarding }: { onOpenOnboarding?: () => void }) => {
   const { companyName } = useCompanySettings();
   const { user, signOut } = useAuth();
   const { isPlatformOwner } = useOrganization();
@@ -109,6 +141,8 @@ const SidebarContent = () => {
             />
           ))}
         </nav>
+
+        {onOpenOnboarding && <SetupPendingLink onClick={onOpenOnboarding} />}
 
         {isPlatformOwner && (
           <nav className="mt-6 flex flex-col gap-1.5 border-t border-border/50 pt-4" data-testid="owner-nav">
@@ -186,13 +220,13 @@ const SidebarContent = () => {
   );
 };
 
-const AppSidebar: React.FC = () => {
+const AppSidebar: React.FC<{ onOpenOnboarding?: () => void }> = ({ onOpenOnboarding }) => {
   const [open, setOpen] = useState(true);
 
   return (
     <Sidebar open={open} setOpen={setOpen}>
       <SidebarBody className="justify-between gap-10 bg-card/50 backdrop-blur-xl border-r border-border/50">
-        <SidebarContent />
+        <SidebarContent onOpenOnboarding={onOpenOnboarding} />
       </SidebarBody>
     </Sidebar>
   );

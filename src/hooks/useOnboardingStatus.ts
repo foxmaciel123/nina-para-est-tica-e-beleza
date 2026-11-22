@@ -13,6 +13,11 @@ export interface OnboardingStep {
 export interface OnboardingStatus {
   loading: boolean;
   isComplete: boolean;
+  /** Passos obrigatórios (identidade, WhatsApp, agente) prontos */
+  requiredComplete: boolean;
+  /** Aviso do painel escondido pelo usuário ("Agora não") */
+  bannerDismissed: boolean;
+  dismissBanner: () => void;
   currentStep: number;
   steps: OnboardingStep[];
   completionPercentage: number;
@@ -24,6 +29,31 @@ export interface OnboardingStatus {
 }
 
 const WIZARD_SEEN_KEY = 'onboarding_wizard_seen';
+const BANNER_DISMISSED_KEY = 'onboarding_banner_dismissed';
+// Avisa as outras partes da tela (menu, painel) que o status mudou
+const STATUS_EVENT = 'onboarding-status-changed';
+
+function readFlag(key: string) {
+  try {
+    return localStorage.getItem(key) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function writeFlag(key: string, value: boolean) {
+  try {
+    if (value) localStorage.setItem(key, 'true');
+    else localStorage.removeItem(key);
+  } catch {
+    /* navegador sem localStorage: segue sem lembrar */
+  }
+  window.dispatchEvent(new Event(STATUS_EVENT));
+}
+
+export function notifyOnboardingChanged() {
+  window.dispatchEvent(new Event(STATUS_EVENT));
+}
 
 export function useOnboardingStatus(): OnboardingStatus {
   const { user } = useAuth();
@@ -80,9 +110,8 @@ export function useOnboardingStatus(): OnboardingStatus {
       isRequired: false,
     },
   ]);
-  const [hasSeenWizard, setHasSeenWizard] = useState(() => {
-    return localStorage.getItem(WIZARD_SEEN_KEY) === 'true';
-  });
+  const [hasSeenWizard, setHasSeenWizard] = useState(() => readFlag(WIZARD_SEEN_KEY));
+  const [bannerDismissed, setBannerDismissed] = useState(() => readFlag(BANNER_DISMISSED_KEY));
 
   const fetchStatus = useCallback(async () => {
     if (!user) {
@@ -168,17 +197,33 @@ export function useOnboardingStatus(): OnboardingStatus {
     fetchStatus();
   }, [fetchStatus]);
 
+  // Mantém menu, painel e assistente de configuração em sincronia
+  useEffect(() => {
+    const sync = () => {
+      setHasSeenWizard(readFlag(WIZARD_SEEN_KEY));
+      setBannerDismissed(readFlag(BANNER_DISMISSED_KEY));
+      fetchStatus();
+    };
+    window.addEventListener(STATUS_EVENT, sync);
+    return () => window.removeEventListener(STATUS_EVENT, sync);
+  }, [fetchStatus]);
+
+  const dismissBanner = useCallback(() => {
+    setBannerDismissed(true);
+    writeFlag(BANNER_DISMISSED_KEY, true);
+  }, []);
+
   const markWizardSeen = useCallback(() => {
-    localStorage.setItem(WIZARD_SEEN_KEY, 'true');
     setHasSeenWizard(true);
+    writeFlag(WIZARD_SEEN_KEY, true);
     setSteps(prev => prev.map(step => 
       step.id === 'finish' ? { ...step, isComplete: true } : step
     ));
   }, []);
 
   const resetWizard = useCallback(() => {
-    localStorage.removeItem(WIZARD_SEEN_KEY);
     setHasSeenWizard(false);
+    writeFlag(WIZARD_SEEN_KEY, false);
     setSteps(prev => prev.map(step => 
       step.id === 'finish' ? { ...step, isComplete: false } : step
     ));
@@ -193,6 +238,9 @@ export function useOnboardingStatus(): OnboardingStatus {
   return {
     loading,
     isComplete: allStepsComplete,
+    requiredComplete: completedRequired === requiredSteps.length,
+    bannerDismissed,
+    dismissBanner,
     currentStep: currentStepIndex === -1 ? steps.length - 1 : currentStepIndex,
     steps,
     completionPercentage,
