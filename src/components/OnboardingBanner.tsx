@@ -1,5 +1,5 @@
 import React from 'react';
-import { Rocket, CheckCircle, Circle, AlertCircle, ArrowRight } from 'lucide-react';
+import { Rocket, CheckCircle, Circle, AlertCircle, ArrowRight, X } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus';
 
@@ -8,15 +8,27 @@ interface OnboardingBannerProps {
 }
 
 export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onOpenWizard }) => {
-  const { loading, isComplete, steps, completionPercentage } = useOnboardingStatus();
+  const { loading, requiredComplete, steps, completionPercentage, bannerDismissed, dismissBanner } = useOnboardingStatus();
 
-  if (loading || isComplete) return null;
+  // Some quando o essencial está pronto ou quando clicam em "Agora não".
+  // O aviso continua no menu lateral ("Configuração pendente").
+  if (loading || requiredComplete || bannerDismissed) return null;
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-r from-primary/10 via-card/60 to-accent/10 p-6 mb-8" data-testid="onboarding-banner">
       {/* Background Glow */}
       <div className="absolute -top-20 -right-20 w-40 h-40 bg-primary/30 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-accent/20 rounded-full blur-3xl pointer-events-none" />
+
+      <button
+        type="button"
+        onClick={dismissBanner}
+        title="Agora não (continua no menu lateral)"
+        data-testid="onboarding-banner-dismiss"
+        className="absolute right-3 top-3 z-20 rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground"
+      >
+        <X className="h-4 w-4" />
+      </button>
 
       <div className="relative z-10">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -71,7 +83,7 @@ export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onOpenWizard
             </div>
           </div>
 
-          <div className="flex-shrink-0">
+          <div className="flex flex-shrink-0 flex-col items-stretch gap-2">
             <Button
               variant="primary"
               onClick={onOpenWizard}
@@ -80,6 +92,13 @@ export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onOpenWizard
               Continuar configuração da assistente
               <ArrowRight className="w-4 h-4" />
             </Button>
+            <button
+              type="button"
+              onClick={dismissBanner}
+              className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Agora não
+            </button>
           </div>
         </div>
       </div>
