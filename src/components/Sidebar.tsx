@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, MessageSquare, Settings as SettingsIcon, LogOut, ShieldCheck, Calendar, Kanban, Sparkles, Crown, AlertCircle } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, Settings as SettingsIcon, LogOut, ShieldCheck, Calendar, Kanban, Sparkles, Crown, AlertCircle, Send, Repeat } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useCompanySettings } from '@/hooks/useCompanySettings';
 import { useAuth } from '@/hooks/useAuth';
@@ -20,6 +20,9 @@ const menuItems = [
   { id: 'contacts', label: 'Clientes', icon: Sparkles },
   { id: 'scheduling', label: 'Agenda', icon: Calendar },
   { id: 'team', label: 'Profissionais', icon: ShieldCheck },
+  // Só o nome DISPARO fica em amarelo, para destacar
+  { id: 'disparo', label: 'DISPARO', icon: Send, labelClassName: 'text-yellow-400 font-bold tracking-wide group-hover/sidebar:text-yellow-300' },
+  { id: 'follow-up', label: 'Follow-up', icon: Repeat },
   { id: 'settings', label: 'Configurações', icon: SettingsIcon },
 ];
 
@@ -100,6 +103,7 @@ const SidebarContent = ({ onOpenOnboarding }: { onOpenOnboarding?: () => void })
     label: item.label,
     href: `/${item.id}`,
     icon: <item.icon className="h-5 w-5" />,
+    labelClassName: 'labelClassName' in item ? item.labelClassName : undefined,
   }));
 
   const handleLogout = async () => {
@@ -137,6 +141,7 @@ const SidebarContent = ({ onOpenOnboarding }: { onOpenOnboarding?: () => void })
             <SidebarLink
               key={idx}
               link={link}
+              labelClassName={link.labelClassName}
               isActive={currentPath.startsWith(link.href.slice(1))}
             />
           ))}
