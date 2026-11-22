@@ -144,4 +144,18 @@ test.describe('Features novas — presença e conteúdo', () => {
     expect(promptFile).toMatch(/acolhimento/i);
     expect(promptFile).toMatch(/avaliação/i);
   });
+
+  test('rastreamento de anúncios: migration, função, webhook e tela', () => {
+    const mig = readFileSync(resolve(repo, 'supabase/migrations/20261124000000_rastreamento_anuncios.sql'), 'utf-8');
+    expect(mig).toMatch(/record_lead_touch/);
+    expect(mig).toMatch(/CREATE TABLE IF NOT EXISTS public\.sales/);
+    expect(mig).toMatch(/ads_report/);
+    expect(mig).toMatch(/REVOKE ALL ON public\.meta_ads_connections FROM anon, authenticated/);
+    expect(existsSync(resolve(repo, 'supabase/functions/meta-ads-sync/index.ts'))).toBe(true);
+    expect(existsSync(resolve(repo, 'supabase/tests/rastreamento_anuncios.sql'))).toBe(true);
+    const webhook = readFileSync(resolve(repo, 'supabase/functions/whatsapp-webhook/index.ts'), 'utf-8');
+    expect(webhook).toMatch(/message\.referral/);
+    const app = readFileSync(resolve(repo, 'src/App.tsx'), 'utf-8');
+    expect(app).toMatch(/path="\/anuncios"/);
+  });
 });
