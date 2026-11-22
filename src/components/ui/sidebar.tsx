@@ -186,11 +186,14 @@ export const SidebarLink = ({
   className,
   isActive,
   onClick,
+  labelClassName,
   ...props
 }: {
   link: Links;
   className?: string;
   isActive?: boolean;
+  // classe extra só no nome (ex.: DISPARO em amarelo)
+  labelClassName?: string;
   onClick?: () => void;
   props?: Omit<LinkProps, 'to'>;
 }) => {
@@ -228,7 +231,8 @@ export const SidebarLink = ({
         }}
         className={cn(
           "text-sm font-medium group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre",
-          isActive && "text-cyan-50"
+          isActive && "text-cyan-50",
+          labelClassName
         )}
       >
         {link.label}

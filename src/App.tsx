@@ -31,6 +31,8 @@ import ClinicBilling from './components/owner/clinic/ClinicBilling';
 import ClinicHours from './components/owner/clinic/ClinicHours';
 import ClinicProcedures from './components/owner/clinic/ClinicProcedures';
 import FirstAccess from './pages/FirstAccess';
+import Disparo from './components/disparo/Disparo';
+import FollowUp from './components/followup/FollowUp';
 
 import { CompanySettingsProvider } from './hooks/useCompanySettings';
 import { AuthProvider } from './hooks/useAuth';
@@ -107,6 +109,8 @@ const App: React.FC = () => {
                   <Route path="/contacts" element={<Contacts />} />
                   <Route path="/scheduling" element={<Scheduling />} />
                   <Route path="/team" element={<Team />} />
+                  <Route path="/disparo" element={<Disparo />} />
+                  <Route path="/follow-up" element={<FollowUp />} />
                   <Route path="/settings" element={<Settings />} />
                 </Route>
               </Route>
