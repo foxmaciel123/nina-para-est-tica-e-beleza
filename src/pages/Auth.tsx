@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/Button';
@@ -250,7 +250,8 @@ const Auth: React.FC = () => {
 
         {/* Footer */}
         <p className="text-center text-muted-foreground text-xs mt-6">
-          Ao continuar, você concorda com nossos Termos de Uso e Política de Privacidade.
+          Ao continuar, você concorda com nossos Termos de Uso e a nossa{' '}
+          <Link to="/privacidade" className="underline underline-offset-2 hover:text-foreground">Política de Privacidade</Link>.
         </p>
       </div>
     </div>

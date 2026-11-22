@@ -27,7 +27,9 @@ e o número não é registrado.
    `whatsapp_business_messaging` → copiar o **Configuration ID**.
 4. Login do Facebook para Empresas → Configurações: domínio da Nina em
    "Domínios permitidos para o SDK do JavaScript" e "Allowed domains".
-5. App → Configurações → Básico: App ID, App Secret, URL de privacidade.
+5. App → Configurações → Básico: App ID, App Secret, URL da política de privacidade
+   (`https://<domínio da Nina>/privacidade`) e URL de instruções de exclusão de dados
+   (`https://<domínio da Nina>/privacidade#exclusao`).
 6. Nina → Painel do Dono → App WhatsApp: colar App ID, Configuration ID e App Secret.
 7. Meta → app → WhatsApp → Configuração → Webhook: URL e token mostrados na Nina, assinar `messages`.
 8. Pedir acesso avançado das duas permissões (análise do app, com vídeo do fluxo) e o

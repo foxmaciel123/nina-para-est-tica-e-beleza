@@ -32,6 +32,7 @@ import ClinicBilling from './components/owner/clinic/ClinicBilling';
 import ClinicHours from './components/owner/clinic/ClinicHours';
 import ClinicProcedures from './components/owner/clinic/ClinicProcedures';
 import FirstAccess from './pages/FirstAccess';
+import Privacy from './pages/Privacy';
 import Disparo from './components/disparo/Disparo';
 import FollowUp from './components/followup/FollowUp';
 
@@ -95,6 +96,7 @@ const App: React.FC = () => {
               {/* Public Routes */}
               <Route path="/auth" element={<Auth />} />
               <Route path="/primeiro-acesso" element={<FirstAccess />} />
+              <Route path="/privacidade" element={<Privacy />} />
 
               {/* Protected Routes (With Sidebar) */}
               <Route element={
