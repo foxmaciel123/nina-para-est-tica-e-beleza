@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { getUserOrgId, getOrgSettings } from "../_shared/tenant.ts";
+import { GRAPH_API } from "../_shared/meta.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -212,7 +213,7 @@ serve(async (req) => {
     // ========================================
     // 4. Send message via WhatsApp Cloud API
     // ========================================
-    const whatsappUrl = `https://graph.facebook.com/v17.0/${settings.whatsapp_phone_number_id}/messages`;
+    const whatsappUrl = `${GRAPH_API}/${settings.whatsapp_phone_number_id}/messages`;
     
     console.log('📤 Sending test message to WhatsApp API...');
     const whatsappResponse = await fetch(whatsappUrl, {

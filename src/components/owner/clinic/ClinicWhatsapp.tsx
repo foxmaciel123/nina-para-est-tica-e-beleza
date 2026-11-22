@@ -39,7 +39,16 @@ const Row: React.FC<{ label: string; children: React.ReactNode }> = ({ label, ch
   </div>
 );
 
-interface TestResult { ok: boolean; message: string; display_phone_number?: string | null; verified_name?: string | null }
+interface TestResult {
+  ok: boolean;
+  message: string;
+  display_phone_number?: string | null;
+  verified_name?: string | null;
+  quality_rating?: string | null;
+  needs_register?: boolean;
+}
+
+const QUALITY_LABEL: Record<string, string> = { GREEN: 'verde (boa)', YELLOW: 'amarela (atenção)', RED: 'vermelha (risco)' };
 
 const ClinicWhatsapp: React.FC = () => {
   const { detail, reload: reloadDetail } = useClinic();
@@ -56,6 +65,8 @@ const ClinicWhatsapp: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [test, setTest] = useState<TestResult | null>(null);
+  const [pin, setPin] = useState('');
+  const [registering, setRegistering] = useState(false);
 
   useEffect(() => {
     if (!config) return;
@@ -97,6 +108,28 @@ const ClinicWhatsapp: React.FC = () => {
       setTest({ ok: false, message: (err as Error).message });
     } finally {
       setTesting(false);
+    }
+  };
+
+  const registerNumber = async () => {
+    if (!/^\d{6}$/.test(pin)) {
+      setTest({ ok: false, message: 'O PIN precisa ter 6 números.', needs_register: true });
+      return;
+    }
+    setRegistering(true);
+    try {
+      const result = await ownerAction<TestResult>('register_whatsapp', { organization_id: orgId, pin });
+      if (result.ok) {
+        toast.success(result.message);
+        setPin('');
+        await runTest();
+      } else {
+        setTest({ ok: false, message: result.message, needs_register: true });
+      }
+    } catch (err) {
+      setTest({ ok: false, message: (err as Error).message, needs_register: true });
+    } finally {
+      setRegistering(false);
     }
   };
 
@@ -160,8 +193,24 @@ const ClinicWhatsapp: React.FC = () => {
                   {test.ok ? <CheckCircle2 className="mt-0.5 h-4 w-4 text-emerald-500" /> : <XCircle className="mt-0.5 h-4 w-4 text-red-500" />}
                   <span>
                     {test.message}
-                    {test.ok && test.display_phone_number && ` Número ${test.display_phone_number}${test.verified_name ? ` (${test.verified_name})` : ''}.`}
+                    {test.display_phone_number && ` Número ${test.display_phone_number}${test.verified_name ? ` (${test.verified_name})` : ''}.`}
+                    {test.quality_rating && ` Qualidade na Meta: ${QUALITY_LABEL[test.quality_rating] ?? test.quality_rating}.`}
                   </span>
+                </div>
+              )}
+              {test?.needs_register && (
+                <div className="flex flex-col gap-2 rounded-lg border border-border p-3" data-testid="wa-register">
+                  <Label htmlFor="wa-pin">Ativar número na API oficial</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Escolha um PIN de 6 números (verificação em duas etapas) e guarde. Se o número já tem PIN, use o mesmo.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    <Input id="wa-pin" inputMode="numeric" maxLength={6} autoComplete="off" placeholder="123456" className="w-32" value={pin} onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))} />
+                    <Button type="button" onClick={registerNumber} disabled={registering}>
+                      {registering && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Ativar número
+                    </Button>
+                  </div>
                 </div>
               )}
               <div className="flex flex-wrap justify-end gap-2">
@@ -182,7 +231,7 @@ const ClinicWhatsapp: React.FC = () => {
             <Row label="URL de retorno"><CopyValue value={WEBHOOK_URL} label="URL do webhook" /></Row>
             <Row label="Token de verificação"><CopyValue value={config.whatsapp_verify_token} label="Token de verificação" /></Row>
             <p className="text-xs text-muted-foreground">
-              Use esses dois valores em Meta for Developers → WhatsApp → Configuração → Webhook, marcando o campo “messages”.
+              Use esses dois valores em Meta for Developers → app → WhatsApp → Configuração → Webhook e assine o campo “messages”. A mesma URL serve para todas as clínicas, mesmo que cada uma tenha o próprio app. Depois clique em “Testar conexão”: ele liga o recebimento de mensagens da conta (WABA) no app.
             </p>
           </Panel>
 

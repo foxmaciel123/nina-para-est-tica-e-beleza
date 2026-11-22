@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getAiApiKey, logAiUsage, transcribeAudioWithGemini } from "../_shared/ai.ts";
 import { evoMediaBase64 } from "../_shared/evolution.ts";
+import { GRAPH_API } from "../_shared/meta.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -295,7 +296,7 @@ async function downloadWhatsAppMedia(settings: any, mediaId: string): Promise<Ar
 
   try {
     const mediaInfoResponse = await fetch(
-      `https://graph.facebook.com/v18.0/${mediaId}`,
+      `${GRAPH_API}/${mediaId}`,
       {
         headers: {
           'Authorization': `Bearer ${settings.whatsapp_access_token}`

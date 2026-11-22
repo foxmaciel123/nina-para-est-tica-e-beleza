@@ -1,5 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { seedClinicDefaults } from '../_shared/clinic-defaults.ts';
+import { GRAPH_API } from '../_shared/meta.ts';
 
 // Ações dos painéis do Dono e da Agência que precisam da service_role (criar
 // usuário, gerar link de acesso, chamar a API da Meta com o token salvo).
@@ -7,7 +8,8 @@ import { seedClinicDefaults } from '../_shared/clinic-defaults.ts';
 //
 // POST { action: 'create_clinic', clinic_name, owner_name, email, contact_phone?, monthly_fee?, first_due_date?, agency_id? }
 // POST { action: 'resend_access', organization_id }
-// POST { action: 'test_whatsapp', organization_id }
+// POST { action: 'test_whatsapp', organization_id }   (também liga o recebimento de mensagens da WABA)
+// POST { action: 'register_whatsapp', organization_id, pin }   (ativa o número na API oficial)
 // POST { action: 'create_agency', agency_name, owner_name, email, contact_phone?, fee_per_clinic? }   (só o dono)
 // POST { action: 'resend_agency_access', agency_id }                                                 (só o dono)
 
@@ -16,7 +18,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const GRAPH_API = 'https://graph.facebook.com/v18.0';
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 class UserError extends Error {}
@@ -159,36 +160,91 @@ async function resendAccess(supabase: any, req: Request, caller: Caller, body: a
   return { access_link: link, email: userData.user.email };
 }
 
-async function testWhatsapp(supabase: any, caller: Caller, body: any) {
+async function loadWhatsappSettings(supabase: any, caller: Caller, body: any) {
   const orgId = String(body.organization_id ?? '');
   await assertCanManage(supabase, caller, orgId);
   const { data: s } = await supabase
     .from('nina_settings')
-    .select('whatsapp_phone_number_id, whatsapp_access_token')
+    .select('whatsapp_phone_number_id, whatsapp_access_token, whatsapp_business_account_id')
     .eq('organization_id', orgId)
     .maybeSingle();
   if (!s?.whatsapp_phone_number_id || !s?.whatsapp_access_token) {
     throw new UserError('Salve o Phone Number ID e o token antes de testar.');
   }
+  return s;
+}
 
-  const resp = await fetch(
-    `${GRAPH_API}/${encodeURIComponent(s.whatsapp_phone_number_id)}?fields=display_phone_number,verified_name,quality_rating`,
-    { headers: { Authorization: `Bearer ${s.whatsapp_access_token}` } },
-  );
+async function graph(path: string, token: string, init: RequestInit = {}) {
+  const resp = await fetch(`${GRAPH_API}/${path}`, {
+    ...init,
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', ...(init.headers ?? {}) },
+  });
   const data = await resp.json().catch(() => ({}));
-  if (!resp.ok) {
-    const code = data?.error?.code;
-    if (resp.status === 401 || code === 190) return { ok: false, message: 'Token inválido ou expirado.' };
-    if (resp.status === 404 || code === 100) return { ok: false, message: 'Phone Number ID não encontrado para esse token.' };
-    return { ok: false, message: `A Meta recusou a conexão (código ${code ?? resp.status}).` };
+  return { ok: resp.ok, status: resp.status, data };
+}
+
+function metaErrorMessage(status: number, data: any): string {
+  const code = data?.error?.code;
+  if (status === 401 || code === 190) return 'Token inválido ou expirado. Gere o token permanente do usuário do sistema e salve de novo.';
+  if (code === 10 || code === 200) return 'O token não tem permissão. Marque whatsapp_business_messaging e whatsapp_business_management ao gerar o token.';
+  if (status === 404 || code === 100) return 'Phone Number ID não encontrado para esse token.';
+  return `A Meta recusou a conexão (código ${code ?? status}).`;
+}
+
+async function testWhatsapp(supabase: any, caller: Caller, body: any) {
+  const s = await loadWhatsappSettings(supabase, caller, body);
+  const phonePath = encodeURIComponent(s.whatsapp_phone_number_id);
+
+  let phone = await graph(`${phonePath}?fields=display_phone_number,verified_name,quality_rating,platform_type,status`, s.whatsapp_access_token);
+  if (!phone.ok && phone.data?.error?.code === 100 && /field/i.test(phone.data?.error?.message ?? '')) {
+    // Campo novo que a versão da API não conhece: tenta só o básico
+    phone = await graph(`${phonePath}?fields=display_phone_number,verified_name,quality_rating`, s.whatsapp_access_token);
   }
+  if (!phone.ok) return { ok: false, message: metaErrorMessage(phone.status, phone.data) };
+
+  // Sem a WABA "assinada" no app, a Meta não manda as mensagens recebidas para a Nina.
+  // O pedido é idempotente: pode repetir a cada teste.
+  let webhookSubscribed: boolean | null = null;
+  if (s.whatsapp_business_account_id) {
+    const sub = await graph(`${encodeURIComponent(s.whatsapp_business_account_id)}/subscribed_apps`, s.whatsapp_access_token, { method: 'POST' });
+    webhookSubscribed = sub.ok && sub.data?.success !== false;
+    if (!webhookSubscribed) console.warn('[owner-actions] subscribed_apps falhou', sub.status, sub.data?.error?.code);
+  }
+
+  const platform = phone.data.platform_type ?? null;
+  const needsRegister = !!platform && platform !== 'CLOUD_API';
+
+  const notes: string[] = [];
+  if (needsRegister) notes.push('O número ainda não está ativado na API oficial: use "Ativar número" com um PIN de 6 dígitos.');
+  if (webhookSubscribed === false) notes.push('Não consegui ligar o recebimento de mensagens dessa conta (WABA). Confira o ID da conta Business e as permissões do token.');
+  if (webhookSubscribed === null) notes.push('Preencha o ID da conta Business (WABA) e teste de novo para ligar o recebimento de mensagens.');
+  if (phone.data.quality_rating === 'RED') notes.push('A qualidade do número está VERMELHA na Meta: reduza envios ativos até voltar ao verde.');
+
   return {
-    ok: true,
-    message: 'Conexão funcionando.',
-    display_phone_number: data.display_phone_number ?? null,
-    verified_name: data.verified_name ?? null,
-    quality_rating: data.quality_rating ?? null,
+    ok: !needsRegister && webhookSubscribed !== false,
+    message: notes.length ? `Token e número OK. ${notes.join(' ')}` : 'Conexão funcionando e recebimento de mensagens ligado.',
+    display_phone_number: phone.data.display_phone_number ?? null,
+    verified_name: phone.data.verified_name ?? null,
+    quality_rating: phone.data.quality_rating ?? null,
+    needs_register: needsRegister,
+    webhook_subscribed: webhookSubscribed,
   };
+}
+
+async function registerWhatsapp(supabase: any, caller: Caller, body: any) {
+  const pin = String(body.pin ?? '').trim();
+  if (!/^\d{6}$/.test(pin)) throw new UserError('O PIN precisa ter 6 números.');
+  const s = await loadWhatsappSettings(supabase, caller, body);
+  const reg = await graph(`${encodeURIComponent(s.whatsapp_phone_number_id)}/register`, s.whatsapp_access_token, {
+    method: 'POST',
+    body: JSON.stringify({ messaging_product: 'whatsapp', pin }),
+  });
+  if (!reg.ok) {
+    const msg = String(reg.data?.error?.error_user_msg ?? reg.data?.error?.message ?? '');
+    if (/pin/i.test(msg)) return { ok: false, message: 'PIN recusado. Se o número já tem verificação em duas etapas, use o mesmo PIN (ou troque no WhatsApp Manager).' };
+    return { ok: false, message: metaErrorMessage(reg.status, reg.data) };
+  }
+  return { ok: true, message: 'Número ativado na API oficial. Guarde esse PIN: a Meta pede ele de novo se o número for reativado.' };
 }
 
 async function createAgency(supabase: any, req: Request, caller: Caller, body: any) {
@@ -277,6 +333,7 @@ Deno.serve(async (req) => {
       case 'create_clinic': return json(await createClinic(supabase, req, caller, body));
       case 'resend_access': return json(await resendAccess(supabase, req, caller, body));
       case 'test_whatsapp': return json(await testWhatsapp(supabase, caller, body));
+      case 'register_whatsapp': return json(await registerWhatsapp(supabase, caller, body));
       case 'create_agency': return json(await createAgency(supabase, req, caller, body));
       case 'resend_agency_access': return json(await resendAgencyAccess(supabase, req, caller, body));
       default: return json({ error: 'Ação desconhecida' }, 400);

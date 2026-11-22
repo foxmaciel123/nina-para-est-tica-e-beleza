@@ -5,5 +5,7 @@
   "assets": {
     "directory": "./dist",
     "not_found_handling": "single-page-application"
-  }
+  },
+  // Prévias dos ramos (Workers Builds usa "npx wrangler preview" fora do main)
+  "previews": {}
 }
