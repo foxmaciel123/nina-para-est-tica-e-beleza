@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { Link, LinkProps } from "react-router-dom";
 import React, { useState, createContext, useContext } from "react";
+import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X, ChevronLeft } from "lucide-react";
 
@@ -93,7 +94,7 @@ export const DesktopSidebar = ({
 }: React.ComponentProps<typeof motion.div>) => {
   const { open, setOpen, animate } = useSidebar();
   return (
-    <div className="relative h-full flex-shrink-0">
+    <div className="relative h-full flex-shrink-0 hidden md:block">
       <motion.div
         className={cn(
           "nina-sidebar h-full px-4 py-4 hidden md:flex md:flex-col w-[260px]",
@@ -136,12 +137,18 @@ export const MobileSidebar = ({
   children,
   ...props
 }: React.ComponentProps<"div">) => {
-  const { open, setOpen } = useSidebar();
+  // No celular o menu começa FECHADO e tem estado próprio (o "aberto" do
+  // computador é só o menu largo/estreito). Fecha sozinho ao tocar num item.
+  const [open, setOpen] = useState(false);
+  const closeOnPick = (e: React.MouseEvent) => {
+    const el = (e.target as HTMLElement).closest('a, button');
+    if (el && !el.closest('[data-keep-menu-open]')) setOpen(false);
+  };
   return (
     <>
       <div
         className={cn(
-          "h-14 px-4 py-4 flex flex-row md:hidden items-center justify-between bg-slate-950/80 backdrop-blur-xl w-full border-b border-slate-800/50"
+          "h-14 px-4 py-4 flex flex-row flex-shrink-0 md:hidden items-center justify-between bg-slate-950/80 backdrop-blur-xl w-full border-b border-slate-800/50"
         )}
         {...props}
       >
@@ -151,6 +158,8 @@ export const MobileSidebar = ({
             onClick={() => setOpen(!open)}
           />
         </div>
+        {/* Fora da barra (que tem desfoque e prenderia o menu nela): direto no body */}
+        {typeof document !== "undefined" && createPortal(
         <AnimatePresence>
           {open && (
             <motion.div
@@ -162,20 +171,27 @@ export const MobileSidebar = ({
                 ease: "easeInOut",
               }}
               className={cn(
-                "nina-sidebar fixed h-full w-full inset-0 bg-slate-950 p-10 z-[100] flex flex-col justify-between",
-                className
+                "nina-sidebar fixed h-full w-full inset-0 bg-slate-950 px-6 pb-6 pt-14 z-[100] flex flex-col justify-between",
+                className,
+                "bg-background/95"
               )}
             >
               <div
-                className="absolute right-10 top-10 z-50 text-slate-200 cursor-pointer hover:text-cyan-400 transition-colors"
-                onClick={() => setOpen(!open)}
+                className="absolute right-6 top-6 z-50 text-slate-200 cursor-pointer hover:text-cyan-400 transition-colors"
+                onClick={() => setOpen(false)}
+                aria-label="Fechar menu"
               >
                 <X />
               </div>
-              {children}
+              <SidebarContext.Provider value={{ open: true, setOpen, animate: false }}>
+                <div className="flex min-h-0 flex-1 flex-col justify-between gap-6 overflow-y-auto" onClickCapture={closeOnPick}>
+                  {children}
+                </div>
+              </SidebarContext.Provider>
             </motion.div>
           )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body)}
       </div>
     </>
   );
