@@ -137,7 +137,7 @@ export const SystemHealthCard: React.FC = () => {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`rounded-2xl border bg-gradient-to-br ${getOverallGradient(healthData.overallStatus)} p-6 transition-all duration-300`}
+      className={`nina-health rounded-2xl border bg-gradient-to-br ${getOverallGradient(healthData.overallStatus)} p-6 transition-all duration-300`}
     >
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">

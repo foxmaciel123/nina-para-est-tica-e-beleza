@@ -297,3 +297,43 @@
 
 /* Rede de segurança no claro: algum "passar o mouse = branco" que sobrou fica escuro. */
 .light .hover\:text-white:hover:not(.nina-sidebar *) { color: hsl(var(--foreground)); }
+
+/* ===== Claro Azul: ajustes de leitura (só no tema claro) ===== */
+/* Fundos "transparentes coloridos" viram tons claros sólidos, com borda mais visível */
+.light .bg-emerald-500\/5:not(.nina-sidebar *), .light .bg-emerald-500\/10:not(.nina-sidebar *), .light .bg-emerald-500\/20:not(.nina-sidebar *) { background-color: #ecfdf5; }
+.light .border-emerald-500\/20:not(.nina-sidebar *), .light .border-emerald-500\/30:not(.nina-sidebar *) { border-color: #a7f3d0; }
+.light .bg-green-500\/5:not(.nina-sidebar *), .light .bg-green-500\/10:not(.nina-sidebar *), .light .bg-green-500\/20:not(.nina-sidebar *) { background-color: #f0fdf4; }
+.light .border-green-500\/20:not(.nina-sidebar *), .light .border-green-500\/30:not(.nina-sidebar *) { border-color: #bbf7d0; }
+.light .bg-amber-500\/5:not(.nina-sidebar *), .light .bg-amber-500\/10:not(.nina-sidebar *), .light .bg-amber-500\/20:not(.nina-sidebar *) { background-color: #fffbeb; }
+.light .border-amber-500\/20:not(.nina-sidebar *), .light .border-amber-500\/30:not(.nina-sidebar *) { border-color: #fcd34d; }
+.light .bg-yellow-500\/5:not(.nina-sidebar *), .light .bg-yellow-500\/10:not(.nina-sidebar *), .light .bg-yellow-500\/20:not(.nina-sidebar *) { background-color: #fefce8; }
+.light .border-yellow-500\/20:not(.nina-sidebar *), .light .border-yellow-500\/30:not(.nina-sidebar *) { border-color: #fde047; }
+.light .bg-orange-500\/5:not(.nina-sidebar *), .light .bg-orange-500\/10:not(.nina-sidebar *), .light .bg-orange-500\/20:not(.nina-sidebar *) { background-color: #fff7ed; }
+.light .border-orange-500\/20:not(.nina-sidebar *), .light .border-orange-500\/30:not(.nina-sidebar *) { border-color: #fdba74; }
+.light .bg-red-500\/5:not(.nina-sidebar *), .light .bg-red-500\/10:not(.nina-sidebar *), .light .bg-red-500\/20:not(.nina-sidebar *) { background-color: #fef2f2; }
+.light .border-red-500\/20:not(.nina-sidebar *), .light .border-red-500\/30:not(.nina-sidebar *) { border-color: #fca5a5; }
+.light .bg-rose-500\/5:not(.nina-sidebar *), .light .bg-rose-500\/10:not(.nina-sidebar *), .light .bg-rose-500\/20:not(.nina-sidebar *) { background-color: #fff1f2; }
+.light .border-rose-500\/20:not(.nina-sidebar *), .light .border-rose-500\/30:not(.nina-sidebar *) { border-color: #fda4af; }
+.light .bg-cyan-500\/5:not(.nina-sidebar *), .light .bg-cyan-500\/10:not(.nina-sidebar *), .light .bg-cyan-500\/20:not(.nina-sidebar *) { background-color: #ecfeff; }
+.light .border-cyan-500\/20:not(.nina-sidebar *), .light .border-cyan-500\/30:not(.nina-sidebar *) { border-color: #a5f3fc; }
+.light .bg-blue-500\/5:not(.nina-sidebar *), .light .bg-blue-500\/10:not(.nina-sidebar *), .light .bg-blue-500\/20:not(.nina-sidebar *) { background-color: #eff6ff; }
+.light .border-blue-500\/20:not(.nina-sidebar *), .light .border-blue-500\/30:not(.nina-sidebar *) { border-color: #bfdbfe; }
+.light .bg-violet-500\/5:not(.nina-sidebar *), .light .bg-violet-500\/10:not(.nina-sidebar *), .light .bg-violet-500\/20:not(.nina-sidebar *) { background-color: #f5f3ff; }
+.light .border-violet-500\/20:not(.nina-sidebar *), .light .border-violet-500\/30:not(.nina-sidebar *) { border-color: #c4b5fd; }
+.light .bg-purple-500\/5:not(.nina-sidebar *), .light .bg-purple-500\/10:not(.nina-sidebar *), .light .bg-purple-500\/20:not(.nina-sidebar *) { background-color: #faf5ff; }
+.light .border-purple-500\/20:not(.nina-sidebar *), .light .border-purple-500\/30:not(.nina-sidebar *) { border-color: #d8b4fe; }
+.light .bg-indigo-500\/5:not(.nina-sidebar *), .light .bg-indigo-500\/10:not(.nina-sidebar *), .light .bg-indigo-500\/20:not(.nina-sidebar *) { background-color: #eef2ff; }
+.light .border-indigo-500\/20:not(.nina-sidebar *), .light .border-indigo-500\/30:not(.nina-sidebar *) { border-color: #c7d2fe; }
+.light .bg-pink-500\/5:not(.nina-sidebar *), .light .bg-pink-500\/10:not(.nina-sidebar *), .light .bg-pink-500\/20:not(.nina-sidebar *) { background-color: #fdf2f8; }
+.light .border-pink-500\/20:not(.nina-sidebar *), .light .border-pink-500\/30:not(.nina-sidebar *) { border-color: #f9a8d4; }
+.light .bg-teal-500\/5:not(.nina-sidebar *), .light .bg-teal-500\/10:not(.nina-sidebar *), .light .bg-teal-500\/20:not(.nina-sidebar *) { background-color: #f0fdfa; }
+.light .border-teal-500\/20:not(.nina-sidebar *), .light .border-teal-500\/30:not(.nina-sidebar *) { border-color: #99f6e4; }
+
+/* Status do Sistema: cartão branco com borda colorida, textos fortes */
+.light .nina-health { background-image: none; background-color: hsl(var(--card)); border-width: 1px; box-shadow: 0 1px 3px rgba(11, 26, 46, 0.06); }
+.light .nina-health .opacity-70 { opacity: 1; color: hsl(var(--muted-foreground)); }
+.light .nina-health .text-xs.font-medium { color: hsl(var(--foreground)); font-weight: 600; }
+
+/* Banner "Vamos deixar sua assistente pronta": branco, sem brilho embaçado */
+.light [data-testid="onboarding-banner"] { background-image: none; background-color: hsl(var(--card)); border-color: hsl(var(--border)); box-shadow: 0 1px 3px rgba(11, 26, 46, 0.06); }
+.light [data-testid="onboarding-banner"] > .blur-3xl { display: none; }
