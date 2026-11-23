@@ -294,3 +294,6 @@
 /* Grafite: o item ativo do menu usa o verde Pixel Pro no lugar do ciano. */
 .theme-grafite .nina-sidebar .text-cyan-400 { color: #34d399; }
 .theme-grafite .nina-sidebar .bg-cyan-500 { background-color: #22c58b; box-shadow: 0 0 10px rgba(34, 197, 139, 0.5); }
+
+/* Rede de segurança no claro: algum "passar o mouse = branco" que sobrou fica escuro. */
+.light .hover\:text-white:hover:not(.nina-sidebar *) { color: hsl(var(--foreground)); }

@@ -450,7 +450,7 @@ const ChatInterface: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-slate-400 hover:text-foreground"
+                  className="text-slate-400 hover:text-white"
                   onClick={() => setShowPhotosSheet(true)}
                   title="Fotos da cliente"
                 >
@@ -459,7 +459,7 @@ const ChatInterface: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={`text-slate-400 hover:text-foreground ${showProfileInfo ? 'bg-slate-800 text-cyan-400' : ''}`}
+                  className={`text-slate-400 hover:text-white ${showProfileInfo ? 'bg-slate-800 text-cyan-400' : ''}`}
                   onClick={() => setShowProfileInfo(!showProfileInfo)}
                   title="Ver Informações"
                 >
