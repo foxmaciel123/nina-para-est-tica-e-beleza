@@ -249,7 +249,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-900 border-slate-700 text-slate-50">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-white">
+          <DialogTitle className="text-2xl font-bold text-foreground">
             Criar Novo Deal
           </DialogTitle>
           <DialogDescription className="text-slate-400">
@@ -264,14 +264,14 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
               <TabsList className="grid w-full grid-cols-2 bg-slate-800 p-1">
                 <TabsTrigger 
                   value="existing" 
-                  className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white text-slate-300 flex items-center gap-2"
+                  className="data-[state=active]:bg-cyan-600 data-[state=active]:text-foreground text-slate-300 flex items-center gap-2"
                 >
                   <User className="w-4 h-4" />
                   Contato Existente
                 </TabsTrigger>
                 <TabsTrigger 
                   value="new"
-                  className="data-[state=active]:bg-cyan-600 data-[state=active]:text-white text-slate-300 flex items-center gap-2"
+                  className="data-[state=active]:bg-cyan-600 data-[state=active]:text-foreground text-slate-300 flex items-center gap-2"
                 >
                   <UserPlus className="w-4 h-4" />
                   Novo Contato
@@ -296,7 +296,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                             <SelectItem 
                               key={contact.id} 
                               value={contact.id}
-                              className="text-slate-200 focus:bg-cyan-600 focus:text-white"
+                              className="text-slate-200 focus:bg-cyan-600 focus:text-foreground"
                             >
                               <div className="flex items-center gap-2">
                                 <span>{contact.name || contact.phone || 'Sem nome'}</span>
@@ -391,7 +391,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
 
             {/* Campos do Deal */}
             <div className="border-t border-slate-700 pt-6 space-y-4">
-              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
                 <Building className="w-5 h-5 text-cyan-400" />
                 Informações do Deal
               </h3>
@@ -468,9 +468,9 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent className="bg-slate-800 border-slate-600">
-                          <SelectItem value="low" className="text-slate-200 focus:bg-cyan-600 focus:text-white">Baixa</SelectItem>
-                          <SelectItem value="medium" className="text-slate-200 focus:bg-cyan-600 focus:text-white">Média</SelectItem>
-                          <SelectItem value="high" className="text-slate-200 focus:bg-cyan-600 focus:text-white">Alta</SelectItem>
+                          <SelectItem value="low" className="text-slate-200 focus:bg-cyan-600 focus:text-foreground">Baixa</SelectItem>
+                          <SelectItem value="medium" className="text-slate-200 focus:bg-cyan-600 focus:text-foreground">Média</SelectItem>
+                          <SelectItem value="high" className="text-slate-200 focus:bg-cyan-600 focus:text-foreground">Alta</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage className="text-red-400" />
@@ -541,7 +541,7 @@ export const CreateDealModal: React.FC<CreateDealModalProps> = ({
                             <SelectItem 
                               key={member.id} 
                               value={member.id}
-                              className="text-slate-200 focus:bg-cyan-600 focus:text-white"
+                              className="text-slate-200 focus:bg-cyan-600 focus:text-foreground"
                             >
                               {member.name}
                             </SelectItem>

@@ -84,17 +84,17 @@ const BrandPreview: React.FC<{ form: Brand }> = ({ form }) => {
   return (
     <div className="grid gap-4 sm:grid-cols-2" data-testid="brand-preview">
       <div className="flex flex-col items-center gap-2 rounded-xl border border-border bg-background p-5 text-center">
-        <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl text-white" style={{ background: accent }}>{icon}</div>
+        <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl text-foreground" style={{ background: accent }}>{icon}</div>
         <p className="text-[10px] font-semibold uppercase tracking-[0.3em]" style={{ color: accent }}>
           {form.name || 'Sua marca'}{form.tagline ? ` · ${form.tagline}` : ''}
         </p>
         <p className="text-lg font-bold">Bem-vinda de volta</p>
-        <div className="mt-1 h-8 w-full rounded-md text-xs font-semibold leading-8 text-white" style={{ background: accent }}>Entrar</div>
+        <div className="mt-1 h-8 w-full rounded-md text-xs font-semibold leading-8 text-foreground" style={{ background: accent }}>Entrar</div>
         <p className="text-[10px] text-muted-foreground">Tela de entrada</p>
       </div>
       <div className="flex flex-col gap-2 rounded-xl border border-border bg-background p-4">
         <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg text-white" style={{ background: accent }}>{icon}</div>
+          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg text-foreground" style={{ background: accent }}>{icon}</div>
           <div className="min-w-0 leading-tight">
             <p className="truncate text-sm font-bold">Clínica Exemplo</p>
             <p className="truncate text-[10px] font-semibold uppercase tracking-wider" style={{ color: accent }}>{form.name || 'Sua marca'}</p>

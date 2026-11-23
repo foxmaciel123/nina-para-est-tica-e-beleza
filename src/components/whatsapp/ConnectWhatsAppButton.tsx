@@ -163,7 +163,7 @@ const ConnectWhatsAppButton: React.FC<{ organizationId?: string; onConnected?: (
   return (
     <div className="flex flex-col gap-3" data-testid="wa-connect">
       <div className="flex flex-wrap gap-2">
-        <Button type="button" onClick={() => start('cloud')} disabled={!!busy} className="gap-2 bg-[#25D366] text-white hover:bg-[#1ebe5b]">
+        <Button type="button" onClick={() => start('cloud')} disabled={!!busy} className="gap-2 bg-[#25D366] text-foreground hover:bg-[#1ebe5b]">
           {busy === 'cloud' ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
           Conectar WhatsApp
         </Button>

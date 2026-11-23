@@ -312,7 +312,7 @@ const ChatInterface: React.FC = () => {
       <div className="w-80 lg:w-96 border-r border-slate-800 flex flex-col bg-slate-900/50 backdrop-blur-md z-20 flex-shrink-0">
         {/* Search Header */}
         <div className="p-4 border-b border-slate-800/50">
-          <h2 className="text-lg font-bold text-white mb-4 px-1">Chats Ativos</h2>
+          <h2 className="text-lg font-bold text-foreground mb-4 px-1">Chats Ativos</h2>
           <div className="relative group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 group-focus-within:text-cyan-400 transition-colors" />
             <input 
@@ -361,7 +361,7 @@ const ChatInterface: React.FC = () => {
                 
                 <div className="ml-3 flex-1 min-w-0">
                   <div className="flex justify-between items-baseline mb-1">
-                    <h3 className={`text-sm font-semibold truncate ${selectedChatId === chat.id ? 'text-white' : 'text-slate-300'}`}>
+                    <h3 className={`text-sm font-semibold truncate ${selectedChatId === chat.id ? 'text-foreground' : 'text-slate-300'}`}>
                       {chat.contactName}
                     </h3>
                     <span className="text-[10px] text-slate-500 font-medium">{chat.lastMessageTime}</span>
@@ -394,7 +394,7 @@ const ChatInterface: React.FC = () => {
 
       {/* Right Area: Chat Window & Profile */}
       {activeChat ? (
-        <div className="flex-1 flex overflow-hidden bg-[#0B0E14]">
+        <div className="flex-1 flex overflow-hidden bg-slate-950">
           {/* Main Chat Content */}
           <div className="flex-1 flex flex-col min-w-0 relative">
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
@@ -422,7 +422,7 @@ const ChatInterface: React.FC = () => {
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className={`text-slate-400 hover:text-white ${activeChat.status === 'nina' ? 'bg-violet-500/20 text-violet-400' : ''}`}
+                  className={`text-slate-400 hover:text-foreground ${activeChat.status === 'nina' ? 'bg-violet-500/20 text-violet-400' : ''}`}
                   onClick={() => handleStatusChange('nina')}
                   title={`Ativar ${sdrName} (IA)`}
                 >
@@ -431,7 +431,7 @@ const ChatInterface: React.FC = () => {
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className={`text-slate-400 hover:text-white ${activeChat.status === 'human' ? 'bg-emerald-500/20 text-emerald-400' : ''}`}
+                  className={`text-slate-400 hover:text-foreground ${activeChat.status === 'human' ? 'bg-emerald-500/20 text-emerald-400' : ''}`}
                   onClick={() => handleStatusChange('human')}
                   title="Assumir conversa"
                 >
@@ -440,7 +440,7 @@ const ChatInterface: React.FC = () => {
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  className={`text-slate-400 hover:text-white ${activeChat.status === 'paused' ? 'bg-amber-500/20 text-amber-400' : ''}`}
+                  className={`text-slate-400 hover:text-foreground ${activeChat.status === 'paused' ? 'bg-amber-500/20 text-amber-400' : ''}`}
                   onClick={() => handleStatusChange('paused')}
                   title="Pausar conversa"
                 >
@@ -450,7 +450,7 @@ const ChatInterface: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="text-slate-400 hover:text-white"
+                  className="text-slate-400 hover:text-foreground"
                   onClick={() => setShowPhotosSheet(true)}
                   title="Fotos da cliente"
                 >
@@ -459,7 +459,7 @@ const ChatInterface: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={`text-slate-400 hover:text-white ${showProfileInfo ? 'bg-slate-800 text-cyan-400' : ''}`}
+                  className={`text-slate-400 hover:text-foreground ${showProfileInfo ? 'bg-slate-800 text-cyan-400' : ''}`}
                   onClick={() => setShowProfileInfo(!showProfileInfo)}
                   title="Ver Informações"
                 >
@@ -595,10 +595,10 @@ const ChatInterface: React.FC = () => {
             <div className="w-80 h-full flex flex-col">
               {/* Header */}
               <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800 flex-shrink-0">
-                <span className="font-semibold text-white">Perfil da Cliente</span>
+                <span className="font-semibold text-foreground">Perfil da Cliente</span>
                 <button 
                   onClick={() => setShowProfileInfo(false)}
-                  className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+                  className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-foreground transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -611,7 +611,7 @@ const ChatInterface: React.FC = () => {
                   <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-cyan-500 to-teal-600 shadow-xl mb-4">
                     <img src={activeChat.contactAvatar} alt={activeChat.contactName} className="w-full h-full rounded-full object-cover border-2 border-slate-900" />
                   </div>
-                  <h3 className="text-xl font-bold text-white mb-1">{activeChat.contactName}</h3>
+                  <h3 className="text-xl font-bold text-foreground mb-1">{activeChat.contactName}</h3>
                   <p className="text-sm text-slate-400 mb-4">
                     {activeChat.clientMemory.lead_profile.lead_stage === 'new' ? 'Primeiro contato' :
                      activeChat.clientMemory.lead_profile.lead_stage === 'qualified' ? 'Pronta para avaliação' :
@@ -785,14 +785,14 @@ const ChatInterface: React.FC = () => {
 
         </div>
       ) : (
-        <div className="flex-1 flex flex-col items-center justify-center bg-[#0B0E14] relative overflow-hidden">
+        <div className="flex-1 flex flex-col items-center justify-center bg-slate-950 relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-slate-900/20 to-transparent"></div>
           <div className="relative z-10 flex flex-col items-center p-8 text-center max-w-md">
             <div className="w-24 h-24 bg-slate-900 rounded-full flex items-center justify-center mb-6 shadow-2xl border border-slate-800 relative group">
               <div className="absolute inset-0 bg-cyan-500/20 rounded-full blur-xl group-hover:bg-cyan-500/30 transition-all duration-1000"></div>
               <MessageSquare className="w-10 h-10 text-cyan-500" />
             </div>
-            <h2 className="text-2xl font-bold text-white mb-2">{companyName} Workspace</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-2">{companyName} Workspace</h2>
             <p className="text-slate-400 text-sm leading-relaxed">
               {conversations.length === 0 
                 ? 'Aguardando novas conversas. Configure o webhook do WhatsApp para começar a receber mensagens.'

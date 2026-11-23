@@ -58,7 +58,7 @@ const Settings: React.FC = () => {
     <div className="p-8 max-w-5xl mx-auto h-full overflow-y-auto bg-slate-950 text-slate-50 custom-scrollbar">
       <div className="mb-10 flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-white" data-testid="settings-title">Configurações</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-foreground" data-testid="settings-title">Configurações</h2>
           <p className="text-sm text-slate-400 mt-1">
             Ajuste como a assistente atende as clientes da {companyName || 'sua clínica'}.
             {!isAdmin && (
@@ -72,7 +72,7 @@ const Settings: React.FC = () => {
               variant="ghost"
               size="sm"
               onClick={handleReopenOnboarding}
-              className="text-slate-400 hover:text-white gap-2"
+              className="text-slate-400 hover:text-foreground gap-2"
             >
               <RotateCcw className="w-4 h-4" />
               Refazer Onboarding

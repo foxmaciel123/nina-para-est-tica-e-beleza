@@ -51,7 +51,7 @@ const Contacts: React.FC = () => {
     <div className="p-8 h-full overflow-y-auto bg-slate-950 text-slate-50">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-white" data-testid="contacts-title">Clientes</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-foreground" data-testid="contacts-title">Clientes</h2>
           <p className="text-sm text-slate-400 mt-1">Base completa de quem já passou pela sua clínica — ou demonstrou interesse.</p>
         </div>
         <Button 

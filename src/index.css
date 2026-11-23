@@ -50,37 +50,51 @@
 @layer base {
   /* Default = light (VIA é light-first) */
   :root, .light {
-    /* navy #02162A = 211 91% 9% · blue #0A4F95 = 210 87% 31% */
-    --background: 0 0% 98%;              /* #F9F9F9 off-white morno */
-    --foreground: 211 91% 9%;            /* navy — tinta */
-    --card: 0 0% 100%;                   /* superfícies elevadas */
-    --card-foreground: 211 91% 9%;
+    /* Tema "Claro Azul": fundo cinza-azulado, cartões brancos, letras escuras fortes */
+    --background: 214 33% 95%;           /* #EEF2F7 */
+    --foreground: 214 61% 11%;           /* #0B1A2E tinta */
+    --card: 0 0% 100%;
+    --card-foreground: 214 61% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 211 91% 9%;
+    --popover-foreground: 214 61% 11%;
     --primary: 211 91% 9%;               /* navy sólido */
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 12% 95%;            /* #F0F2F5 */
-    --secondary-foreground: 211 91% 9%;
-    --muted: 220 12% 95%;
-    --muted-foreground: 213 13% 49%;     /* #6B7A8D */
-    --accent: 210 87% 31%;               /* azul VIA — único accent */
+    --secondary: 214 30% 91%;
+    --secondary-foreground: 214 61% 11%;
+    --muted: 214 30% 91%;
+    --muted-foreground: 214 21% 35%;     /* #46566C (antes #6B7A8D, apagava) */
+    --accent: 210 87% 31%;               /* azul VIA */
     --accent-foreground: 0 0% 100%;
-    --destructive: 5 59% 45%;            /* #B63A2F */
+    --destructive: 5 59% 45%;
     --destructive-foreground: 0 0% 100%;
-    --border: 213 20% 88%;               /* navy/15 aproximado em opaco */
-    --input: 213 20% 88%;
-    --ring: 210 87% 31%;                 /* foco azul */
+    --border: 214 27% 85%;
+    --input: 214 27% 82%;
+    --ring: 210 87% 31%;
     --radius: 0.75rem;
 
-    /* Sidebar — sempre navy escura (padrão VIA) */
+    /* Sidebar — sempre navy escura */
     --sidebar-background: 211 91% 9%;
     --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 210 87% 31%;
+    --sidebar-primary: 210 87% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 211 60% 14%;
-    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-accent: 211 60% 18%;
+    --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 211 50% 18%;
-    --sidebar-ring: 210 87% 31%;
+    --sidebar-ring: 210 87% 45%;
+
+    /* Escala "slate" usada direto nas telas antigas: no claro ela é invertida
+       (fundo escuro vira claro, letra clara vira escura). Valores em R G B. */
+    --slate-50: 11 26 46;
+    --slate-100: 15 23 42;
+    --slate-200: 30 41 59;
+    --slate-300: 51 65 85;
+    --slate-400: 71 85 105;
+    --slate-500: 88 102 124;
+    --slate-600: 203 213 225;
+    --slate-700: 214 222 232;
+    --slate-800: 233 238 245;
+    --slate-900: 255 255 255;
+    --slate-950: 238 242 247;
   }
 
   .dark {
@@ -112,6 +126,64 @@
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 211 50% 16%;
     --sidebar-ring: 210 87% 45%;
+
+    /* Escala slate original (Azul-marinho) */
+    --slate-50: 248 250 252;
+    --slate-100: 241 245 249;
+    --slate-200: 226 232 240;
+    --slate-300: 203 213 225;
+    --slate-400: 148 163 184;
+    --slate-500: 100 116 139;
+    --slate-600: 71 85 105;
+    --slate-700: 51 65 85;
+    --slate-800: 30 41 59;
+    --slate-900: 15 23 42;
+    --slate-950: 2 6 23;
+  }
+
+  /* Tema "Grafite + Verde Pixel Pro": escuro neutro, destaque verde */
+  .dark.theme-grafite {
+    --background: 210 10% 7.5%;          /* #111315 */
+    --foreground: 210 6% 96%;
+    --card: 210 11% 11%;                 /* #181B1E */
+    --card-foreground: 210 6% 96%;
+    --popover: 210 11% 11%;
+    --popover-foreground: 210 6% 96%;
+    --primary: 158 71% 45%;              /* verde #22C58B */
+    --primary-foreground: 160 70% 5%;
+    --secondary: 210 10% 16%;
+    --secondary-foreground: 210 6% 96%;
+    --muted: 210 10% 16%;
+    --muted-foreground: 212 7% 68%;      /* #A7ADB4 */
+    --accent: 158 71% 45%;
+    --accent-foreground: 160 70% 5%;
+    --destructive: 0 72% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 213 10% 17%;
+    --input: 213 10% 20%;
+    --ring: 158 71% 45%;
+
+    --sidebar-background: 220 12% 5%;
+    --sidebar-foreground: 210 6% 96%;
+    --sidebar-primary: 158 71% 45%;
+    --sidebar-primary-foreground: 160 70% 5%;
+    --sidebar-accent: 206 12% 12%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 213 10% 14%;
+    --sidebar-ring: 158 71% 45%;
+
+    /* slate neutro (sem azul) para combinar com o grafite */
+    --slate-50: 250 250 250;
+    --slate-100: 244 244 245;
+    --slate-200: 228 228 231;
+    --slate-300: 212 212 216;
+    --slate-400: 163 168 176;
+    --slate-500: 115 120 128;
+    --slate-600: 82 86 92;
+    --slate-700: 55 58 63;
+    --slate-800: 36 40 44;
+    --slate-900: 24 27 30;
+    --slate-950: 17 19 21;
   }
 }
 
@@ -149,3 +221,76 @@
 *:focus-visible {
   @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
 }
+
+/*
+ * Tema claro: as telas antigas usam cores "neon" (-300/-400) pensadas para fundo escuro.
+ * No claro elas viram o mesmo tom mais escuro (-700/-800) para a letra não apagar.
+ */
+.light .text-red-400:not(.nina-sidebar *), .light .text-red-500:not(.nina-sidebar *) { color: #b91c1c; }
+.light .text-red-50:not(.nina-sidebar *), .light .text-red-100:not(.nina-sidebar *), .light .text-red-200:not(.nina-sidebar *), .light .text-red-300:not(.nina-sidebar *) { color: #991b1b; }
+.light .text-orange-400:not(.nina-sidebar *), .light .text-orange-500:not(.nina-sidebar *) { color: #c2410c; }
+.light .text-orange-50:not(.nina-sidebar *), .light .text-orange-100:not(.nina-sidebar *), .light .text-orange-200:not(.nina-sidebar *), .light .text-orange-300:not(.nina-sidebar *) { color: #9a3412; }
+.light .text-amber-400:not(.nina-sidebar *), .light .text-amber-500:not(.nina-sidebar *) { color: #b45309; }
+.light .text-amber-50:not(.nina-sidebar *), .light .text-amber-100:not(.nina-sidebar *), .light .text-amber-200:not(.nina-sidebar *), .light .text-amber-300:not(.nina-sidebar *) { color: #92400e; }
+.light .text-yellow-400:not(.nina-sidebar *), .light .text-yellow-500:not(.nina-sidebar *) { color: #a16207; }
+.light .text-yellow-50:not(.nina-sidebar *), .light .text-yellow-100:not(.nina-sidebar *), .light .text-yellow-200:not(.nina-sidebar *), .light .text-yellow-300:not(.nina-sidebar *) { color: #854d0e; }
+.light .text-lime-400:not(.nina-sidebar *), .light .text-lime-500:not(.nina-sidebar *) { color: #4d7c0f; }
+.light .text-lime-50:not(.nina-sidebar *), .light .text-lime-100:not(.nina-sidebar *), .light .text-lime-200:not(.nina-sidebar *), .light .text-lime-300:not(.nina-sidebar *) { color: #3f6212; }
+.light .text-green-400:not(.nina-sidebar *), .light .text-green-500:not(.nina-sidebar *) { color: #15803d; }
+.light .text-green-50:not(.nina-sidebar *), .light .text-green-100:not(.nina-sidebar *), .light .text-green-200:not(.nina-sidebar *), .light .text-green-300:not(.nina-sidebar *) { color: #166534; }
+.light .text-emerald-400:not(.nina-sidebar *), .light .text-emerald-500:not(.nina-sidebar *) { color: #047857; }
+.light .text-emerald-50:not(.nina-sidebar *), .light .text-emerald-100:not(.nina-sidebar *), .light .text-emerald-200:not(.nina-sidebar *), .light .text-emerald-300:not(.nina-sidebar *) { color: #065f46; }
+.light .text-teal-400:not(.nina-sidebar *), .light .text-teal-500:not(.nina-sidebar *) { color: #0f766e; }
+.light .text-teal-50:not(.nina-sidebar *), .light .text-teal-100:not(.nina-sidebar *), .light .text-teal-200:not(.nina-sidebar *), .light .text-teal-300:not(.nina-sidebar *) { color: #115e59; }
+.light .text-cyan-400:not(.nina-sidebar *), .light .text-cyan-500:not(.nina-sidebar *) { color: #0e7490; }
+.light .text-cyan-50:not(.nina-sidebar *), .light .text-cyan-100:not(.nina-sidebar *), .light .text-cyan-200:not(.nina-sidebar *), .light .text-cyan-300:not(.nina-sidebar *) { color: #155e75; }
+.light .text-sky-400:not(.nina-sidebar *), .light .text-sky-500:not(.nina-sidebar *) { color: #0369a1; }
+.light .text-sky-50:not(.nina-sidebar *), .light .text-sky-100:not(.nina-sidebar *), .light .text-sky-200:not(.nina-sidebar *), .light .text-sky-300:not(.nina-sidebar *) { color: #075985; }
+.light .text-blue-400:not(.nina-sidebar *), .light .text-blue-500:not(.nina-sidebar *) { color: #1d4ed8; }
+.light .text-blue-50:not(.nina-sidebar *), .light .text-blue-100:not(.nina-sidebar *), .light .text-blue-200:not(.nina-sidebar *), .light .text-blue-300:not(.nina-sidebar *) { color: #1e40af; }
+.light .text-indigo-400:not(.nina-sidebar *), .light .text-indigo-500:not(.nina-sidebar *) { color: #4338ca; }
+.light .text-indigo-50:not(.nina-sidebar *), .light .text-indigo-100:not(.nina-sidebar *), .light .text-indigo-200:not(.nina-sidebar *), .light .text-indigo-300:not(.nina-sidebar *) { color: #3730a3; }
+.light .text-violet-400:not(.nina-sidebar *), .light .text-violet-500:not(.nina-sidebar *) { color: #6d28d9; }
+.light .text-violet-50:not(.nina-sidebar *), .light .text-violet-100:not(.nina-sidebar *), .light .text-violet-200:not(.nina-sidebar *), .light .text-violet-300:not(.nina-sidebar *) { color: #5b21b6; }
+.light .text-purple-400:not(.nina-sidebar *), .light .text-purple-500:not(.nina-sidebar *) { color: #7e22ce; }
+.light .text-purple-50:not(.nina-sidebar *), .light .text-purple-100:not(.nina-sidebar *), .light .text-purple-200:not(.nina-sidebar *), .light .text-purple-300:not(.nina-sidebar *) { color: #6b21a8; }
+.light .text-fuchsia-400:not(.nina-sidebar *), .light .text-fuchsia-500:not(.nina-sidebar *) { color: #a21caf; }
+.light .text-fuchsia-50:not(.nina-sidebar *), .light .text-fuchsia-100:not(.nina-sidebar *), .light .text-fuchsia-200:not(.nina-sidebar *), .light .text-fuchsia-300:not(.nina-sidebar *) { color: #86198f; }
+.light .text-pink-400:not(.nina-sidebar *), .light .text-pink-500:not(.nina-sidebar *) { color: #be185d; }
+.light .text-pink-50:not(.nina-sidebar *), .light .text-pink-100:not(.nina-sidebar *), .light .text-pink-200:not(.nina-sidebar *), .light .text-pink-300:not(.nina-sidebar *) { color: #9d174d; }
+.light .text-rose-400:not(.nina-sidebar *), .light .text-rose-500:not(.nina-sidebar *) { color: #be123c; }
+.light .text-rose-50:not(.nina-sidebar *), .light .text-rose-100:not(.nina-sidebar *), .light .text-rose-200:not(.nina-sidebar *), .light .text-rose-300:not(.nina-sidebar *) { color: #9f1239; }
+
+/* Menu lateral: no Claro Azul ele continua azul-marinho escuro (letras claras). */
+.light .nina-sidebar {
+  --background: 211 91% 9%;
+  --foreground: 0 0% 98%;
+  --card: 211 91% 9%;
+  --card-foreground: 0 0% 98%;
+  --primary: 210 87% 60%;
+  --primary-foreground: 211 91% 9%;
+  --secondary: 211 50% 16%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 211 50% 16%;
+  --muted-foreground: 213 25% 75%;
+  --accent: 210 87% 60%;
+  --accent-foreground: 211 91% 9%;
+  --border: 211 40% 22%;
+  --slate-50: 248 250 252;
+  --slate-100: 241 245 249;
+  --slate-200: 226 232 240;
+  --slate-300: 203 213 225;
+  --slate-400: 168 182 201;
+  --slate-500: 140 155 178;
+  --slate-600: 71 85 105;
+  --slate-700: 51 65 85;
+  --slate-800: 30 41 59;
+  --slate-900: 15 23 42;
+  --slate-950: 2 6 23;
+  background-color: hsl(211 91% 9%);
+  color: hsl(var(--foreground));
+}
+
+/* Grafite: o item ativo do menu usa o verde Pixel Pro no lugar do ciano. */
+.theme-grafite .nina-sidebar .text-cyan-400 { color: #34d399; }
+.theme-grafite .nina-sidebar .bg-cyan-500 { background-color: #22c58b; box-shadow: 0 0 10px rgba(34, 197, 139, 0.5); }

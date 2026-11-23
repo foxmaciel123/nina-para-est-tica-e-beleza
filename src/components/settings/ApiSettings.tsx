@@ -476,7 +476,7 @@ const ApiSettings = forwardRef<ApiSettingsRef>((props, ref) => {
       <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
         <div className="mb-4 flex items-center gap-3">
           <MessageSquare className="w-5 h-5 text-emerald-400" />
-          <h3 className="font-semibold text-white">Conectar WhatsApp (API oficial)</h3>
+          <h3 className="font-semibold text-foreground">Conectar WhatsApp (API oficial)</h3>
         </div>
         <ConnectWhatsAppButton onConnected={() => loadSettings()} />
       </div>
@@ -485,7 +485,7 @@ const ApiSettings = forwardRef<ApiSettingsRef>((props, ref) => {
       <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
         <div className="mb-4 flex items-center gap-3">
           <QrCode className="w-5 h-5 text-cyan-400" />
-          <h3 className="font-semibold text-white">WhatsApp por QR code</h3>
+          <h3 className="font-semibold text-foreground">WhatsApp por QR code</h3>
         </div>
         <WhatsAppQrPanel />
       </div>
@@ -495,7 +495,7 @@ const ApiSettings = forwardRef<ApiSettingsRef>((props, ref) => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <MessageSquare className="w-5 h-5 text-cyan-400" />
-            <h3 className="font-semibold text-white">WhatsApp Cloud API</h3>
+            <h3 className="font-semibold text-foreground">WhatsApp Cloud API</h3>
           </div>
           <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${
             whatsappConfigured 
@@ -515,13 +515,13 @@ const ApiSettings = forwardRef<ApiSettingsRef>((props, ref) => {
           </summary>
           <div className="mt-2 p-4 rounded-lg bg-slate-950 border border-slate-800 text-xs space-y-3">
             <div className="space-y-2">
-              <p className="text-white font-medium">📋 Passo a passo:</p>
+              <p className="text-foreground font-medium">📋 Passo a passo:</p>
               <ol className="list-decimal list-inside space-y-1.5 text-slate-400">
                 <li>Acesse o <a href="https://developers.facebook.com" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">Meta for Developers</a></li>
                 <li>Crie ou selecione um App do tipo "Business"</li>
                 <li>Adicione o produto "WhatsApp" ao app</li>
-                <li>Na seção "API Setup", copie o <strong className="text-white">Access Token</strong> temporário (ou gere um permanente)</li>
-                <li>Copie também o <strong className="text-white">Phone Number ID</strong> (número de identificação)</li>
+                <li>Na seção "API Setup", copie o <strong className="text-foreground">Access Token</strong> temporário (ou gere um permanente)</li>
+                <li>Copie também o <strong className="text-foreground">Phone Number ID</strong> (número de identificação)</li>
                 <li>Em "Configuration" → "Webhook", cole a URL e o Verify Token abaixo</li>
               </ol>
             </div>
@@ -651,7 +651,7 @@ const ApiSettings = forwardRef<ApiSettingsRef>((props, ref) => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <Mic className="w-5 h-5 text-violet-400" />
-            <h3 className="font-semibold text-white">ElevenLabs (Text-to-Speech)</h3>
+            <h3 className="font-semibold text-foreground">ElevenLabs (Text-to-Speech)</h3>
           </div>
           <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium ${
             elevenlabsConfigured 
@@ -719,7 +719,7 @@ const ApiSettings = forwardRef<ApiSettingsRef>((props, ref) => {
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <Volume2 className="w-4 h-4 text-violet-400" />
-                  <span className="text-sm font-medium text-white">Respostas em Áudio</span>
+                  <span className="text-sm font-medium text-foreground">Respostas em Áudio</span>
                 </div>
                 <p className="text-xs text-slate-400">
                   Quando ativado, o agente responderá com áudios em vez de texto
@@ -919,7 +919,7 @@ const ApiSettings = forwardRef<ApiSettingsRef>((props, ref) => {
       {/* Test Message Collapsible */}
       <Collapsible.Root open={testSectionOpen} onOpenChange={setTestSectionOpen}>
         <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
-          <Collapsible.Trigger className="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white transition-colors w-full">
+          <Collapsible.Trigger className="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-foreground transition-colors w-full">
             <Send className="w-4 h-4" />
             <span>Teste de Envio</span>
             <ChevronDown className={`w-4 h-4 ml-auto transition-transform ${testSectionOpen ? 'rotate-180' : ''}`} />
@@ -981,7 +981,7 @@ const ApiSettings = forwardRef<ApiSettingsRef>((props, ref) => {
         <div className="mt-2">
       <Collapsible.Root open={audioSimulateOpen} onOpenChange={setAudioSimulateOpen}>
         <div className="rounded-xl border border-amber-500/20 bg-slate-900/50 p-6">
-          <Collapsible.Trigger className="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white transition-colors w-full">
+          <Collapsible.Trigger className="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-foreground transition-colors w-full">
             <FileAudio className="w-4 h-4 text-amber-400" />
             <span>Simular Recebimento de Áudio</span>
             <ChevronDown className={`w-4 h-4 ml-auto transition-transform ${audioSimulateOpen ? 'rotate-180' : ''}`} />

@@ -158,7 +158,7 @@ const Team: React.FC = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
         case 'active':
-            return <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-950 border border-slate-700 text-white shadow-sm">Ativo</span>;
+            return <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-950 border border-slate-700 text-foreground shadow-sm">Ativo</span>;
         case 'invited':
             return <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-950 border border-amber-900/50 text-amber-500 shadow-sm">Pendente</span>;
         default:
@@ -193,7 +193,7 @@ const Team: React.FC = () => {
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-white" data-testid="team-title">Profissionais</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-foreground" data-testid="team-title">Profissionais</h2>
           <p className="text-sm text-slate-400 mt-1">Cadastre esteticistas, recepção e médicos do espaço.</p>
         </div>
         <div className="flex gap-3">
@@ -212,19 +212,19 @@ const Team: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5 shadow-sm">
             <div className="text-sm font-medium text-slate-400 mb-2">Total de Profissionais</div>
-            <div className="text-3xl font-bold text-white">{loading ? '-' : stats.total}</div>
+            <div className="text-3xl font-bold text-foreground">{loading ? '-' : stats.total}</div>
         </div>
         <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5 shadow-sm">
             <div className="text-sm font-medium text-slate-400 mb-2">Admins</div>
-            <div className="text-3xl font-bold text-white">{loading ? '-' : stats.admins}</div>
+            <div className="text-3xl font-bold text-foreground">{loading ? '-' : stats.admins}</div>
         </div>
         <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5 shadow-sm">
             <div className="text-sm font-medium text-slate-400 mb-2">Membros</div>
-            <div className="text-3xl font-bold text-white">{loading ? '-' : stats.members}</div>
+            <div className="text-3xl font-bold text-foreground">{loading ? '-' : stats.members}</div>
         </div>
         <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5 shadow-sm">
             <div className="text-sm font-medium text-slate-400 mb-2">Especialidades Ativas</div>
-            <div className="text-3xl font-bold text-white">{stats.teams}</div>
+            <div className="text-3xl font-bold text-foreground">{stats.teams}</div>
         </div>
       </div>
 
@@ -243,7 +243,7 @@ const Team: React.FC = () => {
       {/* Main Table Card */}
       <div className="bg-slate-900/30 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
         <div className="p-6 border-b border-slate-800">
-            <h3 className="text-lg font-bold text-white">Equipe da Clínica</h3>
+            <h3 className="text-lg font-bold text-foreground">Equipe da Clínica</h3>
             <p className="text-sm text-slate-500 mt-1">Gerencie roles e times dos usuários</p>
         </div>
 
@@ -357,7 +357,7 @@ const Team: React.FC = () => {
                                     <div className="flex items-center justify-center gap-1">
                                         <button 
                                             onClick={() => handleEditClick(member)}
-                                            className="p-2 rounded-lg text-slate-500 hover:bg-slate-800 hover:text-white transition-colors"
+                                            className="p-2 rounded-lg text-slate-500 hover:bg-slate-800 hover:text-foreground transition-colors"
                                             title="Editar membro"
                                         >
                                             <Edit2 className="w-4 h-4" />
@@ -384,8 +384,8 @@ const Team: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-slate-900 border border-slate-800 rounded-xl shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200">
                 <div className="p-6 border-b border-slate-800 flex justify-between items-center">
-                    <h3 className="text-lg font-bold text-white">Convidar Profissional</h3>
-                    <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white transition-colors">
+                    <h3 className="text-lg font-bold text-foreground">Convidar Profissional</h3>
+                    <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-foreground transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -396,7 +396,7 @@ const Team: React.FC = () => {
                         <input 
                             required
                             type="text" 
-                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:ring-1 focus:ring-slate-600 outline-none transition-all"
+                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-foreground focus:ring-1 focus:ring-slate-600 outline-none transition-all"
                             placeholder="Ex: João da Silva"
                             value={formData.name}
                             onChange={(e) => setFormData({...formData, name: e.target.value})}
@@ -407,7 +407,7 @@ const Team: React.FC = () => {
                         <input 
                             required
                             type="email" 
-                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:ring-1 focus:ring-slate-600 outline-none transition-all"
+                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-foreground focus:ring-1 focus:ring-slate-600 outline-none transition-all"
                             placeholder="colaborador@empresa.com"
                             value={formData.email}
                             onChange={(e) => setFormData({...formData, email: e.target.value})}
@@ -422,7 +422,7 @@ const Team: React.FC = () => {
                                     onClick={() => setFormData({...formData, role})}
                                     className={`cursor-pointer rounded-lg border p-2 text-center transition-all ${
                                         formData.role === role 
-                                        ? 'bg-slate-800 border-slate-500 text-white' 
+                                        ? 'bg-slate-800 border-slate-500 text-foreground' 
                                         : 'bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-700'
                                     }`}
                                 >
@@ -438,7 +438,7 @@ const Team: React.FC = () => {
                         <select
                             value={formData.team_id}
                             onChange={(e) => setFormData({...formData, team_id: e.target.value})}
-                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white"
+                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-foreground"
                         >
                             <option value="">Sem time</option>
                             {teams.map(team => (
@@ -452,7 +452,7 @@ const Team: React.FC = () => {
                         <select
                             value={formData.function_id}
                             onChange={(e) => setFormData({...formData, function_id: e.target.value})}
-                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white"
+                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-foreground"
                         >
                             <option value="">Sem função</option>
                             {functions.map(func => (
@@ -469,13 +469,13 @@ const Team: React.FC = () => {
                             max="10"
                             value={formData.weight}
                             onChange={(e) => setFormData({...formData, weight: parseInt(e.target.value)})}
-                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white"
+                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-foreground"
                         />
                     </div>
 
                     <div className="pt-4 flex gap-3">
                         <Button type="button" variant="ghost" onClick={() => setShowModal(false)} className="flex-1 border border-slate-700 hover:bg-slate-800">Cancelar</Button>
-                        <Button type="submit" className="flex-1 bg-white text-black hover:bg-slate-200">Enviar Convite</Button>
+                        <Button type="submit" className="flex-1 bg-foreground text-background hover:opacity-90">Enviar Convite</Button>
                     </div>
                 </form>
             </div>
@@ -494,8 +494,8 @@ const Team: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-slate-900 border border-slate-800 rounded-xl shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200">
                 <div className="p-6 border-b border-slate-800 flex justify-between items-center">
-                    <h3 className="text-lg font-bold text-white">Editar Membro</h3>
-                    <button onClick={() => { setShowEditModal(false); setEditingMember(null); }} className="text-slate-400 hover:text-white transition-colors">
+                    <h3 className="text-lg font-bold text-foreground">Editar Membro</h3>
+                    <button onClick={() => { setShowEditModal(false); setEditingMember(null); }} className="text-slate-400 hover:text-foreground transition-colors">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -506,7 +506,7 @@ const Team: React.FC = () => {
                         <input 
                             required
                             type="text" 
-                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:ring-1 focus:ring-slate-600 outline-none transition-all"
+                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-foreground focus:ring-1 focus:ring-slate-600 outline-none transition-all"
                             value={editFormData.name}
                             onChange={(e) => setEditFormData({...editFormData, name: e.target.value})}
                         />
@@ -516,7 +516,7 @@ const Team: React.FC = () => {
                         <input 
                             required
                             type="email" 
-                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white focus:ring-1 focus:ring-slate-600 outline-none transition-all"
+                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-foreground focus:ring-1 focus:ring-slate-600 outline-none transition-all"
                             value={editFormData.email}
                             onChange={(e) => setEditFormData({...editFormData, email: e.target.value})}
                         />
@@ -530,7 +530,7 @@ const Team: React.FC = () => {
                                     onClick={() => setEditFormData({...editFormData, role})}
                                     className={`cursor-pointer rounded-lg border p-2 text-center transition-all ${
                                         editFormData.role === role 
-                                        ? 'bg-slate-800 border-slate-500 text-white' 
+                                        ? 'bg-slate-800 border-slate-500 text-foreground' 
                                         : 'bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-700'
                                     }`}
                                 >
@@ -546,7 +546,7 @@ const Team: React.FC = () => {
                         <select
                             value={editFormData.status}
                             onChange={(e) => setEditFormData({...editFormData, status: e.target.value as 'active' | 'invited' | 'disabled'})}
-                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white"
+                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-foreground"
                         >
                             <option value="active">Ativo</option>
                             <option value="invited">Pendente</option>
@@ -559,7 +559,7 @@ const Team: React.FC = () => {
                         <select
                             value={editFormData.team_id}
                             onChange={(e) => setEditFormData({...editFormData, team_id: e.target.value})}
-                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white"
+                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-foreground"
                         >
                             <option value="">Sem time</option>
                             {teams.map(team => (
@@ -573,7 +573,7 @@ const Team: React.FC = () => {
                         <select
                             value={editFormData.function_id}
                             onChange={(e) => setEditFormData({...editFormData, function_id: e.target.value})}
-                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white"
+                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-foreground"
                         >
                             <option value="">Sem função</option>
                             {functions.map(func => (
@@ -590,13 +590,13 @@ const Team: React.FC = () => {
                             max="10"
                             value={editFormData.weight}
                             onChange={(e) => setEditFormData({...editFormData, weight: parseInt(e.target.value)})}
-                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-white"
+                            className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-sm text-foreground"
                         />
                     </div>
 
                     <div className="pt-4 flex gap-3">
                         <Button type="button" variant="ghost" onClick={() => { setShowEditModal(false); setEditingMember(null); }} className="flex-1 border border-slate-700 hover:bg-slate-800">Cancelar</Button>
-                        <Button type="submit" className="flex-1 bg-white text-black hover:bg-slate-200">Salvar Alterações</Button>
+                        <Button type="submit" className="flex-1 bg-foreground text-background hover:opacity-90">Salvar Alterações</Button>
                     </div>
                 </form>
             </div>
