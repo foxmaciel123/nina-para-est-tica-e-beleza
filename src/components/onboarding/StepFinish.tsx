@@ -142,7 +142,7 @@ export const StepFinish: React.FC<StepFinishProps> = ({
         >
           <Rocket className="w-8 h-8 text-emerald-400" />
         </motion.div>
-        <h3 className="text-xl font-semibold text-white mb-2">Validação do Sistema</h3>
+        <h3 className="text-xl font-semibold text-foreground mb-2">Validação do Sistema</h3>
         <p className="text-slate-400 text-sm max-w-md mx-auto">
           Verificando todas as configurações antes de começar.
         </p>
@@ -180,7 +180,7 @@ export const StepFinish: React.FC<StepFinishProps> = ({
                 <div className="flex items-center gap-3">
                   {getStatusIcon(validation.overallStatus)}
                   <div>
-                    <p className="text-sm font-medium text-white">{validation.message}</p>
+                    <p className="text-sm font-medium text-foreground">{validation.message}</p>
                     <p className="text-xs text-slate-400">
                       {validation.summary.ok}/{validation.summary.total} verificações OK
                     </p>

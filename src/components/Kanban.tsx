@@ -302,7 +302,7 @@ const Kanban: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4 flex-shrink-0">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-white" data-testid="pipeline-title">Funil de Clientes</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-foreground" data-testid="pipeline-title">Funil de Clientes</h2>
           <p className="text-sm text-slate-400 mt-1">Acompanhe cada cliente do primeiro toque ao protocolo concluído.</p>
         </div>
         <div className="flex gap-3 w-full sm:w-auto">
@@ -400,12 +400,12 @@ const Kanban: React.FC = () => {
                         <span className={`text-[9px] px-1.5 py-0.5 rounded border font-medium ${getPriorityColor(deal.priority)}`}>
                            {deal.priority === 'high' ? 'Alta' : deal.priority === 'medium' ? 'Média' : 'Baixa'}
                         </span>
-                        <button className="text-slate-600 hover:text-white transition-colors opacity-0 group-hover:opacity-100">
+                        <button className="text-slate-600 hover:text-foreground transition-colors opacity-0 group-hover:opacity-100">
                            <MoreHorizontal className="w-3.5 h-3.5" />
                         </button>
                       </div>
 
-                      <h4 className="font-semibold text-white text-sm mb-0.5 leading-tight">{deal.title}</h4>
+                      <h4 className="font-semibold text-foreground text-sm mb-0.5 leading-tight">{deal.title}</h4>
                       <p className="text-[10px] text-slate-400 mb-2">{deal.company}</p>
 
                       <div className="flex items-center gap-1.5 mb-2 flex-wrap">
@@ -460,7 +460,7 @@ const Kanban: React.FC = () => {
                     {/* Top Bar */}
                     <div className="p-6 pb-4 flex justify-between items-start">
                         <div>
-                            <h2 className="text-2xl font-bold text-white mb-1">{selectedDeal.title}</h2>
+                            <h2 className="text-2xl font-bold text-foreground mb-1">{selectedDeal.title}</h2>
                             <div className="flex items-center gap-2 text-slate-400 text-sm flex-wrap">
                                 <span className="font-semibold text-emerald-400">{formatCurrency(selectedDeal.value)}</span>
                                 <span className="w-1 h-1 rounded-full bg-slate-600"></span>
@@ -494,7 +494,7 @@ const Kanban: React.FC = () => {
                             </Button>
                             <button 
                                 onClick={() => setSelectedDeal(null)} 
-                                className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors"
+                                className="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-foreground transition-colors"
                             >
                                 <X className="w-6 h-6" />
                             </button>
@@ -568,7 +568,7 @@ const Kanban: React.FC = () => {
                         <div className="flex gap-4 mb-4">
                             <button 
                                 onClick={() => setActiveTab('note')}
-                                className={`flex items-center gap-2 text-sm font-medium transition-colors ${activeTab === 'note' ? 'text-cyan-400' : 'text-slate-400 hover:text-white'}`}
+                                className={`flex items-center gap-2 text-sm font-medium transition-colors ${activeTab === 'note' ? 'text-cyan-400' : 'text-slate-400 hover:text-foreground'}`}
                             >
                                 <div className={`p-2 rounded-full ${activeTab === 'note' ? 'bg-cyan-500/10' : 'bg-slate-800'}`}>
                                     <FileText className="w-4 h-4" />
@@ -577,7 +577,7 @@ const Kanban: React.FC = () => {
                             </button>
                             <button 
                                 onClick={() => setActiveTab('activity')}
-                                className={`flex items-center gap-2 text-sm font-medium transition-colors ${activeTab === 'activity' ? 'text-amber-400' : 'text-slate-400 hover:text-white'}`}
+                                className={`flex items-center gap-2 text-sm font-medium transition-colors ${activeTab === 'activity' ? 'text-amber-400' : 'text-slate-400 hover:text-foreground'}`}
                             >
                                 <div className={`p-2 rounded-full ${activeTab === 'activity' ? 'bg-amber-500/10' : 'bg-slate-800'}`}>
                                     <Calendar className="w-4 h-4" />
@@ -586,7 +586,7 @@ const Kanban: React.FC = () => {
                             </button>
                             <button 
                                 onClick={() => setActiveTab('email')}
-                                className={`flex items-center gap-2 text-sm font-medium transition-colors ${activeTab === 'email' ? 'text-violet-400' : 'text-slate-400 hover:text-white'}`}
+                                className={`flex items-center gap-2 text-sm font-medium transition-colors ${activeTab === 'email' ? 'text-violet-400' : 'text-slate-400 hover:text-foreground'}`}
                             >
                                 <div className={`p-2 rounded-full ${activeTab === 'email' ? 'bg-violet-500/10' : 'bg-slate-800'}`}>
                                     <Mail className="w-4 h-4" />
@@ -669,7 +669,7 @@ const Kanban: React.FC = () => {
                                     <ActivityIcon className="w-3.5 h-3.5" />
                                   </div>
                                   <div className="flex-1">
-                                    <p className={`text-sm font-medium transition-colors ${activity.isCompleted ? 'text-slate-500 line-through' : 'text-slate-200 group-hover:text-white'}`}>
+                                    <p className={`text-sm font-medium transition-colors ${activity.isCompleted ? 'text-slate-500 line-through' : 'text-slate-200 group-hover:text-foreground'}`}>
                                       {activity.title}
                                     </p>
                                     {activity.description && (

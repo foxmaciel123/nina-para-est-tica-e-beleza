@@ -218,14 +218,14 @@ const AgentSettings = forwardRef<AgentSettingsRef, {}>((props, ref) => {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <Bot className="w-5 h-5 text-cyan-400" />
-              <h3 className="font-semibold text-white">Prompt do Sistema</h3>
+              <h3 className="font-semibold text-foreground">Prompt do Sistema</h3>
             </div>
             <div className="flex gap-2">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleRestoreDefault}
-                className="text-slate-400 hover:text-white hover:bg-slate-700"
+                className="text-slate-400 hover:text-foreground hover:bg-slate-700"
               >
                 <RotateCcw className="w-4 h-4 mr-2" />
                 Restaurar Padrão
@@ -281,7 +281,7 @@ const AgentSettings = forwardRef<AgentSettingsRef, {}>((props, ref) => {
           <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
             <div className="flex items-center gap-3 mb-4">
               <Building2 className="w-5 h-5 text-blue-400" />
-              <h3 className="font-semibold text-white">Informações da Empresa</h3>
+              <h3 className="font-semibold text-foreground">Informações da Empresa</h3>
             </div>
             <div className="space-y-4">
               <div>
@@ -315,7 +315,7 @@ const AgentSettings = forwardRef<AgentSettingsRef, {}>((props, ref) => {
           <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
             <div className="flex items-center gap-3 mb-4">
               <Calendar className="w-5 h-5 text-indigo-400" />
-              <h3 className="font-semibold text-white">Horário de Atendimento</h3>
+              <h3 className="font-semibold text-foreground">Horário de Atendimento</h3>
             </div>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
@@ -364,7 +364,7 @@ const AgentSettings = forwardRef<AgentSettingsRef, {}>((props, ref) => {
         <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-6">
           <div className="flex items-center gap-3 mb-4">
             <Bot className="w-5 h-5 text-violet-400" />
-            <h3 className="font-semibold text-white">Comportamento</h3>
+            <h3 className="font-semibold text-foreground">Comportamento</h3>
           </div>
           
           {/* AI Model Selection */}

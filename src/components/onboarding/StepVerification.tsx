@@ -219,7 +219,7 @@ export const StepVerification: React.FC<StepVerificationProps> = ({ onAllChecked
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-medium text-sm text-white">
+                  <span className="font-medium text-sm text-foreground">
                     {componentLabels[result.component] || result.component}
                   </span>
                   {getStatusIcon(result.status)}
@@ -243,7 +243,7 @@ export const StepVerification: React.FC<StepVerificationProps> = ({ onAllChecked
       className="space-y-6"
     >
       <div className="text-center">
-        <h3 className="text-xl font-semibold text-white">Verificação do Sistema</h3>
+        <h3 className="text-xl font-semibold text-foreground">Verificação do Sistema</h3>
         <p className="text-slate-400 text-sm mt-1">
           Verificando se todos os componentes estão configurados corretamente
         </p>

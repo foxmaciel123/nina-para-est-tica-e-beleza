@@ -155,7 +155,7 @@ export const StepElevenLabs: React.FC<StepElevenLabsProps> = ({
         >
           <Mic className="w-8 h-8 text-violet-400" />
         </motion.div>
-        <h3 className="text-xl font-semibold text-white mb-2">Respostas em Áudio</h3>
+        <h3 className="text-xl font-semibold text-foreground mb-2">Respostas em Áudio</h3>
         <p className="text-slate-400 text-sm max-w-md mx-auto">
           Configure o ElevenLabs para que seu agente responda também por áudio.
         </p>
@@ -193,7 +193,7 @@ export const StepElevenLabs: React.FC<StepElevenLabsProps> = ({
               value={elevenLabsApiKey}
               onChange={(e) => onApiKeyChange(e.target.value)}
               placeholder="sk-..."
-              className="bg-slate-800/50 border-slate-700 focus:border-violet-500 text-white placeholder:text-slate-500 pr-10 font-mono"
+              className="bg-slate-800/50 border-slate-700 focus:border-violet-500 text-foreground placeholder:text-slate-500 pr-10 font-mono"
             />
             <button
               type="button"
@@ -215,14 +215,14 @@ export const StepElevenLabs: React.FC<StepElevenLabsProps> = ({
         <motion.div variants={itemVariants} className="space-y-2">
           <Label className="text-slate-300">Voz</Label>
           <Select value={elevenLabsVoiceId} onValueChange={onVoiceIdChange}>
-            <SelectTrigger className="bg-slate-800/50 border-slate-700 text-white">
+            <SelectTrigger className="bg-slate-800/50 border-slate-700 text-foreground">
               <SelectValue placeholder="Selecione uma voz">
                 {selectedVoice ? `${selectedVoice.name} - ${selectedVoice.description}` : 'Selecione uma voz'}
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border-slate-700 z-50">
               {VOICES.map((voice) => (
-                <SelectItem key={voice.id} value={voice.id} className="text-white hover:bg-violet-500/20 focus:bg-violet-500/20 focus:text-white">
+                <SelectItem key={voice.id} value={voice.id} className="text-foreground hover:bg-violet-500/20 focus:bg-violet-500/20 focus:text-foreground">
                   <span className="font-medium">{voice.name}</span>
                   <span className="text-slate-400 ml-2">- {voice.description}</span>
                 </SelectItem>
@@ -235,12 +235,12 @@ export const StepElevenLabs: React.FC<StepElevenLabsProps> = ({
         <motion.div variants={itemVariants} className="space-y-2">
           <Label className="text-slate-300">Modelo</Label>
           <Select value={elevenLabsModel} onValueChange={onModelChange}>
-            <SelectTrigger className="bg-slate-800/50 border-slate-700 text-white">
+            <SelectTrigger className="bg-slate-800/50 border-slate-700 text-foreground">
               <SelectValue placeholder="Selecione um modelo" />
             </SelectTrigger>
             <SelectContent className="bg-slate-800 border-slate-700 z-50">
               {MODELS.map((model) => (
-                <SelectItem key={model.id} value={model.id} className="text-white hover:bg-violet-500/20 focus:bg-violet-500/20 focus:text-white">
+                <SelectItem key={model.id} value={model.id} className="text-foreground hover:bg-violet-500/20 focus:bg-violet-500/20 focus:text-foreground">
                   <span className="font-medium">{model.name}</span>
                   <span className="text-slate-400 ml-2">- {model.description}</span>
                 </SelectItem>

@@ -119,7 +119,7 @@ export const TemplatePicker: React.FC<Props> = ({ templates, templatesError, val
             <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-400">
               <CheckCircle2 className="h-3.5 w-3.5" /> Prévia no WhatsApp
             </p>
-            <div className="max-w-sm rounded-xl rounded-tl-none bg-[#005c4b] px-3 py-2 text-sm text-white shadow">
+            <div className="max-w-sm rounded-xl rounded-tl-none bg-[#005c4b] px-3 py-2 text-sm text-foreground shadow">
               {selected.header_text && <p className="mb-1 font-semibold">{selected.header_text}</p>}
               <p className="whitespace-pre-wrap">{previewBody(selected.body, params)}</p>
               {selected.footer && <p className="mt-1 text-xs text-white/60">{selected.footer}</p>}
