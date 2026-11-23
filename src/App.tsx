@@ -35,6 +35,7 @@ import FirstAccess from './pages/FirstAccess';
 import Privacy from './pages/Privacy';
 import Disparo from './components/disparo/Disparo';
 import FollowUp from './components/followup/FollowUp';
+import Anuncios from './components/ads/Anuncios';
 
 import { CompanySettingsProvider } from './hooks/useCompanySettings';
 import { AuthProvider } from './hooks/useAuth';
@@ -114,6 +115,7 @@ const App: React.FC = () => {
                   <Route path="/team" element={<Team />} />
                   <Route path="/disparo" element={<Disparo />} />
                   <Route path="/follow-up" element={<FollowUp />} />
+                  <Route path="/anuncios" element={<Anuncios />} />
                   <Route path="/settings" element={<Settings />} />
                 </Route>
               </Route>

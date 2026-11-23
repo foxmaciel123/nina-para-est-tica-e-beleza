@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, MessageSquare, Settings as SettingsIcon, LogOut, ShieldCheck, Calendar, Kanban, Sparkles, Crown, AlertCircle, Send, Repeat } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, Settings as SettingsIcon, LogOut, ShieldCheck, Calendar, Kanban, Sparkles, Crown, AlertCircle, Send, Repeat, Megaphone } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useCompanySettings } from '@/hooks/useCompanySettings';
 import { useAuth } from '@/hooks/useAuth';
@@ -23,6 +23,7 @@ const menuItems = [
   // Só o nome DISPARO fica em amarelo, para destacar
   { id: 'disparo', label: 'DISPARO', icon: Send, labelClassName: 'text-yellow-400 font-bold tracking-wide group-hover/sidebar:text-yellow-300' },
   { id: 'follow-up', label: 'Follow-up', icon: Repeat },
+  { id: 'anuncios', label: 'Anúncios', icon: Megaphone },
   { id: 'settings', label: 'Configurações', icon: SettingsIcon },
 ];
 

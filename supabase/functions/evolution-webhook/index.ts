@@ -37,6 +37,34 @@ function normalize(data: any) {
   return { ...base, type: String(data?.messageType ?? 'unknown'), content: `[${data?.messageType ?? 'mensagem'}]`, mediaType: null };
 }
 
+// Anúncio de clique para o WhatsApp no WhatsApp por QR (Baileys): a origem vem
+// em contextInfo.externalAdReply. Converte para o mesmo formato do "referral"
+// da API oficial. Nem toda versão do WhatsApp manda o ctwa_clid por aqui.
+function adReferral(data: any): Record<string, string> | null {
+  const m = data?.message ?? {};
+  const infos = [
+    data?.contextInfo,
+    ...Object.values(m).map((part: any) => part?.contextInfo),
+  ].filter(Boolean);
+  for (const info of infos) {
+    const ad = info?.externalAdReply;
+    if (!ad) continue;
+    const sourceId = ad.sourceId ?? ad.source_id;
+    const clid = ad.ctwaClid ?? ad.ctwa_clid ?? info?.ctwaClid;
+    if (!sourceId && !clid) continue;
+    const out: Record<string, string> = {};
+    if (sourceId) out.source_id = String(sourceId);
+    if (clid) out.ctwa_clid = String(clid);
+    if (ad.sourceType) out.source_type = String(ad.sourceType);
+    if (ad.sourceUrl) out.source_url = String(ad.sourceUrl);
+    if (ad.title) out.headline = String(ad.title);
+    if (ad.body) out.body = String(ad.body);
+    if (ad.mediaType !== undefined) out.media_type = String(ad.mediaType);
+    return out;
+  }
+  return null;
+}
+
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
 
@@ -167,6 +195,18 @@ Deno.serve(async (req) => {
       if (msgError) {
         if (msgError.code !== '23505') console.error('[evolution-webhook] mensagem:', msgError);
         continue; // 23505 = mensagem repetida
+      }
+
+      const referral = adReferral(data);
+      if (referral) {
+        const { error: touchError } = await supabase.rpc('record_lead_touch', {
+          p_org: orgId,
+          p_contact: contact.id,
+          p_message_id: msg.id,
+          p_referral: referral,
+          p_channel: 'evolution',
+        });
+        if (touchError) console.warn('[evolution-webhook] origem do anúncio:', touchError.message);
       }
 
       if (msg.type === 'image') {
