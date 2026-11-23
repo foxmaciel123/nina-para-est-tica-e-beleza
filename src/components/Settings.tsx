@@ -188,7 +188,8 @@ const Settings: React.FC = () => {
         <TabsContent value="apis">
           <div className="space-y-6">
             <ApiSettings ref={apiRef} />
-            <AppConfigCard />
+            {/* Chave mestra e URL dos crons: só a dona da plataforma (o banco também bloqueia) */}
+            {isPlatformOwner && <AppConfigCard />}
           </div>
         </TabsContent>
 
