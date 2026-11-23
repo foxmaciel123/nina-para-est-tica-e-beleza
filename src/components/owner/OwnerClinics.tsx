@@ -28,13 +28,13 @@ const OwnerClinics: React.FC = () => {
   const [creating, setCreating] = useState(false);
 
   // Só a primeira carga troca a tela pelo "carregando": recarregar depois de criar
-  // uma clínica não pode desmontar a janela que mostra o link de acesso.
+  // uma empresa não pode desmontar a janela que mostra o link de acesso.
   const load = async () => {
     setError(null);
     const { data, error: rpcError } = await supabase.rpc('owner_organizations_overview');
     if (rpcError) {
       console.error('[OwnerClinics]', rpcError);
-      setError('Não foi possível carregar as clínicas.');
+      setError('Não foi possível carregar as empresas.');
     } else {
       setClinics((data ?? []) as ClinicRow[]);
     }
@@ -60,14 +60,14 @@ const OwnerClinics: React.FC = () => {
     <div className="mx-auto flex max-w-7xl flex-col gap-6 p-6" data-testid="owner-clinics">
       <PageHeader
         eyebrow={`${panel.title} · Visão`}
-        title="Clínicas"
+        title="Empresas"
         description={isOwner
-          ? 'Todas as clínicas (suas e das agências), com mensalidade e uso dos últimos 30 dias.'
-          : 'As clínicas da agência, com mensalidade e uso dos últimos 30 dias.'}
+          ? 'Todas as empresas (suas e das agências), com mensalidade e uso dos últimos 30 dias.'
+          : 'As empresas da agência, com mensalidade e uso dos últimos 30 dias.'}
         actions={
           <>
           <Button onClick={() => setCreating(true)} className="gap-2" data-testid="new-clinic-button">
-            <Plus className="h-4 w-4" /> Nova clínica
+            <Plus className="h-4 w-4" /> Nova empresa
           </Button>
           <div className="relative w-full sm:w-72">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -77,7 +77,7 @@ const OwnerClinics: React.FC = () => {
               onChange={(e) => setQuery(e.target.value)}
               placeholder={isOwner ? 'Buscar por nome, e-mail ou agência' : 'Buscar por nome ou e-mail'}
               className="pl-9"
-              aria-label="Buscar clínica"
+              aria-label="Buscar empresa"
             />
           </div>
           </>
@@ -92,7 +92,7 @@ const OwnerClinics: React.FC = () => {
         <table className="w-full min-w-[1040px] text-sm">
           <thead>
             <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-              <th className="px-4 py-3 font-semibold">Clínica</th>
+              <th className="px-4 py-3 font-semibold">Empresa</th>
               {isOwner && <th className="px-4 py-3 font-semibold">Agência</th>}
               <th className="px-4 py-3 font-semibold">Acesso</th>
               <th className="px-4 py-3 font-semibold">Mensalidade</th>
@@ -140,7 +140,7 @@ const OwnerClinics: React.FC = () => {
             {filtered.length === 0 && (
               <tr>
                 <td colSpan={isOwner ? 11 : 10} className="px-4 py-10 text-center text-muted-foreground">
-                  {clinics.length === 0 ? 'Nenhuma clínica cadastrada ainda.' : 'Nenhuma clínica encontrada para essa busca.'}
+                  {clinics.length === 0 ? 'Nenhuma empresa cadastrada ainda.' : 'Nenhuma empresa encontrada para essa busca.'}
                 </td>
               </tr>
             )}

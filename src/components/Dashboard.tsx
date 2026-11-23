@@ -6,6 +6,7 @@ import { api } from '../services/api';
 import { OnboardingBanner } from './OnboardingBanner';
 import { SystemHealthCard } from './SystemHealthCard';
 import { useOutletContext } from 'react-router-dom';
+import { useNiche, cap, g } from '@/hooks/useNiche';
 
 interface OutletContext {
   showOnboarding: boolean;
@@ -27,6 +28,8 @@ const periodDays: Record<PeriodFilter, number> = {
 };
 
 const Dashboard: React.FC = () => {
+  const niche = useNiche();
+  const t = niche.terms;
   const [metrics, setMetrics] = useState<StatMetric[]>([]);
   const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,7 +78,7 @@ const Dashboard: React.FC = () => {
       'Atendimentos Hoje': 'Atendimentos da IA hoje',
       'Vendas Convertidas': 'Receita estimada',
       'Tempo Médio (TMA)': 'Tempo médio de resposta',
-      'Novos Leads': 'Novas clientes interessadas',
+      'Novos Leads': `${g(t, 'Novas', 'Novos')} ${t.clientes} ${g(t, 'interessadas', 'interessados')}`,
     };
     if (map[baseLabel]) return map[baseLabel];
 
@@ -83,7 +86,7 @@ const Dashboard: React.FC = () => {
       return period === 'today' ? 'Atendimentos da IA hoje' : `Atendimentos (${periodLabels[period]})`;
     }
     if (baseLabel.includes('Leads')) {
-      return period === 'today' ? 'Novas clientes interessadas' : `Novas clientes (${periodLabels[period]})`;
+      return period === 'today' ? `${g(t, 'Novas', 'Novos')} ${t.clientes} ${g(t, 'interessadas', 'interessados')}` : `${g(t, 'Novas', 'Novos')} ${t.clientes} (${periodLabels[period]})`;
     }
     return baseLabel;
   };
@@ -110,10 +113,10 @@ const Dashboard: React.FC = () => {
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.35em] text-accent font-semibold">Sua clínica em tempo real</p>
+          <p className="text-[11px] uppercase tracking-[0.35em] text-accent font-semibold">Sua empresa em tempo real</p>
           <h2 className="text-3xl font-bold tracking-tight text-foreground mt-1" data-testid="dashboard-title">Visão Geral</h2>
           <p className="text-muted-foreground mt-1">
-            Como a assistente está cuidando das suas clientes {period === 'today' ? 'hoje' : `nos últimos ${periodLabels[period].toLowerCase()}`}.
+            Como a assistente está cuidando {g(t, 'das suas', 'dos seus')} {t.clientes} {period === 'today' ? 'hoje' : `nos últimos ${periodLabels[period].toLowerCase()}`}.
           </p>
         </div>
         <div className="flex items-center gap-2 bg-card p-1 rounded-lg border border-border" role="tablist" aria-label="Período">
@@ -170,7 +173,7 @@ const Dashboard: React.FC = () => {
             <div>
                 <h3 className="text-lg font-semibold text-foreground">Volume de Atendimentos da IA</h3>
                 <p className="text-sm text-muted-foreground">
-                  Conversas com clientes {period === 'today' ? 'hoje' : `nos últimos ${periodDays[period]} dias`}
+                  Conversas com {t.clientes} {period === 'today' ? 'hoje' : `nos últimos ${periodDays[period]} dias`}
                 </p>
             </div>
             <button className="text-primary hover:text-primary/80 transition-colors p-2 hover:bg-primary/10 rounded-lg" aria-label="Ver detalhe">
@@ -221,8 +224,8 @@ const Dashboard: React.FC = () => {
 
         <div className="col-span-3 rounded-2xl border border-border bg-card/60 backdrop-blur-sm p-6 shadow-lg flex flex-col">
            <div className="mb-6">
-            <h3 className="text-lg font-semibold text-foreground">Procedimentos Agendados</h3>
-            <p className="text-sm text-muted-foreground">Avaliações, sessões e protocolos confirmados</p>
+            <h3 className="text-lg font-semibold text-foreground">{niche.id === 'estetica' ? 'Procedimentos Agendados' : cap(t.agenda)}</h3>
+            <p className="text-sm text-muted-foreground">{niche.id === 'estetica' ? 'Avaliações, sessões e protocolos confirmados' : 'Compromissos confirmados por dia'}</p>
           </div>
 
           <div className="flex-1 flex flex-col justify-center space-y-5">

@@ -7,7 +7,7 @@ export const inputCls =
 
 // Barra com o estado do WhatsApp (API oficial, qualidade e limite do número)
 export const WhatsAppStatus: React.FC<{ info: OutboundInfo | null; loading: boolean; error: string | null }> = ({ info, loading, error }) => {
-  if (loading) return <div className="rounded-2xl border border-border bg-card/60 p-4 text-sm text-muted-foreground">Conferindo o WhatsApp da clínica...</div>;
+  if (loading) return <div className="rounded-2xl border border-border bg-card/60 p-4 text-sm text-muted-foreground">Conferindo o WhatsApp da empresa...</div>;
   if (error) return (
     <div className="flex items-start gap-3 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
       <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
@@ -19,8 +19,8 @@ export const WhatsAppStatus: React.FC<{ info: OutboundInfo | null; loading: bool
       <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
       <span>
         {info?.provider === 'evolution'
-          ? 'Esta clínica está no WhatsApp por QR code. Disparo em massa só é feito pela API oficial da Meta, para não bloquear o número. O follow-up com texto livre funciona normalmente.'
-          : 'O WhatsApp da clínica ainda não está conectado pela API oficial. Conecte em Configurações para usar o Disparo.'}
+          ? 'Esta empresa está no WhatsApp por QR code. Disparo em massa só é feito pela API oficial da Meta, para não bloquear o número. O follow-up com texto livre funciona normalmente.'
+          : 'O WhatsApp da empresa ainda não está conectado pela API oficial. Conecte em Configurações para usar o Disparo.'}
       </span>
     </div>
   );
@@ -87,7 +87,7 @@ export const TemplatePicker: React.FC<Props> = ({ templates, templatesError, val
           {selected.category === 'MARKETING' && (
             <p className="flex items-start gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-300">
               <AlertTriangle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
-              Modelo de Marketing: a Meta cobra por conversa e limita quantas mensagens de marketing cada pessoa recebe. Mande só para quem conhece a clínica.
+              Modelo de Marketing: a Meta cobra por conversa e limita quantas mensagens de marketing cada pessoa recebe. Mande só para quem conhece a empresa.
             </p>
           )}
           {selected.header_format && selected.header_format !== 'TEXT' && (

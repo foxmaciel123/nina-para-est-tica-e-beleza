@@ -53,23 +53,23 @@ const OwnerDashboard: React.FC = () => {
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-8 p-6" data-testid="owner-dashboard">
-      <PageHeader eyebrow="Painel do Dono" title="Dashboard" description="Como estão as clínicas, as mensalidades e o consumo da IA." />
+      <PageHeader eyebrow="Painel do Dono" title="Dashboard" description="Como estão as empresas, as mensalidades e o consumo da IA." />
 
       {error && <ErrorNote message={error} onRetry={load} />}
 
       {summary && (
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <Stat label="Receita prevista no mês" value={formatBRL(summary.mrr)} hint="Mensalidades das suas clínicas diretas ativas" icon={Wallet} />
+          <Stat label="Receita prevista no mês" value={formatBRL(summary.mrr)} hint="Mensalidades das suas empresas diretas ativas" icon={Wallet} />
           <Stat label="Recebido no mês" value={formatBRL(summary.received_month)} icon={CircleDollarSign} />
           <Stat
             label="Em atraso"
             value={formatBRL(summary.overdue_amount)}
-            hint={`${formatNumber(summary.overdue_count)} clínica(s) · ${formatNumber(summary.due_soon_count)} vencendo em até 5 dias`}
+            hint={`${formatNumber(summary.overdue_count)} empresa(s) · ${formatNumber(summary.due_soon_count)} vencendo em até 5 dias`}
             icon={AlertTriangle}
             tone={summary.overdue_count > 0 ? 'bad' : 'default'}
           />
           <Stat
-            label="Clínicas ativas"
+            label="Empresas ativas"
             value={formatNumber(summary.clinics_active)}
             hint={summary.clinics_suspended > 0 ? `${formatNumber(summary.clinics_suspended)} suspensa(s)` : 'Nenhuma suspensa'}
             icon={Building2}
@@ -79,10 +79,10 @@ const OwnerDashboard: React.FC = () => {
           <Stat
             label="Agências ativas"
             value={formatNumber(summary.agencies_active ?? 0)}
-            hint={`${formatNumber(summary.clinics_via_agencies ?? 0)} clínica(s) ativa(s) por agências`}
+            hint={`${formatNumber(summary.clinics_via_agencies ?? 0)} empresa(s) ativa(s) por agências`}
             icon={Briefcase}
           />
-          <Stat label="A receber das agências no mês" value={formatBRL(summary.agency_fees_month ?? 0)} hint="Clínicas ativas × valor combinado de cada agência" icon={Wallet} />
+          <Stat label="A receber das agências no mês" value={formatBRL(summary.agency_fees_month ?? 0)} hint="Empresas ativas × valor combinado de cada agência" icon={Wallet} />
         </div>
       )}
 
@@ -95,7 +95,7 @@ const OwnerDashboard: React.FC = () => {
         }
       >
         {attention.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nada pendente. Mensalidades em dia e a assistente respondendo em todas as clínicas.</p>
+          <p className="text-sm text-muted-foreground">Nada pendente. Mensalidades em dia e a assistente respondendo em todas as empresas.</p>
         ) : (
           <ul className="flex flex-col">
             {attention.map((alert, i) => (

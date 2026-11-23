@@ -45,8 +45,8 @@ export const RequireClinic: React.FC = () => {
     if (isPlatformOwner) return <Navigate to="/dono" replace />;
     if (agency) return <Navigate to="/agencia" replace />;
     return (
-      <Notice icon={<Building2 className="h-8 w-8 text-muted-foreground" />} title="Conta sem clínica">
-        <p>Seu usuário ainda não está vinculado a nenhuma clínica. Peça para o suporte concluir o seu cadastro.</p>
+      <Notice icon={<Building2 className="h-8 w-8 text-muted-foreground" />} title="Conta sem empresa">
+        <p>Seu usuário ainda não está vinculado a nenhuma empresa. Peça para o suporte concluir o seu cadastro.</p>
         <SupportContact />
       </Notice>
     );

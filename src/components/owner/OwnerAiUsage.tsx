@@ -56,7 +56,7 @@ const OwnerAiUsage: React.FC = () => {
       <PageHeader
         eyebrow="Painel do Dono · IA"
         title="Consumo de IA"
-        description="Quanto cada clínica usa da IA. O custo é estimado pelos tokens e pelos preços abaixo."
+        description="Quanto cada empresa usa da IA. O custo é estimado pelos tokens e pelos preços abaixo."
         actions={
           <div className="flex gap-1 rounded-lg border border-border bg-card p-1" role="tablist" aria-label="Período">
             {PERIODS.map((p) => (
@@ -107,12 +107,12 @@ const OwnerAiUsage: React.FC = () => {
             </div>
           </Panel>
 
-          <Panel title="Por clínica">
+          <Panel title="Por empresa">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[620px] text-sm">
                 <thead>
                   <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-                    <th className="px-3 py-2 font-semibold">Clínica</th>
+                    <th className="px-3 py-2 font-semibold">Empresa</th>
                     <th className="px-3 py-2 text-right font-semibold">Respostas</th>
                     <th className="px-3 py-2 text-right font-semibold">Tokens</th>
                     <th className="px-3 py-2 text-right font-semibold">Custo</th>

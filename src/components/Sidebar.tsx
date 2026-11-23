@@ -12,6 +12,8 @@ import { useBrand } from '@/hooks/useBrand';
 import { BrandIcon } from '@/components/BrandMark';
 import ThemeToggle from './ThemeToggle';
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus';
+import { ShoppingBag } from 'lucide-react';
+import { useNiche, cap } from '@/hooks/useNiche';
 
 const menuItems = [
   { id: 'dashboard', label: 'Visão Geral', icon: LayoutDashboard },
@@ -26,13 +28,22 @@ const menuItems = [
   { id: 'settings', label: 'Configurações', icon: SettingsIcon },
 ];
 
+// Logo da própria empresa (white label); sem logo, o ícone da marca da agência
+const CompanyIcon = () => {
+  const { logoUrl } = useCompanySettings();
+  if (logoUrl) {
+    return <img src={logoUrl} alt="" className="relative w-10 h-10 rounded-lg object-contain" data-testid="company-logo" />;
+  }
+  return <BrandIcon className="relative w-10 h-10" />;
+};
+
 const Logo = ({ companyName }: { companyName: string }) => {
   const { brand } = useBrand();
   return (
     <Link to="/dashboard" className="flex items-center space-x-3 py-1">
       <div className="relative w-10 h-10 flex items-center justify-center flex-shrink-0">
         <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full" />
-        <BrandIcon className="relative w-10 h-10" />
+        <CompanyIcon />
       </div>
       <motion.div
         initial={{ opacity: 0 }}
@@ -40,7 +51,7 @@ const Logo = ({ companyName }: { companyName: string }) => {
         transition={{ duration: 0.2 }}
         className="flex flex-col overflow-hidden"
       >
-        <span className="font-bold text-lg tracking-tight text-foreground whitespace-nowrap">{companyName || 'Sua Clínica'}</span>
+        <span className="max-w-[11rem] truncate font-bold text-lg tracking-tight text-foreground whitespace-nowrap" title={companyName} data-testid="company-name">{companyName || 'Sua Empresa'}</span>
         <span className="text-[10px] uppercase tracking-wider text-primary font-semibold" data-testid="brand-name">{brand.name}</span>
       </motion.div>
     </Link>
@@ -52,7 +63,7 @@ const LogoIcon = () => {
     <Link to="/dashboard" className="flex items-center py-1">
       <div className="relative w-10 h-10 flex items-center justify-center flex-shrink-0">
         <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full" />
-        <BrandIcon className="relative w-10 h-10" />
+        <CompanyIcon />
       </div>
     </Link>
   );
@@ -99,8 +110,23 @@ const SidebarContent = ({ onOpenOnboarding }: { onOpenOnboarding?: () => void })
   const { open } = useSidebar();
   const { brand } = useBrand();
 
-  const links = menuItems.map(item => ({
-    label: item.label,
+  // Menu muda com o tipo de negócio: nomes do nicho, Agenda só para quem
+  // marca horário e Pedidos só para quem vende por pedido.
+  const niche = useNiche();
+  const nicheLabels: Record<string, string> = {
+    pipeline: niche.terms.funil,
+    contacts: cap(niche.terms.clientes),
+    scheduling: niche.terms.agenda,
+    team: niche.terms.equipe,
+  };
+  const nicheItems = menuItems
+    .filter((item) => item.id !== 'scheduling' || niche.features.agenda)
+    .flatMap((item) => (item.id === 'chat' && niche.features.pedidos
+      ? [item, { id: 'pedidos', label: 'Pedidos', icon: ShoppingBag }]
+      : [item]));
+
+  const links = nicheItems.map(item => ({
+    label: nicheLabels[item.id] ?? item.label,
     href: `/${item.id}`,
     icon: <item.icon className="h-5 w-5" />,
     labelClassName: 'labelClassName' in item ? item.labelClassName : undefined,

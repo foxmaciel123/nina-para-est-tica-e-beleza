@@ -22,7 +22,7 @@ export const StatusChip: React.FC<{ status: string }> = ({ status }) =>
 export const WhatsAppChip: React.FC<{ connected: boolean }> = ({ connected }) =>
   connected ? <Chip tone="ok">Conectado</Chip> : <Chip tone="warn">Pendente</Chip>;
 
-// Situação da mensalidade da clínica (owner_organizations_overview.billing_state)
+// Situação da mensalidade da empresa (owner_organizations_overview.billing_state)
 export const BillingChip: React.FC<{ state: string | null | undefined }> = ({ state }) => {
   switch (state) {
     case 'overdue': return <Chip tone="bad">Atrasada</Chip>;

@@ -6,10 +6,17 @@ import { Appointment, Contact } from '../types';
 import { api } from '../services/api';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useNiche, cap, g } from '@/hooks/useNiche';
 
 type ViewMode = 'month' | 'week' | 'day';
 
 const Scheduling: React.FC = () => {
+  const niche = useNiche();
+  const t = niche.terms;
+  // Tipos de horário com as palavras do nicho (estética mantém as originais)
+  const typeLabels = niche.id === 'estetica'
+    ? { demo: 'Avaliação', meeting: 'Procedimento', support: 'Pós-procedimento' }
+    : { demo: 'Primeiro atendimento', meeting: cap(t.compromisso), support: 'Retorno' };
   const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('month');
@@ -468,9 +475,9 @@ const Scheduling: React.FC = () => {
         <div>
            <h2 className="text-3xl font-bold text-foreground flex items-center gap-2" data-testid="schedule-title">
             <CalendarIcon className="w-8 h-8 text-primary" />
-            Agenda
+            {t.agenda}
            </h2>
-           <p className="text-slate-400 text-sm mt-1">Avaliações, sessões e retornos da sua clínica.</p>
+           <p className="text-slate-400 text-sm mt-1">{niche.id === 'estetica' ? 'Avaliações, sessões e retornos da sua clínica.' : `Todos os horários de ${t.clientes} da sua empresa.`}</p>
         </div>
         
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
@@ -602,9 +609,9 @@ const Scheduling: React.FC = () => {
                             value={formData.type}
                             onChange={e => setFormData({...formData, type: e.target.value})}
                          >
-                            <option value="demo">Avaliação</option>
-                            <option value="meeting">Procedimento</option>
-                            <option value="support">Pós-procedimento</option>
+                            <option value="demo">{typeLabels.demo}</option>
+                            <option value="meeting">{typeLabels.meeting}</option>
+                            <option value="support">{typeLabels.support}</option>
                             <option value="followup">Follow-up</option>
                          </select>
                     </div>
@@ -615,7 +622,7 @@ const Scheduling: React.FC = () => {
                             required
                             type="text" 
                             className="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm text-foreground focus:ring-1 focus:ring-cyan-500 outline-none placeholder:text-slate-600"
-                            placeholder="Ex: Avaliação facial — Mariana Toledo"
+                            placeholder={niche.id === 'estetica' ? 'Ex: Avaliação facial — Mariana Toledo' : `Ex: ${cap(t.compromisso)} — Mariana Toledo`}
                             value={formData.title}
                             onChange={(e) => setFormData({...formData, title: e.target.value})}
                         />
@@ -883,9 +890,9 @@ const Scheduling: React.FC = () => {
                     value={editFormData.type}
                     onChange={e => setEditFormData({...editFormData, type: e.target.value})}
                   >
-                    <option value="demo">Avaliação</option>
-                    <option value="meeting">Procedimento</option>
-                    <option value="support">Pós-procedimento</option>
+                    <option value="demo">{typeLabels.demo}</option>
+                    <option value="meeting">{typeLabels.meeting}</option>
+                    <option value="support">{typeLabels.support}</option>
                     <option value="followup">Follow-up</option>
                   </select>
                 </div>

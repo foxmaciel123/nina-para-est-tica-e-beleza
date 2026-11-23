@@ -55,7 +55,7 @@ export const ChargesTable: React.FC<{
         <table className="w-full min-w-[640px] text-sm">
           <thead>
             <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-              {showClinic && <th className="px-3 py-2 font-semibold">Clínica</th>}
+              {showClinic && <th className="px-3 py-2 font-semibold">Empresa</th>}
               <th className="px-3 py-2 font-semibold">Vencimento</th>
               <th className="px-3 py-2 text-right font-semibold">Valor</th>
               <th className="px-3 py-2 font-semibold">Situação</th>
@@ -207,7 +207,7 @@ export const NewChargeDialog: React.FC<{
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const value = Number(amount.replace(',', '.'));
-    if (!clinicId) return setError('Escolha a clínica.');
+    if (!clinicId) return setError('Escolha a empresa.');
     if (!dueDate) return setError('Informe o vencimento.');
     if (!Number.isFinite(value) || value <= 0) return setError('Informe um valor maior que zero.');
     setError(null);
@@ -235,7 +235,7 @@ export const NewChargeDialog: React.FC<{
           </DialogHeader>
           {!fixedClinicId && (
             <div className="flex flex-col gap-2">
-              <Label htmlFor="charge-clinic">Clínica</Label>
+              <Label htmlFor="charge-clinic">Empresa</Label>
               <select id="charge-clinic" value={clinicId} onChange={(e) => changeClinic(e.target.value)} className={selectClass}>
                 {clinics.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>

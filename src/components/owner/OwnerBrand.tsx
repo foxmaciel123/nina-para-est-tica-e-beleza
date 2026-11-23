@@ -96,7 +96,7 @@ const BrandPreview: React.FC<{ form: Brand }> = ({ form }) => {
         <div className="flex items-center gap-2">
           <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg text-foreground" style={{ background: accent }}>{icon}</div>
           <div className="min-w-0 leading-tight">
-            <p className="truncate text-sm font-bold">Clínica Exemplo</p>
+            <p className="truncate text-sm font-bold">Empresa Exemplo</p>
             <p className="truncate text-[10px] font-semibold uppercase tracking-wider" style={{ color: accent }}>{form.name || 'Sua marca'}</p>
           </div>
         </div>
@@ -104,7 +104,7 @@ const BrandPreview: React.FC<{ form: Brand }> = ({ form }) => {
           <div key={item} className="rounded-md px-2 py-1.5 text-xs" style={i === 0 ? { background: `${accent}26`, fontWeight: 600 } : undefined}>{item}</div>
         ))}
         {form.logo_url && <img src={form.logo_url} alt="" className="mx-auto mt-auto h-6 object-contain opacity-80" />}
-        <p className="text-center text-[10px] text-muted-foreground">Menu da clínica</p>
+        <p className="text-center text-[10px] text-muted-foreground">Menu da empresa</p>
       </div>
     </div>
   );
@@ -145,7 +145,7 @@ const OwnerBrand: React.FC = () => {
       <PageHeader
         eyebrow="Sistema · Marca"
         title="Marca"
-        description="Nome, imagens e cor que aparecem para as clínicas na tela de entrada, no menu e na aba do navegador."
+        description="Nome, imagens e cor que aparecem para as empresas na tela de entrada, no menu e na aba do navegador."
       />
 
       <form onSubmit={save} noValidate className="flex flex-col gap-6">
@@ -157,12 +157,12 @@ const OwnerBrand: React.FC = () => {
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="brand-tagline">Frase curta</Label>
-              <Input id="brand-tagline" maxLength={80} placeholder="Ex.: Atendimento com IA para clínicas" value={form.tagline ?? ''} onChange={(e) => set('tagline', e.target.value)} />
+              <Input id="brand-tagline" maxLength={80} placeholder="Ex.: Atendimento com IA para empresas" value={form.tagline ?? ''} onChange={(e) => set('tagline', e.target.value)} />
             </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <ImageField kind="icon" label="Ícone" hint="Quadrado, aparece no menu, na tela de entrada e na aba do navegador." value={form.icon_url ?? ''} onChange={(url) => set('icon_url', url)} />
-            <ImageField kind="logo" label="Logo" hint="Horizontal, aparece no rodapé do menu da clínica. Opcional." value={form.logo_url ?? ''} onChange={(url) => set('logo_url', url)} />
+            <ImageField kind="logo" label="Logo" hint="Horizontal, aparece no rodapé do menu da empresa. Opcional." value={form.logo_url ?? ''} onChange={(url) => set('logo_url', url)} />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="brand-color">Cor de destaque</Label>
@@ -180,7 +180,7 @@ const OwnerBrand: React.FC = () => {
         </Panel>
 
         <Panel title="Suporte">
-          <p className="text-sm text-muted-foreground">Contato que as clínicas veem quando precisam de ajuda. Opcional.</p>
+          <p className="text-sm text-muted-foreground">Contato que as empresas veem quando precisam de ajuda. Opcional.</p>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
               <Label htmlFor="brand-email">E-mail de suporte</Label>

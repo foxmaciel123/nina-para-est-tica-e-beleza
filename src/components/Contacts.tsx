@@ -4,8 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from './Button';
 import { api } from '../services/api';
 import { Contact } from '../types';
+import { useNiche, cap, g } from '@/hooks/useNiche';
 
 const Contacts: React.FC = () => {
+  const niche = useNiche();
+  const t = niche.terms;
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -51,8 +54,8 @@ const Contacts: React.FC = () => {
     <div className="p-8 h-full overflow-y-auto bg-slate-950 text-slate-50">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground" data-testid="contacts-title">Clientes</h2>
-          <p className="text-sm text-slate-400 mt-1">Base completa de quem já passou pela sua clínica — ou demonstrou interesse.</p>
+          <h2 className="text-3xl font-bold tracking-tight text-foreground" data-testid="contacts-title">{cap(t.clientes)}</h2>
+          <p className="text-sm text-slate-400 mt-1">Base completa de quem já comprou ou falou com a sua empresa.</p>
         </div>
         <Button 
           className="shadow-lg shadow-cyan-500/20 opacity-50 cursor-not-allowed"

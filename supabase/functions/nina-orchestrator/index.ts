@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { AI_CHAT_URL, getAiApiKey, logAiUsage, resolveModel } from "../_shared/ai.ts";
 import { DEFAULT_NINA_PROMPT } from "../_shared/default-nina-prompt.ts";
+import { getNiche, buildNichePrompt, type Niche } from "../_shared/niches.ts";
 import { isOrgActive } from "../_shared/tenant.ts";
 
 const corsHeaders = {
@@ -16,7 +17,7 @@ const createAppointmentTool = {
   type: "function",
   function: {
     name: "create_appointment",
-    description: "Agendar avaliação, sessão de procedimento, retorno ou recall com a cliente. Use quando a cliente confirmar interesse em uma data/horário específicos para vir à clínica.",
+    description: "Agendar avaliação, sessão de procedimento, retorno ou recall com a cliente. Use quando a pessoa confirmar interesse em uma data/horário específicos.",
     parameters: {
       type: "object",
       properties: {
@@ -120,6 +121,159 @@ const listProceduresTool = {
     }
   }
 };
+
+// Catálogo por nicho: estética mantém a ferramenta original; os outros nichos
+// usam as categorias e as palavras do próprio nicho.
+function buildListProceduresTool(niche: Niche) {
+  if (niche.id === 'estetica') return listProceduresTool;
+  const t = niche.terms;
+  return {
+    type: "function",
+    function: {
+      name: "list_procedures",
+      description: `Consultar o catálogo de ${t.itens} (${t.catalogo}) cadastrado pela empresa, com preços quando a empresa libera. Use quando perguntarem "vocês têm X?", "quanto custa Y?" ou antes de oferecer qualquer ${t.item}. NUNCA invente ${t.itens} nem preços: sempre consulte aqui primeiro.`,
+      parameters: {
+        type: "object",
+        properties: {
+          category: {
+            type: "string",
+            enum: niche.categories.map((c) => c.value),
+            description: "Filtrar por categoria. Omita para listar todos."
+          },
+          name_query: {
+            type: "string",
+            description: `Buscar por nome ou parte do nome do ${t.item}. Omita para listar todos da categoria.`
+          }
+        },
+        required: []
+      }
+    }
+  };
+}
+
+// Fase 2: a IA anota o pedido (nichos de venda: delivery, moda, atacado...)
+function buildCreateOrderTool(niche: Niche) {
+  const t = niche.terms;
+  return {
+    type: "function",
+    function: {
+      name: "create_order",
+      description: `Anotar (ou atualizar) o pedido do ${t.cliente} quando ele CONFIRMAR o que quer: ${t.itens}, quantidades e forma de entrega. Use os nomes exatamente como estão no catálogo (consulte list_procedures antes). Se o ${t.cliente} mudar o pedido depois, chame de novo com a lista completa: o pedido em aberto é atualizado. Nunca invente preço: o sistema calcula pelo catálogo.`,
+      parameters: {
+        type: "object",
+        properties: {
+          items: {
+            type: "array",
+            description: `Lista completa de ${t.itens} do pedido`,
+            items: {
+              type: "object",
+              properties: {
+                name: { type: "string", description: `Nome do ${t.item} como está no catálogo` },
+                quantity: { type: "number", description: "Quantidade (padrão 1)" },
+                notes: { type: "string", description: "Observação do item (tamanho, cor, sabor, sem cebola...)" }
+              },
+              required: ["name"]
+            }
+          },
+          delivery_method: {
+            type: "string",
+            enum: ["entrega", "retirada", "envio"],
+            description: "entrega = motoboy/entrega local; retirada = busca no local; envio = correios/transportadora"
+          },
+          delivery_address: { type: "string", description: "Endereço completo, se for entrega ou envio" },
+          payment_method: { type: "string", description: "Forma de pagamento combinada (Pix, cartão, dinheiro, boleto...)" },
+          notes: { type: "string", description: "Observação geral do pedido" }
+        },
+        required: ["items"]
+      }
+    }
+  };
+}
+
+function formatBRL(value: number): string {
+  return Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+// Cria ou atualiza o pedido em aberto desta conversa. Preço sempre vem do
+// catálogo; item que não está no catálogo entra com preço a confirmar.
+async function createOrderFromAI(
+  supabase: any,
+  conversation: any,
+  orgId: string | null,
+  args: { items?: Array<{ name?: string; quantity?: number; notes?: string }>; delivery_method?: string; delivery_address?: string; payment_method?: string; notes?: string }
+): Promise<any> {
+  if (!orgId) return { error: 'no_org' };
+  const rawItems = Array.isArray(args.items) ? args.items.filter((i) => i && typeof i.name === 'string' && i.name.trim()) : [];
+  if (rawItems.length === 0) return { error: 'no_items' };
+
+  const { data: catalog } = await supabase
+    .from('procedures')
+    .select('id, name, price_min, price_max')
+    .eq('organization_id', orgId)
+    .eq('is_active', true)
+    .limit(500);
+
+  const norm = (v: string) => v.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  let missingPrice = false;
+  const items = rawItems.slice(0, 50).map((i) => {
+    const wanted = norm(i.name!);
+    const match = (catalog || []).find((c: any) => norm(c.name) === wanted)
+      || (catalog || []).find((c: any) => norm(c.name).includes(wanted) || wanted.includes(norm(c.name)));
+    const price = match ? Number(match.price_min ?? match.price_max ?? 0) : 0;
+    if (!match || !price) missingPrice = true;
+    const quantity = Math.max(1, Math.min(9999, Number(i.quantity) || 1));
+    return {
+      procedure_id: match?.id ?? null,
+      name: match?.name ?? i.name!.trim().slice(0, 120),
+      quantity,
+      unit_price: price,
+      notes: i.notes ? String(i.notes).slice(0, 200) : null,
+      price_to_confirm: !match || !price,
+    };
+  });
+
+  const deliveryMethod = ['entrega', 'retirada', 'envio'].includes(String(args.delivery_method)) ? args.delivery_method : 'entrega';
+  const payload: Record<string, unknown> = {
+    items,
+    delivery_method: deliveryMethod,
+    delivery_address: args.delivery_address ? String(args.delivery_address).slice(0, 500) : null,
+    payment_method: args.payment_method ? String(args.payment_method).slice(0, 60) : null,
+    notes: args.notes ? String(args.notes).slice(0, 2000) : null,
+    customer_name: conversation.contact?.name || conversation.contact?.call_name || null,
+    customer_phone: conversation.contact?.phone_number || null,
+  };
+
+  // Pedido em aberto (novo, da IA, desta conversa, últimas 6 horas) é atualizado
+  const since = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+  const { data: open } = await supabase
+    .from('orders')
+    .select('id')
+    .eq('organization_id', orgId)
+    .eq('conversation_id', conversation.id)
+    .eq('status', 'novo')
+    .eq('source', 'ia')
+    .gte('created_at', since)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const query = open
+    ? supabase.from('orders').update(payload).eq('id', open.id)
+    : supabase.from('orders').insert({
+        ...payload,
+        organization_id: orgId,
+        contact_id: conversation.contact_id,
+        conversation_id: conversation.id,
+        source: 'ia',
+        created_by: null,
+      });
+  const { data, error } = await query.select('id, number, total').single();
+  if (error) {
+    console.error('[Assistente] Erro ao gravar pedido:', error);
+    return { error: 'db_error' };
+  }
+  return { ...data, updated: !!open, missingPrice };
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -230,7 +384,7 @@ serve(async (req) => {
         }
 
         // Use default prompt if not configured
-        const systemPrompt = effectiveSettings.system_prompt_override || getDefaultSystemPrompt();
+        const systemPrompt = effectiveSettings.system_prompt_override || getDefaultSystemPrompt(effectiveSettings.business_niche);
         
         console.log('[Nina] Processing with settings:', {
           is_active: effectiveSettings.is_active,
@@ -1165,7 +1319,8 @@ async function processQueueItem(
 
   // Build tools array - only add appointment tools if enabled
   const tools: any[] = [];
-  if (settings?.ai_scheduling_enabled !== false) {
+  const niche = getNiche(settings?.business_niche);
+  if (settings?.ai_scheduling_enabled !== false && niche.features.agenda) {
     tools.push(createAppointmentTool);
     tools.push(rescheduleAppointmentTool);
     tools.push(cancelAppointmentTool);
@@ -1173,8 +1328,12 @@ async function processQueueItem(
   }
   // Catálogo de procedimentos sempre disponível (Nina deve consultar antes de inventar)
   if (settings?.procedures_catalog_enabled !== false) {
-    tools.push(listProceduresTool);
+    tools.push(buildListProceduresTool(niche));
     console.log('[Nina] Adding list_procedures tool');
+  }
+  // Nichos de venda: a IA anota o pedido
+  if (niche.features.pedidos) {
+    tools.push(buildCreateOrderTool(niche));
   }
 
   // Build request body
@@ -1229,8 +1388,27 @@ async function processQueueItem(
   let appointmentCreated = null;
   let appointmentRescheduled = null;
   let appointmentCancelled = null;
+  let orderCreated: any = null;
   
   for (const toolCall of toolCalls) {
+    if (toolCall.function?.name === 'create_order') {
+      try {
+        const args = JSON.parse(toolCall.function.arguments || '{}');
+        orderCreated = await createOrderFromAI(supabase, conversation, settings?.organization_id || null, args);
+        if (orderCreated && !orderCreated.error) {
+          const verb = orderCreated.updated ? 'atualizado' : 'anotado';
+          const totalMsg = orderCreated.missingPrice
+            ? 'A equipe confirma o valor final em instantes.'
+            : `Total: ${formatBRL(orderCreated.total)}.`;
+          aiContent = (aiContent ? `${aiContent}\n\n` : '') + `✅ Pedido #${orderCreated.number} ${verb}! ${totalMsg}`;
+        } else if (orderCreated?.error === 'no_items') {
+          aiContent = aiContent || 'Me conta o que você gostaria de pedir? 😊';
+        }
+      } catch (parseError) {
+        console.error('[Assistente] Erro lendo create_order:', parseError);
+      }
+    }
+
     if (toolCall.function?.name === 'create_appointment') {
       try {
         const args = JSON.parse(toolCall.function.arguments);
@@ -1369,6 +1547,8 @@ async function processQueueItem(
       aiContent = `Pronto! ✅ Seu agendamento foi reagendado para ${appointmentRescheduled.date.split('-').reverse().join('/')} às ${appointmentRescheduled.time}.`;
     } else if (appointmentCancelled && !appointmentCancelled.error) {
       aiContent = `Certo! ✅ Seu agendamento foi cancelado com sucesso. Se precisar de algo mais, estou à disposição!`;
+    } else if (orderCreated && !orderCreated.error) {
+      aiContent = `Prontinho! ✅ Pedido #${orderCreated.number} anotado.`;
     } else {
       aiContent = 'Entendi! Como posso ajudar?';
     }
@@ -1534,8 +1714,10 @@ async function queueTextResponse(
   console.log('[Nina] Text response(s) queued for sending');
 }
 
-function getDefaultSystemPrompt(): string {
-  return DEFAULT_NINA_PROMPT;
+// Prompt padrão do nicho da empresa (estética continua com o prompt original)
+function getDefaultSystemPrompt(nicheId?: string | null): string {
+  const niche = getNiche(nicheId);
+  return niche.id === 'estetica' ? DEFAULT_NINA_PROMPT : buildNichePrompt(niche);
 }
 
 function processPromptTemplate(prompt: string, contact: any, settings?: any): string {
@@ -1567,7 +1749,7 @@ function processPromptTemplate(prompt: string, contact: any, settings?: any): st
     'dia_semana': weekdayFormatter.format(now),
     'cliente_nome': contact?.name || contact?.call_name || 'Cliente',
     'cliente_telefone': contact?.phone_number || '',
-    'clinica_nome': settings?.company_name || 'nossa clínica',
+    'clinica_nome': settings?.company_name || 'nossa empresa',
     'assistente_nome': settings?.sdr_name || 'assistente',
     'profissional': 'equipe',
   };

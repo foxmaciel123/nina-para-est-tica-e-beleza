@@ -8,10 +8,10 @@ import { AccessLinkBox } from '../NewClinicDialog';
 import { ownerAction } from '../ownerApi';
 
 const ACTION_LABEL: Record<string, string> = {
-  clinic_created: 'Clínica criada',
-  clinic_suspended: 'Clínica suspensa',
-  clinic_reactivated: 'Clínica reativada',
-  clinic_data_updated: 'Dados da clínica alterados',
+  clinic_created: 'Empresa criada',
+  clinic_suspended: 'Empresa suspensa',
+  clinic_reactivated: 'Empresa reativada',
+  clinic_data_updated: 'Dados da empresa alterados',
   access_link_sent: 'Link de acesso gerado',
   whatsapp_updated: 'WhatsApp alterado',
   agent_updated: 'Agente IA alterado',

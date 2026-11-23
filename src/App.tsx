@@ -9,6 +9,7 @@ import Settings from './components/Settings';
 import Team from './components/Team';
 import Scheduling from './components/Scheduling';
 import Kanban from './components/Kanban';
+import Orders from './components/orders/Orders';
 import Auth from './pages/Auth';
 import ProtectedRoute from './components/ProtectedRoute';
 import { RequireAgency, RequireClinic, RequireOwner } from './components/AccessGates';
@@ -110,6 +111,7 @@ const App: React.FC = () => {
                   <Route path="/pipeline" element={<Kanban />} />
                   <Route path="/chat" element={<ChatInterface />} />
                   <Route path="/contacts" element={<Contacts />} />
+                  <Route path="/pedidos" element={<Orders />} />
                   <Route path="/scheduling" element={<Scheduling />} />
                   <Route path="/team" element={<Team />} />
                   <Route path="/disparo" element={<Disparo />} />

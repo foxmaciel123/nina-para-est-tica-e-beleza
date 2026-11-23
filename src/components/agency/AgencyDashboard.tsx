@@ -55,7 +55,7 @@ const AgencyDashboard: React.FC = () => {
       <PageHeader
         eyebrow="Painel da Agência"
         title={summary?.agency_name ? `Visão geral · ${summary.agency_name}` : 'Visão geral'}
-        description="Como estão as suas clínicas, as mensalidades delas e o atendimento da IA."
+        description="Como estão as suas empresas, as mensalidades delas e o atendimento da IA."
       />
 
       {error && <ErrorNote message={error} onRetry={load} />}
@@ -63,7 +63,7 @@ const AgencyDashboard: React.FC = () => {
       {summary && (
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <Stat
-            label="Clínicas ativas"
+            label="Empresas ativas"
             value={formatNumber(summary.clinics_active)}
             hint={summary.clinics_suspended > 0 ? `${formatNumber(summary.clinics_suspended)} suspensa(s)` : 'Nenhuma suspensa'}
             icon={Building2}
@@ -78,15 +78,15 @@ const AgencyDashboard: React.FC = () => {
           <Stat
             label="Sua fatura do mês"
             value={invoice == null ? 'A combinar' : formatBRL(invoice)}
-            hint={summary.fee_per_clinic == null ? 'Valor por clínica ainda não definido' : `${formatNumber(summary.clinics_active)} clínica(s) × ${formatBRL(summary.fee_per_clinic)}`}
+            hint={summary.fee_per_clinic == null ? 'Valor por empresa ainda não definido' : `${formatNumber(summary.clinics_active)} empresa(s) × ${formatBRL(summary.fee_per_clinic)}`}
             icon={Receipt}
           />
-          <Stat label="Mensalidades das clínicas" value={formatBRL(summary.mrr)} hint="Soma do que você cobra das clínicas ativas" icon={Wallet} />
+          <Stat label="Mensalidades das empresas" value={formatBRL(summary.mrr)} hint="Soma do que você cobra das empresas ativas" icon={Wallet} />
           <Stat label="Recebido no mês" value={formatBRL(summary.received_month)} icon={CircleDollarSign} />
           <Stat
             label="Em atraso"
             value={formatBRL(summary.overdue_amount)}
-            hint={`${formatNumber(summary.overdue_count)} clínica(s)`}
+            hint={`${formatNumber(summary.overdue_count)} empresa(s)`}
             icon={AlertTriangle}
             tone={summary.overdue_count > 0 ? 'bad' : 'default'}
           />
@@ -102,7 +102,7 @@ const AgencyDashboard: React.FC = () => {
         }
       >
         {attention.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nada pendente. Mensalidades em dia e a assistente respondendo em todas as clínicas.</p>
+          <p className="text-sm text-muted-foreground">Nada pendente. Mensalidades em dia e a assistente respondendo em todas as empresas.</p>
         ) : (
           <ul className="flex flex-col">
             {attention.map((alert, i) => (

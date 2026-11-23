@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Shield, Bot, Plug, Loader2, Save, RotateCcw, BookOpen, Lock, Sparkles, Calendar, Bell } from 'lucide-react';
+import { Shield, Bot, Plug, Loader2, Save, RotateCcw, BookOpen, Lock, Sparkles, Calendar, Bell, Store } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 import AgentSettings, { AgentSettingsRef } from './settings/AgentSettings';
 import ApiSettings, { ApiSettingsRef } from './settings/ApiSettings';
@@ -8,6 +8,8 @@ import GoogleCalendarConnect from './settings/GoogleCalendarConnect';
 import RemindersManager from './settings/RemindersManager';
 import AppConfigCard from './settings/AppConfigCard';
 import SystemRoadmap from './SystemRoadmap';
+import BusinessSettings from './settings/BusinessSettings';
+import { useNiche } from '@/hooks/useNiche';
 import { useCompanySettings } from '@/hooks/useCompanySettings';
 import { Button } from './Button';
 import { useOnboardingStatus } from '@/hooks/useOnboardingStatus';
@@ -23,6 +25,8 @@ const Settings: React.FC = () => {
   const { companyName, isAdmin } = useCompanySettings();
   // Documentação técnica só para o dono da plataforma (as clínicas não veem)
   const { isPlatformOwner } = useOrganization();
+  const niche = useNiche();
+  const t = niche.terms;
   const agentRef = useRef<AgentSettingsRef>(null);
   const apiRef = useRef<ApiSettingsRef>(null);
   const [activeTab, setActiveTab] = useState('agent');
@@ -60,7 +64,7 @@ const Settings: React.FC = () => {
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-foreground" data-testid="settings-title">Configurações</h2>
           <p className="text-sm text-slate-400 mt-1">
-            Ajuste como a assistente atende as clientes da {companyName || 'sua clínica'}.
+            Ajuste como a assistente atende {t.clienteFeminino ? 'as' : 'os'} {t.clientes} de {companyName || 'sua empresa'}.
             {!isAdmin && (
               <span className="ml-2 text-amber-400">(Somente leitura)</span>
             )}
@@ -95,26 +99,34 @@ const Settings: React.FC = () => {
       <Tabs defaultValue="agent" className="w-full" onValueChange={setActiveTab}>
         <div className="flex items-center justify-between mb-8">
           <TabsList>
+            <TabsTrigger value="business" className="gap-2">
+              <Store className="w-4 h-4" />
+              Seu negócio
+            </TabsTrigger>
             <TabsTrigger value="agent" className="gap-2">
               <Bot className="w-4 h-4" />
               Agente
             </TabsTrigger>
             <TabsTrigger value="procedures" className="gap-2">
               <Sparkles className="w-4 h-4" />
-              Procedimentos
+              {t.catalogo}
             </TabsTrigger>
             <TabsTrigger value="apis" className="gap-2">
               <Plug className="w-4 h-4" />
               APIs
             </TabsTrigger>
-            <TabsTrigger value="calendar" className="gap-2">
-              <Calendar className="w-4 h-4" />
-              Agenda
-            </TabsTrigger>
-            <TabsTrigger value="reminders" className="gap-2">
-              <Bell className="w-4 h-4" />
-              Lembretes
-            </TabsTrigger>
+            {niche.features.agenda && (
+              <>
+                <TabsTrigger value="calendar" className="gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Agenda
+                </TabsTrigger>
+                <TabsTrigger value="reminders" className="gap-2">
+                  <Bell className="w-4 h-4" />
+                  Lembretes
+                </TabsTrigger>
+              </>
+            )}
             {isPlatformOwner && (
               <TabsTrigger value="docs" className="gap-2">
                 <BookOpen className="w-4 h-4" />
@@ -160,6 +172,10 @@ const Settings: React.FC = () => {
             </div>
           )}
         </div>
+
+        <TabsContent value="business">
+          <BusinessSettings />
+        </TabsContent>
 
         <TabsContent value="agent">
           <AgentSettings ref={agentRef} />

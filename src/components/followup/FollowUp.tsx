@@ -100,7 +100,7 @@ const FollowUp: React.FC = () => {
       ) : rows.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-card/40 p-10 text-center text-muted-foreground">
           <Repeat className="h-10 w-10 text-primary/70" />
-          <p>Nenhum follow-up ainda. Comece por um modelo pronto: cliente que parou de responder, pós-procedimento ou lead novo.</p>
+          <p>Nenhum follow-up ainda. Comece por um modelo pronto: cliente que parou de responder, pós-atendimento ou lead novo.</p>
           {info && info.provider !== 'none' && <Button onClick={() => { setEditing(null); setShowDialog(true); }}><Plus className="mr-2 h-4 w-4" /> Criar follow-up</Button>}
         </div>
       ) : (

@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from 'react';
 
-// As telas de gestão de clínicas servem a dois painéis: o do Dono (/dono) e o
+// As telas de gestão de empresas servem a dois painéis: o do Dono (/dono) e o
 // da Agência (/agencia). O escopo diz em qual painel a tela está.
 export type PanelKind = 'owner' | 'agency';
 
@@ -23,6 +23,6 @@ export const PanelScopeProvider: React.FC<{ kind: PanelKind; children: React.Rea
 
 export const usePanel = () => useContext(PanelScopeContext);
 
-// Link para uma aba da clínica conforme o tipo de alerta
+// Link para uma aba da empresa conforme o tipo de alerta
 export const clinicPathForAlert = (base: string, orgId: string, kind: string) =>
   `${base}/clinicas/${orgId}${kind.startsWith('billing') ? '/cobranca' : kind === 'whatsapp_pending' || kind === 'send_failures' ? '/whatsapp' : ''}`;

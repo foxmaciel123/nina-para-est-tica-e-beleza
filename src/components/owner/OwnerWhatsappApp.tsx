@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Chip, ErrorNote, PageHeader, PageLoader, Panel } from './ownerUi';
 import { rpcErrorMessage } from './ownerApi';
 
-// App da Meta da plataforma, usado pelo botão "Conectar WhatsApp" de todas as clínicas
+// App da Meta da plataforma, usado pelo botão "Conectar WhatsApp" de todas as empresas
 const WEBHOOK_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/whatsapp-webhook`;
 
 interface MetaApp { app_id: string | null; config_id: string | null; has_app_secret: boolean; verify_token: string | null }
@@ -92,7 +92,7 @@ const OwnerWhatsappApp: React.FC = () => {
       <PageHeader
         eyebrow="Sistema · WhatsApp"
         title="App da Meta (Conectar WhatsApp)"
-        description="Um app só da plataforma para todas as clínicas. Com ele salvo, aparece o botão Conectar WhatsApp nas clínicas."
+        description="Um app só da plataforma para todas as empresas. Com ele salvo, aparece o botão Conectar WhatsApp nas empresas."
       />
       {error && <ErrorNote message={error} onRetry={load} />}
 
@@ -136,7 +136,7 @@ const OwnerWhatsappApp: React.FC = () => {
         <CopyRow label="URL de retorno" value={WEBHOOK_URL} />
         <CopyRow label="Token de verificação" value={app?.verify_token ?? null} />
         <p className="pt-2 text-xs text-muted-foreground">
-          Cole os dois em Meta for Developers → app → WhatsApp → Configuração → Webhook e assine o campo “messages”. É feito uma vez só e vale para todas as clínicas.
+          Cole os dois em Meta for Developers → app → WhatsApp → Configuração → Webhook e assine o campo “messages”. É feito uma vez só e vale para todas as empresas.
         </p>
       </Panel>
     </div>

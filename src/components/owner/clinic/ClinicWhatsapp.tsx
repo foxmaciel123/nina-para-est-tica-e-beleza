@@ -94,7 +94,7 @@ const ClinicWhatsapp: React.FC = () => {
       setFormError(rpcErrorMessage(rpcError, 'Não foi possível salvar. Tente de novo.'));
       return;
     }
-    toast.success('WhatsApp da clínica salvo');
+    toast.success('WhatsApp da empresa salvo');
     setTest(null);
     reload();
     reloadDetail();
@@ -138,12 +138,12 @@ const ClinicWhatsapp: React.FC = () => {
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 p-6" data-testid="clinic-whatsapp">
-      <PageHeader eyebrow="Clínica · WhatsApp" title="WhatsApp" description="Conexão da clínica com a API oficial da Meta. Você pode configurar por ela." />
+      <PageHeader eyebrow="Empresa · WhatsApp" title="WhatsApp" description="Conexão da empresa com a API oficial da Meta. Você pode configurar por ela." />
       {error && <ErrorNote message={error} onRetry={reload} />}
 
       {!config ? (
         <Panel>
-          <p className="text-sm text-muted-foreground">Esta clínica ainda não tem a configuração da assistente. Ela é criada no cadastro da clínica ou no primeiro acesso da dona.</p>
+          <p className="text-sm text-muted-foreground">Esta empresa ainda não tem a configuração da assistente. Ela é criada no cadastro da empresa ou no primeiro acesso da dona.</p>
         </Panel>
       ) : (
         <>
@@ -236,7 +236,7 @@ const ClinicWhatsapp: React.FC = () => {
             <Row label="URL de retorno"><CopyValue value={WEBHOOK_URL} label="URL do webhook" /></Row>
             <Row label="Token de verificação"><CopyValue value={config.whatsapp_verify_token} label="Token de verificação" /></Row>
             <p className="text-xs text-muted-foreground">
-              Use esses dois valores em Meta for Developers → app → WhatsApp → Configuração → Webhook e assine o campo “messages”. A mesma URL serve para todas as clínicas, mesmo que cada uma tenha o próprio app. Depois clique em “Testar conexão”: ele liga o recebimento de mensagens da conta (WABA) no app.
+              Use esses dois valores em Meta for Developers → app → WhatsApp → Configuração → Webhook e assine o campo “messages”. A mesma URL serve para todas as empresas, mesmo que cada uma tenha o próprio app. Depois clique em “Testar conexão”: ele liga o recebimento de mensagens da conta (WABA) no app.
             </p>
           </Panel>
 

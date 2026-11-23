@@ -173,7 +173,7 @@ const ConnectWhatsAppButton: React.FC<{ organizationId?: string; onConnected?: (
         </Button>
       </div>
       <p className="text-xs text-muted-foreground">
-        Abre uma janela do Facebook: entre com o Facebook da clínica, escolha a empresa e o número e confirme o código. Nenhum token para copiar.
+        Abre uma janela do Facebook: entre com o Facebook da empresa, escolha a empresa e o número e confirme o código. Nenhum token para copiar.
         Use o segundo botão para continuar usando o mesmo número no app do celular.
       </p>
       {result && (

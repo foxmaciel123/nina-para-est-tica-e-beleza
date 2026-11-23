@@ -32,7 +32,7 @@ const OwnerBilling: React.FC = () => {
       setError('Não foi possível carregar as cobranças.');
     } else {
       setCharges(c.data ?? []);
-      // No painel do dono, as mensalidades de clínicas de agência são cobradas pela agência
+      // No painel do dono, as mensalidades de empresas de agência são cobradas pela agência
       const rows = (o.data ?? []) as Array<{ id: string; name: string; monthly_fee: number; agency_id?: string | null }>;
       setClinics(rows.filter((x) => panel.kind === 'agency' || !x.agency_id).map((x) => ({ id: x.id, name: x.name, monthly_fee: Number(x.monthly_fee) })));
     }
@@ -69,8 +69,8 @@ const OwnerBilling: React.FC = () => {
         eyebrow={`${panel.title} · Financeiro`}
         title="Vencimentos"
         description={panel.kind === 'agency'
-          ? 'Mensalidades que a agência cobra das clínicas (Pix ou boleto). Registre aqui quando a clínica pagar.'
-          : 'Mensalidades das suas clínicas diretas, cobradas por fora (Pix ou boleto). Registre aqui quando a clínica pagar.'}
+          ? 'Mensalidades que a agência cobra das empresas (Pix ou boleto). Registre aqui quando a empresa pagar.'
+          : 'Mensalidades das suas empresas diretas, cobradas por fora (Pix ou boleto). Registre aqui quando a empresa pagar.'}
         actions={
           <Button onClick={() => setCreating(true)} disabled={clinics.length === 0} className="gap-2">
             <Plus className="h-4 w-4" /> Nova cobrança

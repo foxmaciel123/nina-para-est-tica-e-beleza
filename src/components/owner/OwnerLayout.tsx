@@ -27,7 +27,7 @@ const GROUPS: OwnerNavGroup[] = [
     items: [
       { label: 'Dashboard', to: '/dono/dashboard', icon: LayoutDashboard },
       { label: 'Agências', to: '/dono/agencias', icon: Briefcase },
-      { label: 'Clínicas', to: '/dono/clinicas', icon: Building2 },
+      { label: 'Empresas', to: '/dono/clinicas', icon: Building2 },
     ],
   },
   { label: 'Financeiro', items: [{ label: 'Vencimentos', to: '/dono/vencimentos', icon: Wallet }] },
@@ -47,8 +47,8 @@ const linkClass = ({ isActive }: { isActive: boolean }) =>
     isActive ? 'bg-accent/15 font-semibold text-foreground' : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground'
   }`;
 
-// Moldura do Painel do Dono: menu lateral próprio, separado do painel da clínica.
-// `header` e `groups` permitem reaproveitar a moldura na clínica aberta (abas).
+// Moldura do Painel do Dono: menu lateral próprio, separado do painel da empresa.
+// `header` e `groups` permitem reaproveitar a moldura na empresa aberta (abas).
 export const OwnerFrame: React.FC<{
   header?: React.ReactNode;
   groups: OwnerNavGroup[];
@@ -109,7 +109,7 @@ export const OwnerFrame: React.FC<{
               data-testid="switch-to-clinic"
             >
               <ArrowLeftRight className="h-4 w-4 text-accent" />
-              Ir para minha clínica
+              Ir para minha empresa
             </NavLink>
           )}
           <div className="flex items-center justify-between px-1">

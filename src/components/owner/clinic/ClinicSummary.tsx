@@ -40,7 +40,7 @@ const EditClinicDialog: React.FC<{ open: boolean; onClose: () => void; detail: C
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const value = Number(fee.replace(',', '.') || '0');
-    if (!name.trim()) return setError('Informe o nome da clínica.');
+    if (!name.trim()) return setError('Informe o nome da empresa.');
     if (!Number.isFinite(value) || value < 0) return setError('Informe uma mensalidade válida (use 0 se não cobrar).');
     setSaving(true);
     const { error: rpcError } = await supabase.rpc('owner_update_organization', {
@@ -52,7 +52,7 @@ const EditClinicDialog: React.FC<{ open: boolean; onClose: () => void; detail: C
       setError(rpcError.code === '22023' ? rpcError.message : 'Não foi possível salvar. Tente de novo.');
       return;
     }
-    toast.success('Dados da clínica salvos');
+    toast.success('Dados da empresa salvos');
     onClose();
     onSaved();
   };
@@ -62,11 +62,11 @@ const EditClinicDialog: React.FC<{ open: boolean; onClose: () => void; detail: C
       <DialogContent>
         <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
           <DialogHeader>
-            <DialogTitle>Editar dados da clínica</DialogTitle>
-            <DialogDescription>Esses dados aparecem só no painel de gestão, a clínica não vê.</DialogDescription>
+            <DialogTitle>Editar dados da empresa</DialogTitle>
+            <DialogDescription>Esses dados aparecem só no painel de gestão, a empresa não vê.</DialogDescription>
           </DialogHeader>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="clinic-name">Nome da clínica</Label>
+            <Label htmlFor="clinic-name">Nome da empresa</Label>
             <Input id="clinic-name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -101,7 +101,7 @@ const EditClinicDialog: React.FC<{ open: boolean; onClose: () => void; detail: C
   );
 };
 
-// Dono: em qual agência a clínica está (ou cliente direto) e troca de agência
+// Dono: em qual agência a empresa está (ou cliente direto) e troca de agência
 const ClinicAgencyDialog: React.FC<{ open: boolean; onClose: () => void; detail: ClinicDetail; onSaved: () => void }> = ({ open, onClose, detail, onSaved }) => {
   const [agencies, setAgencies] = useState<{ id: string; name: string }[]>([]);
   const [value, setValue] = useState('');
@@ -118,7 +118,7 @@ const ClinicAgencyDialog: React.FC<{ open: boolean; onClose: () => void; detail:
     const { error } = await supabase.rpc('owner_set_clinic_agency' as any, { p_org: detail.organization.id, p_agency: value || null });
     setSaving(false);
     if (error) return toast.error('Não foi possível trocar a agência. Tente de novo.');
-    toast.success(value ? 'Clínica passada para a agência' : 'Clínica agora é cliente direto');
+    toast.success(value ? 'Empresa passada para a agência' : 'Empresa agora é cliente direto');
     onClose();
     onSaved();
   };
@@ -128,7 +128,7 @@ const ClinicAgencyDialog: React.FC<{ open: boolean; onClose: () => void; detail:
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Agência responsável</DialogTitle>
-          <DialogDescription>A agência passa a ver, configurar e cobrar esta clínica pelo painel dela. Você continua com acesso total.</DialogDescription>
+          <DialogDescription>A agência passa a ver, configurar e cobrar esta empresa pelo painel dela. Você continua com acesso total.</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-2">
           <Label htmlFor="clinic-agency">Agência</Label>
@@ -174,10 +174,10 @@ const ClinicSummary: React.FC = () => {
     setConfirmOpen(false);
     if (error) {
       console.error('[ClinicSummary] status', error);
-      toast.error('Não foi possível alterar o acesso da clínica. Tente de novo.');
+      toast.error('Não foi possível alterar o acesso da empresa. Tente de novo.');
       return;
     }
-    toast.success(nextStatus === 'suspended' ? 'Clínica suspensa' : 'Clínica reativada');
+    toast.success(nextStatus === 'suspended' ? 'Empresa suspensa' : 'Empresa reativada');
     reload();
   };
 
@@ -199,7 +199,7 @@ const ClinicSummary: React.FC = () => {
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6 p-6" data-testid="clinic-summary">
       <PageHeader
-        eyebrow="Clínica · Resumo"
+        eyebrow="Empresa · Resumo"
         title={org.name}
         description={`Cliente desde ${formatDate(org.created_at)}`}
         actions={
@@ -210,7 +210,7 @@ const ClinicSummary: React.FC = () => {
             </Button>
             <Button variant={isSuspended ? 'default' : 'destructive'} onClick={() => setConfirmOpen(true)} className="gap-2">
               {isSuspended ? <CirclePlay className="h-4 w-4" /> : <CirclePause className="h-4 w-4" />}
-              {isSuspended ? 'Reativar clínica' : 'Suspender clínica'}
+              {isSuspended ? 'Reativar empresa' : 'Suspender empresa'}
             </Button>
           </>
         }
@@ -219,7 +219,7 @@ const ClinicSummary: React.FC = () => {
       {isSuspended && (
         <div className="flex items-start gap-3 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm">
           <CirclePause className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-500" />
-          <p>A equipe desta clínica está sem acesso ao painel e a assistente não responde nem envia mensagens. As mensagens que chegam continuam guardadas.</p>
+          <p>A equipe desta empresa está sem acesso ao painel e a assistente não responde nem envia mensagens. As mensagens que chegam continuam guardadas.</p>
         </div>
       )}
 
@@ -285,7 +285,7 @@ const ClinicSummary: React.FC = () => {
 
         <Panel title={`Equipe · ${members.length}`}>
           {members.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nenhum usuário vinculado a esta clínica.</p>
+            <p className="text-sm text-muted-foreground">Nenhum usuário vinculado a esta empresa.</p>
           ) : (
             <ul className="flex flex-col">
               {members.map((m) => (
@@ -320,7 +320,7 @@ const ClinicSummary: React.FC = () => {
             <AlertDialogTitle>{isSuspended ? `Reativar ${org.name}?` : `Suspender ${org.name}?`}</AlertDialogTitle>
             <AlertDialogDescription>
               {isSuspended
-                ? 'A equipe volta a acessar o painel e a assistente volta a responder no WhatsApp da clínica.'
+                ? 'A equipe volta a acessar o painel e a assistente volta a responder no WhatsApp da empresa.'
                 : 'A equipe perde o acesso ao painel e a assistente para de responder e de enviar lembretes. As mensagens que chegarem continuam guardadas e aparecem quando você reativar.'}
             </AlertDialogDescription>
           </AlertDialogHeader>

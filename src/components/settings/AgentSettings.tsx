@@ -4,7 +4,8 @@ import { Button } from '../Button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import PromptGeneratorSheet from './PromptGeneratorSheet';
-import { DEFAULT_NINA_PROMPT } from '@/prompts/default-nina-prompt';
+import { defaultPromptForNiche } from '@/niches/prompt';
+import { useNiche } from '@/hooks/useNiche';
 import { useAuth } from '@/hooks/useAuth';
 import {
   Tooltip,
@@ -47,6 +48,11 @@ export interface AgentSettingsRef {
 }
 
 const AgentSettings = forwardRef<AgentSettingsRef, {}>((props, ref) => {
+  // Prompt padrão = o do tipo de negócio da empresa
+  const niche = useNiche();
+  const DEFAULT_NINA_PROMPT = defaultPromptForNiche(niche.id);
+  // O gerador com IA foi feito para saúde e beleza
+  const canGenerate = niche.group === 'Saúde e beleza';
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -230,6 +236,7 @@ const AgentSettings = forwardRef<AgentSettingsRef, {}>((props, ref) => {
                 <RotateCcw className="w-4 h-4 mr-2" />
                 Restaurar Padrão
               </Button>
+              {canGenerate && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -239,6 +246,7 @@ const AgentSettings = forwardRef<AgentSettingsRef, {}>((props, ref) => {
                 <Wand2 className="w-4 h-4 mr-2" />
                 Gerar com IA
               </Button>
+              )}
             </div>
           </div>
           
