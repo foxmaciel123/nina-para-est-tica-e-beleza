@@ -28,6 +28,7 @@ export interface ClinicConfig {
   auto_response_enabled: boolean;
   ai_model_mode: string | null;
   system_prompt_override: string | null;
+  business_niche?: string | null;
   audio_response_enabled: boolean;
   ai_scheduling_enabled: boolean;
   message_breaking_enabled: boolean;
@@ -41,7 +42,7 @@ export interface ClinicConfig {
   whatsapp_verify_token: string | null;
 }
 
-// Configuração completa da clínica (formulários do dono). null = clínica sem configuração da assistente.
+// Configuração completa da empresa (formulários do dono). null = empresa sem configuração da assistente.
 export function useClinicConfig(orgId: string) {
   const [config, setConfig] = useState<ClinicConfig | null>(null);
   const [loading, setLoading] = useState(true);
@@ -51,7 +52,7 @@ export function useClinicConfig(orgId: string) {
     const { data, error: rpcError } = await supabase.rpc('owner_get_clinic_config', { p_org: orgId });
     if (rpcError) {
       console.error('[useClinicConfig]', rpcError);
-      setError('Não foi possível carregar a configuração desta clínica.');
+      setError('Não foi possível carregar a configuração desta empresa.');
     } else {
       setError(null);
       setConfig((data as unknown as ClinicConfig) ?? null);

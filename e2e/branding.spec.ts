@@ -6,13 +6,14 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 test.describe('Branding & SEO (white label)', () => {
-  test('metadata.json descreve o vertical de beleza', async () => {
+  test('metadata.json descreve a plataforma multi-nicho (estética continua)', async () => {
     const meta = JSON.parse(
       readFileSync(resolve(__dirname, '..', 'metadata.json'), 'utf-8')
     );
     expect(meta.name).not.toMatch(/nina/i);
     expect(meta.description.toLowerCase()).toContain('estética');
     expect(meta.description.toLowerCase()).toContain('clínica');
+    expect(meta.description.toLowerCase()).toContain('pedidos');
   });
 
   test('package.json foi renomeado para nina-beleza-estetica', async () => {
@@ -59,12 +60,13 @@ test.describe('Branding & SEO (white label)', () => {
     }
   });
 
-  test('open-graph meta tags vendem clínicas, não SaaS genérico', async ({ page }) => {
+  test('open-graph meta tags vendem atendimento no WhatsApp, sem "Nina"', async ({ page }) => {
     await page.goto('/auth');
     const ogTitle = await page.locator('meta[property="og:title"]').getAttribute('content');
     const ogDesc = await page.locator('meta[property="og:description"]').getAttribute('content');
     expect(ogTitle).not.toMatch(/nina/i);
     expect(await page.title()).not.toMatch(/nina/i);
-    expect(ogDesc?.toLowerCase()).toContain('beleza');
+    expect(ogDesc?.toLowerCase()).toContain('whatsapp');
+    expect(ogDesc?.toLowerCase()).toContain('clínicas');
   });
 });

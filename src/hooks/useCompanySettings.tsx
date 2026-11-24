@@ -5,6 +5,13 @@ import { useAuth } from '@/hooks/useAuth';
 interface CompanySettings {
   companyName: string;
   sdrName: string;
+  /** id do nicho (src/niches/registry.ts); contas antigas = 'estetica' */
+  businessNiche: string;
+  /** logo da própria empresa (white label) */
+  logoUrl: string | null;
+  /** dá para desfazer a última troca de nicho? */
+  canUndoNiche: boolean;
+  previousNiche: string | null;
   loading: boolean;
   isAdmin: boolean;
   refetch: () => Promise<void>;
@@ -15,6 +22,10 @@ const CompanySettingsContext = createContext<CompanySettings | undefined>(undefi
 export const CompanySettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [companyName, setCompanyName] = useState('');
   const [sdrName, setSdrName] = useState('');
+  const [businessNiche, setBusinessNiche] = useState('estetica');
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [canUndoNiche, setCanUndoNiche] = useState(false);
+  const [previousNiche, setPreviousNiche] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const { user } = useAuth();
@@ -37,28 +48,41 @@ export const CompanySettingsProvider: React.FC<{ children: React.ReactNode }> = 
       
       setIsAdmin(roleData?.role === 'admin');
       
-      // Fetch global company branding via the safe public view
-      // (nina_settings full table is admin-only because it contains API keys)
-      const { data, error } = await supabase
-        .from('nina_public_settings' as any)
-        .select('company_name, sdr_name')
-        .limit(1)
-        .maybeSingle();
-
-      if (error && error.code !== 'PGRST116') {
-        console.error('[useCompanySettings] Query error:', error);
-        throw error;
-      }
-
-      if (data) {
-        const row = data as unknown as { company_name: string | null; sdr_name: string | null };
-        setCompanyName(row.company_name || 'Sua Empresa');
-        setSdrName(row.sdr_name || 'Agente');
+      // Perfil da empresa (nome, assistente, nicho, logo). A função org_profile
+      // funciona para qualquer membro; se o servidor ainda não tiver a função,
+      // cai na vitrine antiga (nina_public_settings, só nome e assistente).
+      type Profile = {
+        company_name?: string | null;
+        sdr_name?: string | null;
+        business_niche?: string | null;
+        company_logo_url?: string | null;
+        can_undo_niche?: boolean | null;
+        previous_niche?: string | null;
+      };
+      let profile: Profile | null = null;
+      const { data: rpcData, error: rpcError } = await (supabase as any).rpc('org_profile');
+      if (!rpcError && rpcData && typeof rpcData === 'object' && !Array.isArray(rpcData)) {
+        profile = rpcData as Profile;
       } else {
-        // No settings exist - use defaults (admin will need to configure via wizard)
-        setCompanyName('Sua Empresa');
-        setSdrName('Agente');
+        const { data, error } = await supabase
+          .from('nina_public_settings' as any)
+          .select('company_name, sdr_name')
+          .limit(1)
+          .maybeSingle();
+        if (error && error.code !== 'PGRST116') {
+          console.error('[useCompanySettings] Query error:', error);
+          throw error;
+        }
+        profile = (data as unknown as Profile) ?? null;
       }
+
+      // Sem configuração ainda: valores neutros (o admin preenche na Configuração Inicial)
+      setCompanyName(profile?.company_name || 'Sua Empresa');
+      setSdrName(profile?.sdr_name || 'Assistente');
+      setBusinessNiche(profile?.business_niche || 'estetica');
+      setLogoUrl(profile?.company_logo_url || null);
+      setCanUndoNiche(!!profile?.can_undo_niche);
+      setPreviousNiche(profile?.previous_niche || null);
     } catch (error) {
       console.error('[useCompanySettings] Error:', error);
     } finally {
@@ -73,6 +97,10 @@ export const CompanySettingsProvider: React.FC<{ children: React.ReactNode }> = 
   const value: CompanySettings = {
     companyName,
     sdrName,
+    businessNiche,
+    logoUrl,
+    canUndoNiche,
+    previousNiche,
     loading,
     isAdmin,
     refetch: fetchSettings,

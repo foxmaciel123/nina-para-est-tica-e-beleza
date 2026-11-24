@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { DEFAULT_NINA_PROMPT } from '@/prompts/default-nina-prompt';
+import { defaultPromptForNiche } from '@/niches/prompt';
 import { ErrorNote, PageHeader, PageLoader, Panel } from '../ownerUi';
 import { rpcErrorMessage, useClinicConfig } from '../ownerApi';
 import { useClinic } from './OwnerClinicLayout';
@@ -24,7 +24,7 @@ const TOGGLES = [
   { key: 'auto_response_enabled', label: 'Resposta automática', hint: 'A assistente responde sozinha às mensagens novas.' },
   { key: 'ai_scheduling_enabled', label: 'Agendar pela IA', hint: 'A assistente marca, remarca e cancela avaliações na agenda.' },
   { key: 'message_breaking_enabled', label: 'Quebrar mensagens longas', hint: 'Envia a resposta em partes, como uma pessoa digitando.' },
-  { key: 'audio_response_enabled', label: 'Responder em áudio', hint: 'Exige a chave do ElevenLabs configurada pela clínica.' },
+  { key: 'audio_response_enabled', label: 'Responder em áudio', hint: 'Exige a chave do ElevenLabs configurada pela empresa.' },
 ] as const;
 
 type ToggleKey = typeof TOGGLES[number]['key'];
@@ -44,6 +44,8 @@ const ClinicAgent: React.FC = () => {
   });
   const [formError, setFormError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  // Prompt padrão do tipo de negócio da empresa (estética se o servidor não informar)
+  const DEFAULT_NINA_PROMPT = defaultPromptForNiche((config as { business_niche?: string } | null)?.business_niche);
 
   useEffect(() => {
     if (!config) return;
@@ -76,7 +78,7 @@ const ClinicAgent: React.FC = () => {
       setFormError(rpcErrorMessage(rpcError, 'Não foi possível salvar. Tente de novo.'));
       return;
     }
-    toast.success('Agente da clínica salvo');
+    toast.success('Agente da empresa salvo');
     reload();
     reloadDetail();
   };
@@ -85,12 +87,12 @@ const ClinicAgent: React.FC = () => {
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 p-6" data-testid="clinic-agent">
-      <PageHeader eyebrow="Clínica · Agente IA" title="Agente IA" description="Como a assistente atende nesta clínica. Você pode configurar por ela." />
+      <PageHeader eyebrow="Empresa · Agente IA" title="Agente IA" description="Como a assistente atende nesta empresa. Você pode configurar por ela." />
       {error && <ErrorNote message={error} onRetry={reload} />}
 
       {!config ? (
         <Panel>
-          <p className="text-sm text-muted-foreground">Esta clínica ainda não tem a configuração da assistente. Ela é criada no cadastro da clínica ou no primeiro acesso da dona.</p>
+          <p className="text-sm text-muted-foreground">Esta empresa ainda não tem a configuração da assistente. Ela é criada no cadastro da empresa ou no primeiro acesso da dona.</p>
         </Panel>
       ) : (
         <form onSubmit={save} className="flex flex-col gap-6" noValidate>
@@ -101,7 +103,7 @@ const ClinicAgent: React.FC = () => {
                 <Input id="agent-name" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="agent-company">Nome da clínica nas conversas</Label>
+                <Label htmlFor="agent-company">Nome da empresa nas conversas</Label>
                 <Input id="agent-company" placeholder="Studio Bella Pele" value={company} onChange={(e) => setCompany(e.target.value)} />
               </div>
             </div>

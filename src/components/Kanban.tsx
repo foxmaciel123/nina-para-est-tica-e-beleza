@@ -14,8 +14,11 @@ import { PipelineSettingsModal } from './PipelineSettingsModal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { toast } from 'sonner';
 import { useCompanySettings } from '@/hooks/useCompanySettings';
+import { useNiche, cap, g } from '@/hooks/useNiche';
 
 const Kanban: React.FC = () => {
+  const niche = useNiche();
+  const t = niche.terms;
   const { sdrName } = useCompanySettings();
   const [deals, setDeals] = useState<Deal[]>([]);
   const [stages, setStages] = useState<KanbanColumn[]>([]);
@@ -302,15 +305,15 @@ const Kanban: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4 flex-shrink-0">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground" data-testid="pipeline-title">Funil de Clientes</h2>
-          <p className="text-sm text-slate-400 mt-1">Acompanhe cada cliente do primeiro toque ao protocolo concluído.</p>
+          <h2 className="text-3xl font-bold tracking-tight text-foreground" data-testid="pipeline-title">{t.funil}</h2>
+          <p className="text-sm text-slate-400 mt-1">{niche.id === 'estetica' ? 'Acompanhe cada cliente do primeiro toque ao protocolo concluído.' : `Acompanhe cada ${t.cliente} do primeiro contato até fechar.`}</p>
         </div>
         <div className="flex gap-3 w-full sm:w-auto">
           <div className="relative flex-1 sm:w-64">
              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
              <input 
                 type="text" 
-                placeholder="Buscar cliente ou procedimento..."
+                placeholder={`Buscar ${t.cliente} ou ${t.item}...`}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-sm text-slate-200 focus:ring-1 focus:ring-cyan-500 outline-none placeholder:text-slate-600"

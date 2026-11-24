@@ -108,7 +108,7 @@ export const StepFinish: React.FC<StepFinishProps> = ({
   const requiredIncomplete = steps.filter(s => s.isRequired && !s.isComplete);
 
   const assistantName = sdrName || 'Assistente';
-  const clinicName = companyName || 'sua clínica';
+  const clinicName = companyName || 'sua empresa';
 
   const getStatusIcon = (status: 'ok' | 'warning' | 'error') => {
     switch (status) {

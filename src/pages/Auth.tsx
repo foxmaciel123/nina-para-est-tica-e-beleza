@@ -143,7 +143,7 @@ const Auth: React.FC = () => {
           <BrandIcon className="mx-auto mb-4 h-16 w-16 rounded-2xl shadow-primary/30" />
           <BrandEyebrow className="text-[11px] uppercase tracking-[0.35em] text-accent font-semibold" />
           <h1 className="text-2xl font-bold text-foreground mt-2" data-testid="auth-title">
-            {isLogin ? 'Bem-vinda de volta' : 'Sua clínica brilhando com IA'}
+            {isLogin ? 'Que bom te ver de novo' : 'Sua empresa vendendo mais com IA'}
           </h1>
           <p className="text-muted-foreground mt-2">
             {isLogin
@@ -243,7 +243,7 @@ const Auth: React.FC = () => {
               </button>
             )}
             <p className="text-muted-foreground text-xs">
-              O acesso das clínicas é criado pelo suporte.
+              O acesso das empresas é criado pelo suporte.
             </p>
           </div>
         </div>

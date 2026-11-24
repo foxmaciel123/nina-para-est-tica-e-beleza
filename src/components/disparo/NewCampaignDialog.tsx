@@ -211,7 +211,7 @@ const NewCampaignDialog: React.FC<Props> = ({ open, onClose, info, onCreated }) 
             <input type="checkbox" className="mt-1" checked={confirmOptIn} onChange={e => setConfirmOptIn(e.target.checked)} />
             <span className="text-foreground">
               <ShieldCheck className="mr-1 inline h-4 w-4 text-emerald-400" />
-              Confirmo que essas pessoas são clientes ou já falaram com a clínica e aceitam receber mensagens. Quem responder "SAIR" ou "PARAR" sai da lista sozinho.
+              Confirmo que essas pessoas são clientes ou já falaram com a empresa e aceitam receber mensagens. Quem responder "SAIR" ou "PARAR" sai da lista sozinho.
             </span>
           </label>
 

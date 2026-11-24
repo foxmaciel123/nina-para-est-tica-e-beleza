@@ -39,7 +39,7 @@ export const OnboardingBanner: React.FC<OnboardingBannerProps> = ({ onOpenWizard
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-foreground">Vamos deixar sua assistente pronta</h3>
-                <p className="text-sm text-muted-foreground">Em 5 passos a assistente já está atendendo no WhatsApp da sua clínica.</p>
+                <p className="text-sm text-muted-foreground">Em 5 passos a assistente já está atendendo no WhatsApp da sua empresa.</p>
               </div>
             </div>
 

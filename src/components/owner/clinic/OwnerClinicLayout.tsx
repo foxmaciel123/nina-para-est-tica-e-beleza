@@ -49,7 +49,7 @@ const OwnerClinicLayout: React.FC = () => {
     const { data, error: rpcError } = await supabase.rpc('owner_organization_detail', { p_org: id });
     if (rpcError) {
       console.error('[OwnerClinicLayout]', rpcError);
-      setError(rpcError.code === 'P0002' ? 'Clínica não encontrada.' : 'Não foi possível carregar esta clínica.');
+      setError(rpcError.code === 'P0002' ? 'Empresa não encontrada.' : 'Não foi possível carregar esta empresa.');
       return;
     }
     setError(null);
@@ -64,7 +64,7 @@ const OwnerClinicLayout: React.FC = () => {
   const base = `${panel.base}/clinicas/${id}`;
   const groups: OwnerNavGroup[] = [
     {
-      label: 'Clínica',
+      label: 'Empresa',
       items: [
         { label: 'Resumo', to: base, icon: LayoutDashboard, end: true },
         { label: 'WhatsApp', to: `${base}/whatsapp`, icon: MessageCircle },
@@ -79,7 +79,7 @@ const OwnerClinicLayout: React.FC = () => {
   const header = (
     <div className="flex flex-col gap-2 px-1">
       <Link to={`${panel.base}/clinicas`} className="inline-flex w-fit items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="h-3.5 w-3.5" /> Clínicas
+        <ArrowLeft className="h-3.5 w-3.5" /> Empresas
       </Link>
       {detail && (
         <div className="flex flex-col gap-1.5">
@@ -96,7 +96,7 @@ const OwnerClinicLayout: React.FC = () => {
         <div className="flex h-full flex-col items-center justify-center gap-3 p-6 text-center">
           <AlertTriangle className="h-8 w-8 text-destructive" />
           <p className="text-muted-foreground">{error}</p>
-          <Link to={`${panel.base}/clinicas`} className="text-sm font-semibold text-accent hover:underline">Voltar para as clínicas</Link>
+          <Link to={`${panel.base}/clinicas`} className="text-sm font-semibold text-accent hover:underline">Voltar para as empresas</Link>
         </div>
       ) : !detail ? (
         <PageLoader />

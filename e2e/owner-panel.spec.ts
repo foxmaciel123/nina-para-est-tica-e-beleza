@@ -31,7 +31,7 @@ const charges = [
 
 const alerts = [
   { severity: 'critical', kind: 'billing_overdue', organization_id: ORG_B, organization_name: 'Harmoniza Face', title: 'Mensalidade atrasada', detail: 'R$ 297,00 em aberto desde 01/10', since: '2026-10-01T00:00:00Z' },
-  { severity: 'warning', kind: 'whatsapp_pending', organization_id: ORG_B, organization_name: 'Harmoniza Face', title: 'WhatsApp não conectado', detail: 'A clínica foi criada em 10/09 e ainda não conectou o WhatsApp', since: '2026-09-10T00:00:00Z' },
+  { severity: 'warning', kind: 'whatsapp_pending', organization_id: ORG_B, organization_name: 'Harmoniza Face', title: 'WhatsApp não conectado', detail: 'A empresa foi criada em 10/09 e ainda não conectou o WhatsApp', since: '2026-09-10T00:00:00Z' },
 ];
 
 const days = Array.from({ length: 30 }, (_, i) => {
@@ -144,9 +144,9 @@ async function expectHealthy(page: Page, errors: string[]) {
 const ownerPages = [
   { path: '/dono/dashboard', heading: 'Dashboard', shot: 'dono-dashboard', expectText: 'Mensalidade atrasada' },
   { path: '/dono/agencias', heading: 'Agências', shot: 'dono-agencias', expectText: 'Bella Marketing' },
-  { path: '/dono/clinicas', heading: 'Clínicas', shot: 'dono-clinicas', expectText: 'Harmoniza Face' },
+  { path: '/dono/clinicas', heading: 'Empresas', shot: 'dono-clinicas', expectText: 'Harmoniza Face' },
   { path: '/dono/vencimentos', heading: 'Vencimentos', shot: 'dono-vencimentos', expectText: 'Em atraso' },
-  { path: '/dono/consumo-ia', heading: 'Consumo de IA', shot: 'dono-consumo-ia', expectText: 'Por clínica' },
+  { path: '/dono/consumo-ia', heading: 'Consumo de IA', shot: 'dono-consumo-ia', expectText: 'Por empresa' },
   { path: '/dono/alertas', heading: 'Alertas', shot: 'dono-alertas', expectText: 'WhatsApp não conectado' },
   { path: '/dono/marca', heading: 'Marca', shot: 'dono-marca', expectText: 'Prévia' },
   { path: `/dono/clinicas/${ORG_B}`, heading: 'Harmoniza Face', shot: 'clinica-resumo', expectText: 'Uso nos últimos 30 dias' },
@@ -196,16 +196,16 @@ test.describe('Cadastro e configuração de clínica pelo dono', () => {
     const errors = await setup(page);
     await page.goto('/dono/clinicas');
     await page.getByTestId('new-clinic-button').click();
-    await page.getByRole('button', { name: 'Criar clínica' }).click();
-    await expect(page.getByRole('alert')).toHaveText('Informe o nome da clínica.');
+    await page.getByRole('button', { name: 'Criar empresa' }).click();
+    await expect(page.getByRole('alert')).toHaveText('Informe o nome da empresa.');
     await page.locator('#new-clinic-name').fill('Studio Bella Pele');
     await page.locator('#new-clinic-owner').fill('Ana Souza');
     await page.locator('#new-clinic-email').fill('email-invalido');
-    await page.getByRole('button', { name: 'Criar clínica' }).click();
+    await page.getByRole('button', { name: 'Criar empresa' }).click();
     await expect(page.getByRole('alert')).toHaveText('Informe um e-mail válido.');
     await page.locator('#new-clinic-email').fill('ana@bellapele.test');
     await page.locator('#new-clinic-fee').fill('397');
-    await page.getByRole('button', { name: 'Criar clínica' }).click();
+    await page.getByRole('button', { name: 'Criar empresa' }).click();
     await expect(page.getByTestId('clinic-created')).toBeVisible();
     await expect(page.getByTestId('access-link')).toContainText('type=recovery');
     await expect(page.getByText('ana@bellapele.test')).toBeVisible();
@@ -232,7 +232,7 @@ test.describe('Cadastro e configuração de clínica pelo dono', () => {
     await expect(page.getByRole('alert')).toHaveText('Informe o App Secret do aplicativo da Meta.');
     await page.locator('#wa-app-secret').fill('app-secret-de-teste');
     await page.getByRole('button', { name: 'Salvar WhatsApp' }).click();
-    await expect(page.getByText('WhatsApp da clínica salvo')).toBeVisible();
+    await expect(page.getByText('WhatsApp da empresa salvo')).toBeVisible();
     await expectHealthy(page, errors);
   });
 
@@ -265,7 +265,7 @@ test.describe('Cadastro e configuração de clínica pelo dono', () => {
     await expect(page.locator('#agent-prompt')).toHaveValue(/system_instruction/);
     await page.getByRole('radio', { name: 'Avançado', exact: true }).click();
     await page.getByRole('button', { name: 'Salvar agente' }).click();
-    await expect(page.getByText('Agente da clínica salvo')).toBeVisible();
+    await expect(page.getByText('Agente da empresa salvo')).toBeVisible();
     await expectHealthy(page, errors);
   });
 
@@ -432,7 +432,7 @@ test.describe('Agências', () => {
     await page.getByLabel('Nome da agência').fill('Agência Nova');
     await page.getByLabel('Responsável').fill('Rita');
     await page.getByLabel('E-mail de acesso').fill('rita@nova.test');
-    await page.getByLabel('Valor por clínica ativa (R$)').fill('89,90');
+    await page.getByLabel('Valor por empresa ativa (R$)').fill('89,90');
     await page.getByRole('button', { name: 'Criar agência' }).click();
     await expect(page.getByTestId('agency-created')).toBeVisible();
     await expect(page.getByTestId('access-link')).toHaveText('https://api.test/verify?token=ag');
@@ -443,7 +443,7 @@ test.describe('Agências', () => {
     const errors = await setup(page);
     await page.goto('/dono/agencias');
     await page.getByRole('button', { name: 'Editar' }).nth(1).click();
-    await page.getByLabel('Valor por clínica ativa (R$)').fill('79');
+    await page.getByLabel('Valor por empresa ativa (R$)').fill('79');
     const saved = page.waitForRequest(/\/rpc\/owner_update_agency/);
     await page.getByRole('button', { name: 'Salvar', exact: true }).click();
     expect((await saved).postDataJSON()).toMatchObject({ p_name: 'Glow Digital', p_fee_per_clinic: 79 });
@@ -484,7 +484,7 @@ async function setupAgency(page: Page, status = 'active') {
 test.describe('Painel da Agência', () => {
   const agencyPages = [
     { path: '/agencia/dashboard', heading: 'Visão geral · Bella Marketing', shot: 'agencia-visao', expectText: 'Sua fatura do mês' },
-    { path: '/agencia/clinicas', heading: 'Clínicas', shot: 'agencia-clinicas', expectText: 'Harmoniza Face' },
+    { path: '/agencia/clinicas', heading: 'Empresas', shot: 'agencia-clinicas', expectText: 'Harmoniza Face' },
     { path: '/agencia/alertas', heading: 'Alertas', shot: 'agencia-alertas', expectText: 'WhatsApp não conectado' },
     { path: '/agencia/mensalidades', heading: 'Vencimentos', shot: 'agencia-mensalidades', expectText: 'Em atraso' },
     { path: `/agencia/clinicas/${ORG_B}`, heading: 'Harmoniza Face', shot: 'agencia-clinica', expectText: 'Uso nos últimos 30 dias' },
@@ -529,12 +529,12 @@ test.describe('Painel da Agência', () => {
     await page.goto('/agencia/clinicas');
     await page.getByTestId('new-clinic-button').click();
     await expect(page.getByLabel('Agência', { exact: true })).toHaveCount(0);
-    await page.getByLabel('Nome da clínica').fill('Clínica Lumière');
+    await page.getByLabel('Nome da empresa').fill('Clínica Lumière');
     await page.getByLabel('Nome da dona').fill('Lúcia');
     await page.getByLabel('E-mail de acesso da dona').fill('lucia@lumiere.test');
-    await page.getByRole('button', { name: 'Criar clínica' }).click();
+    await page.getByRole('button', { name: 'Criar empresa' }).click();
     await expect(page.getByTestId('clinic-created')).toBeVisible();
-    await page.getByRole('button', { name: 'Abrir clínica' }).click();
+    await page.getByRole('button', { name: 'Abrir empresa' }).click();
     await expect(page).toHaveURL(new RegExp(`/agencia/clinicas/${ORG_B}$`));
     await expectHealthy(page, errors);
   });

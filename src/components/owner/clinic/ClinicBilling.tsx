@@ -19,7 +19,7 @@ const ClinicBilling: React.FC = () => {
     const { data, error: rpcError } = await supabase.rpc('owner_list_charges', { p_org: org.id });
     if (rpcError) {
       console.error('[ClinicBilling]', rpcError);
-      setError('Não foi possível carregar as cobranças desta clínica.');
+      setError('Não foi possível carregar as cobranças desta empresa.');
     } else {
       setCharges(data ?? []);
     }
@@ -38,9 +38,9 @@ const ClinicBilling: React.FC = () => {
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6 p-6" data-testid="clinic-billing">
       <PageHeader
-        eyebrow="Clínica · Cobrança"
+        eyebrow="Empresa · Cobrança"
         title="Cobrança"
-        description="Mensalidades desta clínica. A cobrança é feita por fora; registre aqui o pagamento."
+        description="Mensalidades desta empresa. A cobrança é feita por fora; registre aqui o pagamento."
         actions={
           <Button onClick={() => setCreating(true)} className="gap-2">
             <Plus className="h-4 w-4" /> Nova cobrança

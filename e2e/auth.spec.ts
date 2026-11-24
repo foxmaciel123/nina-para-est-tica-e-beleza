@@ -22,10 +22,10 @@ test.describe('Página de autenticação', () => {
     await expect.poll(() => page.evaluate(() => document.documentElement.style.getPropertyValue('--accent'))).toBe('336 78% 43%');
   });
 
-  test('título inicial é o de login (modo "bem-vinda de volta")', async ({ page }) => {
+  test('título inicial é o de login ("que bom te ver de novo")', async ({ page }) => {
     const title = page.getByTestId('auth-title');
     await expect(title).toBeVisible();
-    await expect(title).toHaveText(/bem-vinda de volta/i);
+    await expect(title).toHaveText(/que bom te ver de novo/i);
   });
 
   test('subtítulo fala da clínica/agenda e não de SaaS genérico', async ({ page }) => {
@@ -36,7 +36,7 @@ test.describe('Página de autenticação', () => {
 
   test('não oferece cadastro público (acesso criado pelo suporte)', async ({ page }) => {
     await expect(page.getByRole('button', { name: /criar conta/i })).toHaveCount(0);
-    await expect(page.getByText(/o acesso das clínicas é criado pelo suporte/i)).toBeVisible();
+    await expect(page.getByText(/o acesso das empresas é criado pelo suporte/i)).toBeVisible();
   });
 
   test('esqueci minha senha pede o e-mail antes', async ({ page }) => {

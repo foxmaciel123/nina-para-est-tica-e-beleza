@@ -3,8 +3,11 @@ import { Plus, Pencil, Trash2, Loader2, Save, X, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '../Button';
+import { useNiche, cap } from '@/hooks/useNiche';
+import type { Niche } from '@/niches/registry';
 
-type Category = 'facial' | 'corporal' | 'harmonizacao' | 'capilar' | 'bem_estar' | 'pos_operatorio' | 'outro';
+// Categorias vêm do nicho da empresa (src/niches/registry.ts)
+type Category = string;
 
 interface Procedure {
   id: string;
@@ -21,24 +24,21 @@ interface Procedure {
   is_active: boolean;
 }
 
-const CATEGORY_LABELS: Record<Category, string> = {
-  facial: 'Facial',
-  corporal: 'Corporal',
-  harmonizacao: 'Harmonização',
-  capilar: 'Capilar',
-  bem_estar: 'Bem-estar',
-  pos_operatorio: 'Pós-operatório',
-  outro: 'Outro'
-};
+const categoryLabel = (niche: Niche, value: string) =>
+  niche.categories.find((c) => c.value === value)?.label ?? (value ? cap(value.replace(/_/g, ' ')) : 'Outro');
 
-const emptyForm = (): Partial<Procedure> => ({
+// Contraindicação e cuidados pré/pós só fazem sentido em saúde e beleza
+const hasCareFields = (niche: Niche) => ['estetica', 'odonto', 'saude', 'salao'].includes(niche.id);
+
+const emptyForm = (niche: Niche): Partial<Procedure> => ({
   name: '',
-  category: 'facial',
+  category: niche.categories[0]?.value ?? 'outro',
   description: '',
   duration_minutes: 60,
   price_min: null,
   price_max: null,
-  price_visible: false,
+  // Quem vende por pedido mostra o preço; quem agenda costuma falar na avaliação
+  price_visible: niche.features.pedidos,
   contraindications: '',
   pre_care: '',
   post_care: '',
@@ -46,6 +46,8 @@ const emptyForm = (): Partial<Procedure> => ({
 });
 
 export const ProceduresManager: React.FC = () => {
+  const niche = useNiche();
+  const t = niche.terms;
   const [procedures, setProcedures] = useState<Procedure[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Partial<Procedure> | null>(null);
@@ -60,7 +62,7 @@ export const ProceduresManager: React.FC = () => {
       .order('name');
 
     if (error) {
-      toast.error('Erro ao carregar procedimentos');
+      toast.error(`Erro ao carregar ${t.itens}`);
       console.error(error);
     } else {
       setProcedures((data as unknown as Procedure[]) || []);
@@ -100,7 +102,7 @@ export const ProceduresManager: React.FC = () => {
     if (error) {
       toast.error('Erro ao salvar: ' + error.message);
     } else {
-      toast.success(editing.id ? 'Procedimento atualizado' : 'Procedimento criado');
+      toast.success(editing.id ? 'Atualizado' : 'Cadastrado');
       setEditing(null);
       load();
     }
@@ -108,11 +110,12 @@ export const ProceduresManager: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza? A assistente vai parar de oferecer este procedimento.')) return;
+    const name = procedures.find((p) => p.id === id)?.name ?? '';
+    if (!confirm(`Remover "${name}"? A assistente vai parar de oferecer.`)) return;
     const { error } = await (supabase as any).from('procedures').delete().eq('id', id);
     if (error) toast.error('Erro ao remover');
     else {
-      toast.success('Procedimento removido');
+      toast.success('Removido');
       load();
     }
   };
@@ -131,30 +134,30 @@ export const ProceduresManager: React.FC = () => {
         <div>
           <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary" />
-            Catálogo de Procedimentos
+            Catálogo de {t.catalogo}
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Tudo que a A assistente pode oferecer. Ela só fala sobre o que está cadastrado aqui.
+            Tudo que a assistente pode oferecer. Ela só fala sobre o que está cadastrado aqui.
           </p>
         </div>
-        <Button onClick={() => setEditing(emptyForm())} className="gap-2">
+        <Button onClick={() => setEditing(emptyForm(niche))} className="gap-2">
           <Plus className="w-4 h-4" />
           Novo
         </Button>
       </div>
 
-      {editing && <ProcedureForm editing={editing} setEditing={setEditing} onSave={handleSave} saving={saving} />}
+      {editing && <ProcedureForm niche={niche} editing={editing} setEditing={setEditing} onSave={handleSave} saving={saving} />}
 
       {procedures.length === 0 && !editing && (
         <div className="rounded-2xl border border-dashed border-border bg-card/30 p-12 text-center">
           <Sparkles className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
-          <p className="text-foreground font-medium mb-1">Nenhum procedimento cadastrado</p>
+          <p className="text-foreground font-medium mb-1">Nada cadastrado em {t.catalogo} ainda</p>
           <p className="text-sm text-muted-foreground mb-4">
-            Cadastre os protocolos da sua clínica pra assistente poder oferecer com segurança.
+            Cadastre {t.itens} da sua empresa pra assistente poder oferecer com segurança.
           </p>
-          <Button onClick={() => setEditing(emptyForm())} variant="ghost" className="gap-2">
+          <Button onClick={() => setEditing(emptyForm(niche))} variant="ghost" className="gap-2">
             <Plus className="w-4 h-4" />
-            Cadastrar primeiro procedimento
+            Cadastrar {t.item}
           </Button>
         </div>
       )}
@@ -167,7 +170,7 @@ export const ProceduresManager: React.FC = () => {
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-semibold text-foreground">{p.name}</span>
                   <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/20">
-                    {CATEGORY_LABELS[p.category]}
+                    {categoryLabel(niche, p.category)}
                   </span>
                   {!p.is_active && (
                     <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
@@ -179,13 +182,13 @@ export const ProceduresManager: React.FC = () => {
                   <p className="text-sm text-muted-foreground line-clamp-1">{p.description}</p>
                 )}
                 <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                  <span>{p.duration_minutes} min</span>
+                  {niche.features.agenda && <span>{p.duration_minutes} min</span>}
                   {p.price_visible && p.price_min && (
                     <span>
                       R$ {p.price_min}{p.price_max ? ` – R$ ${p.price_max}` : ''}
                     </span>
                   )}
-                  {!p.price_visible && <span className="italic">Preço sob avaliação</span>}
+                  {!p.price_visible && <span className="italic">Preço só com a equipe</span>}
                 </div>
               </div>
               <div className="flex gap-1">
@@ -213,13 +216,16 @@ export const ProceduresManager: React.FC = () => {
 };
 
 interface ProcedureFormProps {
+  niche: Niche;
   editing: Partial<Procedure>;
   setEditing: (p: Partial<Procedure> | null) => void;
   onSave: () => void;
   saving: boolean;
 }
 
-const ProcedureForm: React.FC<ProcedureFormProps> = ({ editing, setEditing, onSave, saving }) => {
+const ProcedureForm: React.FC<ProcedureFormProps> = ({ niche, editing, setEditing, onSave, saving }) => {
+  const t = niche.terms;
+  const sellsByOrder = niche.features.pedidos;
   const inputClass =
     'flex h-10 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50';
   const textareaClass =
@@ -229,7 +235,7 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ editing, setEditing, onSa
     <div className="rounded-2xl border border-primary/30 bg-card/80 p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h4 className="text-base font-semibold text-foreground">
-          {editing.id ? 'Editar procedimento' : 'Novo procedimento'}
+          {editing.id ? `Editar ${t.item}` : `Cadastrar ${t.item}`}
         </h4>
         <button
           onClick={() => setEditing(null)}
@@ -246,7 +252,7 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ editing, setEditing, onSa
             type="text"
             value={editing.name || ''}
             onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-            placeholder="Ex: Botox frontal, Limpeza de pele profunda"
+            placeholder={niche.id === 'estetica' ? 'Ex: Botox frontal, Limpeza de pele profunda' : 'Nome como o cliente conhece'}
             className={inputClass}
           />
         </div>
@@ -257,9 +263,12 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ editing, setEditing, onSa
             onChange={(e) => setEditing({ ...editing, category: e.target.value as Category })}
             className={inputClass}
           >
-            {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-              <option key={key} value={key}>{label}</option>
+            {niche.categories.map((c) => (
+              <option key={c.value} value={c.value}>{c.label}</option>
             ))}
+            {editing.category && !niche.categories.some((c) => c.value === editing.category) && (
+              <option value={editing.category}>{categoryLabel(niche, editing.category)}</option>
+            )}
           </select>
         </div>
       </div>
@@ -269,13 +278,14 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ editing, setEditing, onSa
         <textarea
           value={editing.description || ''}
           onChange={(e) => setEditing({ ...editing, description: e.target.value })}
-          placeholder="Como a A assistente pode descrever pra cliente"
+          placeholder={`Como a assistente pode descrever para o ${t.cliente}`}
           rows={2}
           className={textareaClass}
         />
       </div>
 
       <div className="grid grid-cols-3 gap-4">
+        {niche.features.agenda && (
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Duração (min) *</label>
           <input
@@ -285,8 +295,9 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ editing, setEditing, onSa
             className={inputClass}
           />
         </div>
+        )}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Preço mín. (R$)</label>
+          <label className="text-sm font-medium text-foreground">{sellsByOrder ? 'Preço (R$)' : 'Preço mín. (R$)'}</label>
           <input
             type="number"
             step="0.01"
@@ -296,7 +307,7 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ editing, setEditing, onSa
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">Preço máx. (R$)</label>
+          <label className="text-sm font-medium text-foreground">{sellsByOrder ? 'Preço máx. (opcional)' : 'Preço máx. (R$)'}</label>
           <input
             type="number"
             step="0.01"
@@ -328,6 +339,7 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ editing, setEditing, onSa
         </label>
       </div>
 
+      {hasCareFields(niche) && (
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <label className="text-sm font-medium text-foreground">Contraindicações</label>
@@ -360,6 +372,7 @@ const ProcedureForm: React.FC<ProcedureFormProps> = ({ editing, setEditing, onSa
           />
         </div>
       </div>
+      )}
 
       <div className="flex justify-end gap-3 pt-2">
         <Button variant="ghost" onClick={() => setEditing(null)} disabled={saving}>

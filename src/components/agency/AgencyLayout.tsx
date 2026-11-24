@@ -10,7 +10,7 @@ const GROUPS: OwnerNavGroup[] = [
     label: 'Visão',
     items: [
       { label: 'Visão geral', to: '/agencia/dashboard', icon: LayoutDashboard },
-      { label: 'Clínicas', to: '/agencia/clinicas', icon: Building2 },
+      { label: 'Empresas', to: '/agencia/clinicas', icon: Building2 },
       { label: 'Alertas', to: '/agencia/alertas', icon: AlertTriangle },
     ],
   },

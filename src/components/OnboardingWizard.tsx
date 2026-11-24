@@ -15,7 +15,10 @@ import { StepFinish } from './onboarding/StepFinish';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import PromptGeneratorSheet from './settings/PromptGeneratorSheet';
-import { DEFAULT_NINA_PROMPT } from '@/prompts/default-nina-prompt';
+import { defaultPromptForNiche, isFactoryPrompt } from '@/niches/prompt';
+import { applyBusinessNiche, saveCompanyLogo } from '@/niches/actions';
+import { getNiche, type NicheId } from '@/niches/registry';
+import { useCompanySettings } from '@/hooks/useCompanySettings';
 
 interface OnboardingWizardProps {
   isOpen: boolean;
@@ -197,6 +200,11 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onCl
   // Form state - Identity
   const [companyName, setCompanyName] = useState('');
   const [sdrName, setSdrName] = useState('');
+  const [businessNiche, setBusinessNiche] = useState<string>('estetica');
+  const [savedNiche, setSavedNiche] = useState<string>('estetica');
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [savedLogo, setSavedLogo] = useState<string | null>(null);
+  const { refetch: refetchCompany } = useCompanySettings();
   
   // Form state - WhatsApp
   const [accessToken, setAccessToken] = useState('');
@@ -244,6 +252,11 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onCl
           // Identity
           setCompanyName(data.company_name || '');
           setSdrName(data.sdr_name || '');
+          const niche = (data as any).business_niche || 'estetica';
+          setBusinessNiche(niche);
+          setSavedNiche(niche);
+          setLogoUrl((data as any).company_logo_url || null);
+          setSavedLogo((data as any).company_logo_url || null);
           
           // WhatsApp
           setAccessToken(data.whatsapp_access_token || '');
@@ -252,7 +265,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onCl
           setVerifyToken(data.whatsapp_verify_token || '');
           
           // Agent - usar prompt padrão se vazio
-          setSystemPrompt(data.system_prompt_override || DEFAULT_NINA_PROMPT);
+          setSystemPrompt(data.system_prompt_override || defaultPromptForNiche((data as any).business_niche));
           setAiModelMode(data.ai_model_mode || 'flash');
           
           // ElevenLabs
@@ -292,7 +305,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onCl
     switch (stepIndex) {
       case 0: // Identity
         console.log('[OnboardingWizard] Step 0 (Identity) values:', { companyName, sdrName });
-        if (!companyName?.trim()) issues.push('Nome da clínica/salão está vazio');
+        if (!companyName?.trim()) issues.push('Nome da empresa está vazio');
         if (!sdrName?.trim()) issues.push('Nome da assistente está vazio');
         break;
       case 1: // WhatsApp
@@ -407,7 +420,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onCl
         whatsapp_verify_token: verifyToken?.trim() || null,
         
         // Agent - use default prompt if empty
-        system_prompt_override: systemPrompt?.trim() || DEFAULT_NINA_PROMPT,
+        system_prompt_override: systemPrompt?.trim() || defaultPromptForNiche(businessNiche),
         ai_model_mode: aiModelMode || 'flash',
         
         // ElevenLabs
@@ -440,6 +453,17 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onCl
         is_active: settings.is_active,
         auto_response_enabled: settings.auto_response_enabled,
       });
+
+      // Tipo de negócio: aplica antes de gravar o resto, para o "desfazer"
+      // guardar o funil e o prompt de antes da troca.
+      let nicheApplied = businessNiche === savedNiche;
+      if (existing && !nicheApplied) {
+        const res = await applyBusinessNiche(businessNiche, settings.system_prompt_override);
+        nicheApplied = res.ok;
+        if (res.ok) setSavedNiche(businessNiche);
+        else if (res.missingBackend) toast.warning('O tipo de negócio fica salvo quando o servidor for atualizado.');
+        else toast.error('Não foi possível trocar o tipo de negócio: ' + res.error);
+      }
 
       // Step 3: Save to database
       let result;
@@ -518,6 +542,18 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onCl
         }
       }
       
+      if (!existing && !nicheApplied) {
+        const res = await applyBusinessNiche(businessNiche, settings.system_prompt_override);
+        if (res.ok) setSavedNiche(businessNiche);
+      }
+      if (logoUrl !== savedLogo) {
+        const res = await saveCompanyLogo(logoUrl);
+        if (res.ok) setSavedLogo(logoUrl);
+        else if (res.missingBackend) toast.warning('O logo fica salvo quando o servidor for atualizado.');
+        else toast.error('Não foi possível salvar o logo: ' + res.error);
+      }
+      refetchCompany();
+
       console.log('[OnboardingWizard] ✓ Settings saved successfully!');
       console.log('[OnboardingWizard] ========================================');
       
@@ -535,7 +571,8 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onCl
     user, activeStep, companyName, sdrName, accessToken, phoneNumberId, businessAccountId, verifyToken, 
     systemPrompt, aiModelMode, elevenLabsApiKey, elevenLabsVoiceId, elevenLabsModel,
     audioResponseEnabled, elevenLabsStability, elevenLabsSimilarityBoost, elevenLabsSpeed,
-    timezone, businessHoursStart, businessHoursEnd, businessDays, refetch
+    timezone, businessHoursStart, businessHoursEnd, businessDays, refetch,
+    businessNiche, savedNiche, logoUrl, savedLogo, refetchCompany
   ]);
 
   const handleNext = async () => {
@@ -592,7 +629,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onCl
     await saveSettings();
     markWizardSeen();
     fireConfetti();
-    toast.success('Tudo pronto! A assistente já pode começar a atender as suas clientes ✨');
+    toast.success('Tudo pronto! A assistente já pode começar a atender ✨');
     onClose();
     // Refresh após delay para atualizar o estado do onboarding em toda a aplicação
     setTimeout(() => window.location.reload(), 800);
@@ -614,8 +651,16 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onCl
           <StepIdentity
             companyName={companyName}
             sdrName={sdrName}
+            businessNiche={businessNiche}
+            logoUrl={logoUrl}
             onCompanyNameChange={setCompanyName}
             onSdrNameChange={setSdrName}
+            onBusinessNicheChange={(id: NicheId) => {
+              // Prompt ainda de fábrica? Troca junto para o do novo nicho.
+              if (isFactoryPrompt(systemPrompt)) setSystemPrompt(defaultPromptForNiche(id));
+              setBusinessNiche(id);
+            }}
+            onLogoUrlChange={setLogoUrl}
           />
         );
       case 1:
@@ -640,6 +685,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({ isOpen, onCl
             onSystemPromptChange={setSystemPrompt}
             onAiModelModeChange={setAiModelMode}
             onGeneratePrompt={() => setShowPromptGenerator(true)}
+            showGenerator={getNiche(businessNiche).group === 'Saúde e beleza'}
           />
         );
       case 3:

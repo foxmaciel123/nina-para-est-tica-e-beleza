@@ -58,7 +58,7 @@ const NewAgencyDialog: React.FC<{ open: boolean; onClose: () => void; onCreated:
     if (!name.trim()) return setError('Informe o nome da agência.');
     if (!ownerName.trim()) return setError('Informe o nome do responsável.');
     if (!EMAIL_RE.test(email.trim())) return setError('Informe um e-mail válido.');
-    if (feeValue === 'invalid') return setError('Informe um valor por clínica válido, ou deixe em branco.');
+    if (feeValue === 'invalid') return setError('Informe um valor por empresa válido, ou deixe em branco.');
     setError(null);
     setSaving(true);
     try {
@@ -87,7 +87,7 @@ const NewAgencyDialog: React.FC<{ open: boolean; onClose: () => void; onCreated:
               <DialogTitle className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-emerald-500" /> Agência criada
               </DialogTitle>
-              <DialogDescription>{name} já pode entrar no painel da agência e cadastrar as clínicas dela.</DialogDescription>
+              <DialogDescription>{name} já pode entrar no painel da agência e cadastrar as empresas dela.</DialogDescription>
             </DialogHeader>
             <AccessLinkBox link={created.access_link} email={created.email} who="o responsável pela agência" resendHint="na lista de agências" />
             <DialogFooter>
@@ -118,7 +118,7 @@ const NewAgencyDialog: React.FC<{ open: boolean; onClose: () => void; onCreated:
                 <Input id="new-agency-email" type="email" placeholder="contato@bellamarketing.com.br" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
               <div className="flex flex-col gap-2 sm:col-span-2">
-                <Label htmlFor="new-agency-fee">Valor por clínica ativa (R$)</Label>
+                <Label htmlFor="new-agency-fee">Valor por empresa ativa (R$)</Label>
                 <Input id="new-agency-fee" inputMode="decimal" placeholder="Deixe em branco se ainda não combinou" value={fee} onChange={(e) => setFee(e.target.value)} />
               </div>
             </div>
@@ -166,7 +166,7 @@ const EditAgencyDialog: React.FC<{ agency: AgencyRow | null; onClose: () => void
     e.preventDefault();
     const feeValue = parseFee(fee);
     if (!name.trim()) return setError('Informe o nome da agência.');
-    if (feeValue === 'invalid') return setError('Informe um valor por clínica válido, ou deixe em branco.');
+    if (feeValue === 'invalid') return setError('Informe um valor por empresa válido, ou deixe em branco.');
     setSaving(true);
     const { error: rpcError } = await supabase.rpc('owner_update_agency' as any, {
       p_agency: agency.id, p_name: name, p_fee_per_clinic: feeValue,
@@ -209,7 +209,7 @@ const EditAgencyDialog: React.FC<{ agency: AgencyRow | null; onClose: () => void
           <DialogHeader>
             <DialogTitle>{agency.name}</DialogTitle>
             <DialogDescription>
-              {formatNumber(agency.clinics_active)} clínica(s) ativa(s) · {agency.admin_email ?? 'sem conta de acesso'}
+              {formatNumber(agency.clinics_active)} empresa(s) ativa(s) · {agency.admin_email ?? 'sem conta de acesso'}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -218,7 +218,7 @@ const EditAgencyDialog: React.FC<{ agency: AgencyRow | null; onClose: () => void
               <Input id="edit-agency-name" value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div className="flex flex-col gap-2 sm:col-span-2">
-              <Label htmlFor="edit-agency-fee">Valor por clínica ativa (R$)</Label>
+              <Label htmlFor="edit-agency-fee">Valor por empresa ativa (R$)</Label>
               <Input id="edit-agency-fee" inputMode="decimal" placeholder="Em branco = ainda não combinado" value={fee} onChange={(e) => setFee(e.target.value)} />
             </div>
             <div className="flex flex-col gap-2">
@@ -294,7 +294,7 @@ const OwnerAgencies: React.FC = () => {
       <PageHeader
         eyebrow="Painel do Dono · Visão"
         title="Agências"
-        description="Agências que revendem o sistema com a marca delas. Cada uma paga por clínica ativa."
+        description="Agências que revendem o sistema com a marca delas. Cada uma paga por empresa ativa."
         actions={
           <Button onClick={() => setCreating(true)} className="gap-2" data-testid="new-agency-button">
             <Plus className="h-4 w-4" /> Nova agência
@@ -306,11 +306,11 @@ const OwnerAgencies: React.FC = () => {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Stat label="Agências ativas" value={formatNumber(active.length)} />
-        <Stat label="Clínicas ativas pelas agências" value={formatNumber(clinics)} />
+        <Stat label="Empresas ativas pelas agências" value={formatNumber(clinics)} />
         <Stat
           label="A receber das agências no mês"
           value={formatBRL(toReceive)}
-          hint={noFee > 0 ? `${formatNumber(noFee)} agência(s) sem valor combinado` : 'Clínicas ativas × valor de cada agência'}
+          hint={noFee > 0 ? `${formatNumber(noFee)} agência(s) sem valor combinado` : 'Empresas ativas × valor de cada agência'}
           tone={noFee > 0 ? 'warn' : 'default'}
         />
       </div>
@@ -321,8 +321,8 @@ const OwnerAgencies: React.FC = () => {
             <tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground">
               <th className="px-4 py-3 font-semibold">Agência</th>
               <th className="px-4 py-3 font-semibold">Acesso</th>
-              <th className="px-4 py-3 text-right font-semibold">Clínicas ativas</th>
-              <th className="px-4 py-3 text-right font-semibold">Valor por clínica</th>
+              <th className="px-4 py-3 text-right font-semibold">Empresas ativas</th>
+              <th className="px-4 py-3 text-right font-semibold">Valor por empresa</th>
               <th className="px-4 py-3 text-right font-semibold">Total do mês</th>
               <th className="px-4 py-3 font-semibold">Desde</th>
               <th className="px-4 py-3"><span className="sr-only">Editar</span></th>
@@ -368,7 +368,7 @@ const OwnerAgencies: React.FC = () => {
       </div>
 
       <p className="text-sm text-muted-foreground">
-        As clínicas de cada agência aparecem em “Clínicas”, com o nome da agência. Para passar uma clínica sua para uma agência, abra a clínica e troque em “Agência”.
+        As empresas de cada agência aparecem em “Empresas”, com o nome da agência. Para passar uma empresa sua para uma agência, abra a empresa e troque em “Agência”.
       </p>
 
       <NewAgencyDialog open={creating} onClose={() => setCreating(false)} onCreated={load} />

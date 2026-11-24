@@ -62,8 +62,8 @@ export function useOnboardingStatus(): OnboardingStatus {
   const [steps, setSteps] = useState<OnboardingStep[]>([
     {
       id: 'identity',
-      title: 'Identidade',
-      description: 'Configure o nome da empresa e do agente',
+      title: 'Seu negócio',
+      description: 'Tipo de negócio, nome, logo e assistente',
       isComplete: false,
       isRequired: true,
     },

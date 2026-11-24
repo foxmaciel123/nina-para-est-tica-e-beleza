@@ -43,16 +43,16 @@ export const PRESETS: { label: string; hint: string; seq: Sequence }[] = [
       name: 'Cliente parou de responder', active: false, trigger_type: 'sem_resposta', trigger_hours: 3, trigger_tag: null,
       stop_on_reply: true, window_start: 8, window_end: 20,
       steps: [
-        emptyStep('texto', 0, 'Oi {nome}! Conseguiu ver minha última mensagem? Se tiver alguma dúvida sobre o procedimento, é só me chamar 😊'),
+        emptyStep('texto', 0, 'Oi {nome}! Conseguiu ver minha última mensagem? Se tiver alguma dúvida, é só me chamar 😊'),
         emptyStep('modelo', 24),
       ],
     },
   },
   {
-    label: 'Depois do procedimento',
+    label: 'Depois do atendimento',
     hint: 'Pergunta como a cliente está e pede avaliação',
     seq: {
-      name: 'Pós-procedimento', active: false, trigger_type: 'apos_agendamento', trigger_hours: 24, trigger_tag: null,
+      name: 'Pós-atendimento', active: false, trigger_type: 'apos_agendamento', trigger_hours: 24, trigger_tag: null,
       stop_on_reply: true, window_start: 9, window_end: 19,
       steps: [emptyStep('modelo', 0), emptyStep('modelo', 24 * 30)],
     },

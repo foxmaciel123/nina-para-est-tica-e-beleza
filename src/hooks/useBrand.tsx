@@ -15,7 +15,7 @@ export interface Brand {
 
 export const NEUTRAL_BRAND: Brand = {
   name: 'Atendimento IA',
-  tagline: 'Atendimento com IA para clínicas',
+  tagline: 'Atendimento com IA no WhatsApp',
   logo_url: null,
   icon_url: null,
   accent_color: null,

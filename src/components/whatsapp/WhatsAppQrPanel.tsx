@@ -159,7 +159,7 @@ const WhatsAppQrPanel: React.FC<{ organizationId?: string; onChange?: () => void
         <div className="flex flex-col items-center gap-3 rounded-lg border border-border p-4 text-center" data-testid="qr-code">
           <img src={qr} alt="QR code para conectar o WhatsApp" className="h-60 w-60 rounded-md bg-white p-2" />
           <p className="max-w-sm text-sm text-muted-foreground">
-            No celular da clínica, abra o WhatsApp → <strong>Aparelhos conectados</strong> → <strong>Conectar um aparelho</strong> e aponte para o QR code.
+            No celular da empresa, abra o WhatsApp → <strong>Aparelhos conectados</strong> → <strong>Conectar um aparelho</strong> e aponte para o QR code.
           </p>
           <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
             <Loader2 className="h-3.5 w-3.5 animate-spin" /> Aguardando a leitura…

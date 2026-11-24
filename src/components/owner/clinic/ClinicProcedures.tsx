@@ -14,21 +14,11 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Chip, ErrorNote, PageHeader, PageLoader, Panel, formatBRL } from '../ownerUi';
-import { rpcErrorMessage } from '../ownerApi';
+import { rpcErrorMessage, useClinicConfig } from '../ownerApi';
+import { getNiche } from '@/niches/registry';
 import { useClinic } from './OwnerClinicLayout';
 
 type Procedure = Database['public']['Tables']['procedures']['Row'];
-
-// Mesmas categorias do cadastro de procedimentos da clínica (ProceduresManager)
-const CATEGORIES: Record<string, string> = {
-  facial: 'Facial',
-  corporal: 'Corporal',
-  harmonizacao: 'Harmonização',
-  capilar: 'Capilar',
-  bem_estar: 'Bem-estar',
-  pos_operatorio: 'Pós-operatório',
-  outro: 'Outro',
-};
 
 interface FormState {
   id?: string;
@@ -36,8 +26,8 @@ interface FormState {
   price_visible: boolean; description: string; contraindications: string; pre_care: string; post_care: string; is_active: boolean;
 }
 
-const emptyForm = (): FormState => ({
-  name: '', category: 'facial', duration_minutes: '60', price_min: '', price_max: '', price_visible: false,
+const emptyForm = (category = 'outro'): FormState => ({
+  name: '', category, duration_minutes: '60', price_min: '', price_max: '', price_visible: false,
   description: '', contraindications: '', pre_care: '', post_care: '', is_active: true,
 });
 
@@ -59,6 +49,10 @@ const selectClass = 'flex h-10 w-full rounded-md border border-input bg-backgrou
 const ClinicProcedures: React.FC = () => {
   const { detail } = useClinic();
   const orgId = detail.organization.id;
+  // Categorias do tipo de negócio da empresa (mesmas do cadastro dela)
+  const { config } = useClinicConfig(orgId);
+  const niche = getNiche(config?.business_niche);
+  const CATEGORIES: Record<string, string> = Object.fromEntries(niche.categories.map((c) => [c.value, c.label]));
   const [items, setItems] = useState<Procedure[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -132,11 +126,11 @@ const ClinicProcedures: React.FC = () => {
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6 p-6" data-testid="clinic-procedures">
       <PageHeader
-        eyebrow="Clínica · Procedimentos"
+        eyebrow="Empresa · Procedimentos"
         title="Procedimentos"
-        description="O que a clínica oferece. A assistente usa essa lista para explicar procedimentos, preços e cuidados."
+        description="O que a empresa oferece. A assistente usa essa lista para explicar procedimentos, preços e cuidados."
         actions={
-          <Button onClick={() => { setForm(emptyForm()); setFormError(null); }} className="gap-2">
+          <Button onClick={() => { setForm(emptyForm(niche.categories[0]?.value)); setFormError(null); }} className="gap-2">
             <Plus className="h-4 w-4" /> Novo procedimento
           </Button>
         }
@@ -194,7 +188,7 @@ const ClinicProcedures: React.FC = () => {
             <form onSubmit={save} className="flex flex-col gap-4" noValidate>
               <DialogHeader>
                 <DialogTitle>{form.id ? 'Editar procedimento' : 'Novo procedimento'}</DialogTitle>
-                <DialogDescription>Essas informações são usadas pela assistente nas conversas desta clínica.</DialogDescription>
+                <DialogDescription>Essas informações são usadas pela assistente nas conversas desta empresa.</DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="flex flex-col gap-2 sm:col-span-2">

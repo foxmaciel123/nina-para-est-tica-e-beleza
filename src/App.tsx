@@ -9,6 +9,7 @@ import Settings from './components/Settings';
 import Team from './components/Team';
 import Scheduling from './components/Scheduling';
 import Kanban from './components/Kanban';
+import Orders from './components/orders/Orders';
 import Auth from './pages/Auth';
 import ProtectedRoute from './components/ProtectedRoute';
 import { RequireAgency, RequireClinic, RequireOwner } from './components/AccessGates';
@@ -53,7 +54,7 @@ const AppLayout: React.FC = () => {
   // mostram o aviso "Configuração pendente" e ela só abre quando clicam.
 
   return (
-    <div className="flex h-screen w-full bg-background text-foreground overflow-hidden">
+    <div className="flex flex-col md:flex-row h-screen w-full bg-background text-foreground overflow-hidden">
       {/* Background Ambient Glows */}
       <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[128px] pointer-events-none -translate-x-1/2 -translate-y-1/2 z-0"></div>
       <div className="fixed bottom-0 right-0 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[128px] pointer-events-none translate-x-1/2 translate-y-1/2 z-0"></div>
@@ -110,6 +111,7 @@ const App: React.FC = () => {
                   <Route path="/pipeline" element={<Kanban />} />
                   <Route path="/chat" element={<ChatInterface />} />
                   <Route path="/contacts" element={<Contacts />} />
+                  <Route path="/pedidos" element={<Orders />} />
                   <Route path="/scheduling" element={<Scheduling />} />
                   <Route path="/team" element={<Team />} />
                   <Route path="/disparo" element={<Disparo />} />

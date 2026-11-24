@@ -24,7 +24,7 @@ const Privacy: React.FC = () => {
   ].filter(Boolean);
   const contactText = contacts.length
     ? `pelo ${contacts.join(' ou pelo ')}`
-    : 'pelos canais de atendimento da clínica que falou com você';
+    : 'pelos canais de atendimento da empresa que falou com você';
 
   return (
     <div className="min-h-screen bg-background px-4 py-10" data-testid="privacy-page">
@@ -37,26 +37,26 @@ const Privacy: React.FC = () => {
 
         <Section title="Quem somos">
           <p>
-            {name} é uma plataforma de atendimento com inteligência artificial usada por clínicas de estética e beleza
-            para responder mensagens no WhatsApp, agendar horários e enviar lembretes. Cada clínica é a controladora dos
-            dados dos seus clientes; a plataforma trata esses dados em nome da clínica, conforme a Lei Geral de Proteção
+            {name} é uma plataforma de atendimento com inteligência artificial usada por empresas de diversos segmentos
+            para responder mensagens no WhatsApp, agendar horários e enviar lembretes. Cada empresa é a controladora dos
+            dados dos seus clientes; a plataforma trata esses dados em nome da empresa, conforme a Lei Geral de Proteção
             de Dados (LGPD, Lei 13.709/2018).
           </p>
         </Section>
 
         <Section title="Quais dados tratamos">
           <ul className="list-disc pl-5">
-            <li>Clientes das clínicas: nome, número de WhatsApp, mensagens trocadas (texto, áudio e imagens), agendamentos e anotações do atendimento.</li>
-            <li>Equipe das clínicas: nome, e-mail e dados de acesso ao sistema.</li>
-            <li>Conexão com o WhatsApp: identificação da conta e do número da clínica na Meta e a chave de acesso, guardadas só no servidor e nunca exibidas na tela.</li>
+            <li>Clientes das empresas: nome, número de WhatsApp, mensagens trocadas (texto, áudio e imagens), agendamentos e anotações do atendimento.</li>
+            <li>Equipe das empresas: nome, e-mail e dados de acesso ao sistema.</li>
+            <li>Conexão com o WhatsApp: identificação da conta e do número da empresa na Meta e a chave de acesso, guardadas só no servidor e nunca exibidas na tela.</li>
           </ul>
         </Section>
 
         <Section title="Para que usamos">
           <ul className="list-disc pl-5">
-            <li>Responder as mensagens que você manda para a clínica e tirar suas dúvidas.</li>
+            <li>Responder as mensagens que você manda para a empresa e tirar suas dúvidas.</li>
             <li>Marcar, confirmar e lembrar horários.</li>
-            <li>Mandar mensagens de acompanhamento e novidades da clínica, quando você permitir.</li>
+            <li>Mandar mensagens de acompanhamento e novidades da empresa, quando você permitir.</li>
             <li>Manter a segurança, corrigir falhas e melhorar o atendimento.</li>
           </ul>
           <p>Não vendemos dados pessoais e não usamos as conversas para publicidade de terceiros.</p>
@@ -73,7 +73,7 @@ const Privacy: React.FC = () => {
 
         <Section title="Por quanto tempo guardamos">
           <p>
-            Enquanto a clínica usar a plataforma ou pelo prazo que a lei exigir. Quando a clínica encerra o uso ou você
+            Enquanto a empresa usar a plataforma ou pelo prazo que a lei exigir. Quando a empresa encerra o uso ou você
             pede a exclusão, os dados são apagados ou anonimizados.
           </p>
         </Section>
@@ -81,8 +81,8 @@ const Privacy: React.FC = () => {
         <Section title="Seus direitos">
           <p>
             Você pode pedir a qualquer momento para ver, corrigir, levar para outro serviço ou apagar seus dados, saber com
-            quem eles foram compartilhados e deixar de receber mensagens. Para não receber mais mensagens de uma clínica,
-            responda pedindo para parar ou avise a clínica, que marca o seu contato para não receber envios.
+            quem eles foram compartilhados e deixar de receber mensagens. Para não receber mais mensagens de uma empresa,
+            responda pedindo para parar ou avise a empresa, que marca o seu contato para não receber envios.
           </p>
         </Section>
 
@@ -92,13 +92,13 @@ const Privacy: React.FC = () => {
             <li>Confirmamos que o número é seu.</li>
             <li>Apagamos as conversas, os agendamentos e o cadastro ligados a esse número em até 15 dias e avisamos quando terminar.</li>
           </ol>
-          <p>Se você conectou o WhatsApp da sua clínica com o Facebook, pode também remover o acesso do app nas configurações da sua conta do Facebook, em Integrações comerciais.</p>
+          <p>Se você conectou o WhatsApp da sua empresa com o Facebook, pode também remover o acesso do app nas configurações da sua conta do Facebook, em Integrações comerciais.</p>
         </Section>
 
         <Section title="Segurança">
           <p>
             Os dados ficam em servidores protegidos, com acesso restrito por usuário e senha, conexão criptografada e
-            separação entre clínicas. Chaves de acesso não aparecem na tela.
+            separação entre empresas. Chaves de acesso não aparecem na tela.
           </p>
         </Section>
 

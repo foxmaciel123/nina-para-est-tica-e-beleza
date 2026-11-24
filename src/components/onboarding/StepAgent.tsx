@@ -18,6 +18,8 @@ interface StepAgentProps {
   onSystemPromptChange: (value: string) => void;
   onAiModelModeChange: (value: string) => void;
   onGeneratePrompt: () => void;
+  /** gerador com IA só para saúde e beleza */
+  showGenerator?: boolean;
   isGenerating?: boolean;
 }
 
@@ -55,6 +57,7 @@ export const StepAgent: React.FC<StepAgentProps> = ({
   onAiModelModeChange,
   onGeneratePrompt,
   isGenerating = false,
+  showGenerator = true,
 }) => {
   return (
     <motion.div 
@@ -111,7 +114,7 @@ export const StepAgent: React.FC<StepAgentProps> = ({
               <Bot className="w-4 h-4 text-muted-foreground" />
               Prompt do Sistema
             </Label>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            {showGenerator && <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 variant="ghost"
                 size="sm"
@@ -122,13 +125,13 @@ export const StepAgent: React.FC<StepAgentProps> = ({
                 <Wand2 className="w-3 h-3" />
                 {isGenerating ? 'Gerando...' : 'Gerar com IA'}
               </Button>
-            </motion.div>
+            </motion.div>}
           </div>
           <Textarea
             id="systemPrompt"
             value={systemPrompt}
             onChange={(e) => onSystemPromptChange(e.target.value)}
-            placeholder="Descreva como a assistente deve atender suas clientes: tom de voz acolhedor, protocolos da clínica, profissionais responsáveis, regras de agendamento, regiões atendidas..."
+            placeholder="Descreva como a assistente deve atender seus clientes: tom de voz, o que a empresa vende, quem é responsável, regras de agendamento ou de pedido, regiões atendidas..."
             className="min-h-[200px] resize-none focus:ring-accent"
           />
           <p className="text-xs text-muted-foreground">
@@ -146,7 +149,7 @@ export const StepAgent: React.FC<StepAgentProps> = ({
             Dicas para um bom prompt
           </h4>
           <ul className="text-xs text-muted-foreground space-y-1">
-            <li>• Liste os protocolos/procedimentos que sua clínica realiza</li>
+            <li>• Liste os serviços ou produtos que sua empresa oferece</li>
             <li>• Defina o tom de voz (acolhedor, sofisticado, próximo)</li>
             <li>• Avise o que a assistente NÃO pode fazer (diagnóstico, preço sem avaliação)</li>
             <li>• Inclua nome do profissional principal e horários de atendimento</li>

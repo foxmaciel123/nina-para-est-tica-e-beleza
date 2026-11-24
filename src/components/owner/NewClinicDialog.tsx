@@ -12,7 +12,7 @@ import { usePanel } from './panelScope';
 
 // Link de primeiro acesso para o dono copiar e mandar no WhatsApp da dona
 export const AccessLinkBox: React.FC<{ link: string; email: string; who?: string; resendHint?: string }> = ({
-  link, email, who = 'a dona', resendHint = 'no resumo da clínica',
+  link, email, who = 'a dona', resendHint = 'no resumo da empresa',
 }) => {
   const copy = async () => {
     try {
@@ -63,7 +63,7 @@ const NewClinicDialog: React.FC<{ open: boolean; onClose: () => void; onCreated:
     if (!open) return;
     setClinicName(''); setOwnerName(''); setEmail(''); setPhone(''); setFee(''); setDueDate('');
     setError(null); setCreated(null); setAgencyId('');
-    // O dono pode criar a clínica já dentro de uma agência
+    // O dono pode criar a empresa já dentro de uma agência
     if (panel.kind === 'owner') {
       supabase.rpc('owner_agencies_overview' as any).then(({ data }) =>
         setAgencies(((data as any[]) ?? []).filter((a) => a.status === 'active')));
@@ -73,8 +73,8 @@ const NewClinicDialog: React.FC<{ open: boolean; onClose: () => void; onCreated:
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const feeValue = Number(fee.replace(',', '.') || '0');
-    if (!clinicName.trim()) return setError('Informe o nome da clínica.');
-    if (!ownerName.trim()) return setError('Informe o nome da dona da clínica.');
+    if (!clinicName.trim()) return setError('Informe o nome da empresa.');
+    if (!ownerName.trim()) return setError('Informe o nome da dona da empresa.');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return setError('Informe um e-mail válido.');
     if (!Number.isFinite(feeValue) || feeValue < 0) return setError('Informe uma mensalidade válida (use 0 se ainda não definiu).');
     if (dueDate && feeValue <= 0) return setError('Para lançar o primeiro vencimento, informe a mensalidade.');
@@ -106,7 +106,7 @@ const NewClinicDialog: React.FC<{ open: boolean; onClose: () => void; onCreated:
           <div className="flex min-w-0 flex-col gap-4" data-testid="clinic-created">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-emerald-500" /> Clínica criada
+                <CheckCircle2 className="h-5 w-5 text-emerald-500" /> Empresa criada
               </DialogTitle>
               <DialogDescription>
                 {clinicName} já tem funil, etiquetas e a assistente de estética prontos. Falta só a dona criar a senha.
@@ -115,18 +115,18 @@ const NewClinicDialog: React.FC<{ open: boolean; onClose: () => void; onCreated:
             <AccessLinkBox link={created.access_link} email={created.email} />
             <DialogFooter>
               <Button variant="outline" onClick={onClose}>Fechar</Button>
-              <Button onClick={() => navigate(`${panel.base}/clinicas/${created.organization_id}`)}>Abrir clínica</Button>
+              <Button onClick={() => navigate(`${panel.base}/clinicas/${created.organization_id}`)}>Abrir empresa</Button>
             </DialogFooter>
           </div>
         ) : (
           <form onSubmit={submit} className="flex flex-col gap-4" noValidate>
             <DialogHeader>
-              <DialogTitle>Nova clínica</DialogTitle>
-              <DialogDescription>Crie a clínica e a conta da dona. Você recebe um link de acesso para mandar para ela.</DialogDescription>
+              <DialogTitle>Nova empresa</DialogTitle>
+              <DialogDescription>Crie a empresa e a conta da dona. Você recebe um link de acesso para mandar para ela.</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="flex flex-col gap-2 sm:col-span-2">
-                <Label htmlFor="new-clinic-name">Nome da clínica</Label>
+                <Label htmlFor="new-clinic-name">Nome da empresa</Label>
                 <Input id="new-clinic-name" placeholder="Studio Bella Pele" value={clinicName} onChange={(e) => setClinicName(e.target.value)} />
               </div>
               <div className="flex flex-col gap-2">
@@ -169,7 +169,7 @@ const NewClinicDialog: React.FC<{ open: boolean; onClose: () => void; onCreated:
               <Button type="button" variant="outline" onClick={onClose} disabled={saving}>Voltar</Button>
               <Button type="submit" disabled={saving}>
                 {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Criar clínica
+                Criar empresa
               </Button>
             </DialogFooter>
           </form>

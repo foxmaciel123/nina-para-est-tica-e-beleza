@@ -6,8 +6,11 @@ import { TeamMember, type Team as TeamType, type TeamFunction } from '../types';
 import { supabase } from '@/integrations/supabase/client';
 import TeamConfigModal from './TeamConfigModal';
 import { toast } from 'sonner';
+import { useNiche, cap, g } from '@/hooks/useNiche';
 
 const Team: React.FC = () => {
+  const niche = useNiche();
+  const t = niche.terms;
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [teams, setTeams] = useState<TeamType[]>([]);
   const [functions, setFunctions] = useState<TeamFunction[]>([]);
@@ -193,7 +196,7 @@ const Team: React.FC = () => {
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground" data-testid="team-title">Profissionais</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-foreground" data-testid="team-title">{t.equipe}</h2>
           <p className="text-sm text-slate-400 mt-1">Cadastre esteticistas, recepção e médicos do espaço.</p>
         </div>
         <div className="flex gap-3">
@@ -211,7 +214,7 @@ const Team: React.FC = () => {
       {/* Stats Cards Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5 shadow-sm">
-            <div className="text-sm font-medium text-slate-400 mb-2">Total de Profissionais</div>
+            <div className="text-sm font-medium text-slate-400 mb-2">Total na equipe</div>
             <div className="text-3xl font-bold text-foreground">{loading ? '-' : stats.total}</div>
         </div>
         <div className="bg-slate-900/50 border border-slate-800 rounded-xl p-5 shadow-sm">
@@ -243,7 +246,7 @@ const Team: React.FC = () => {
       {/* Main Table Card */}
       <div className="bg-slate-900/30 border border-slate-800 rounded-xl overflow-hidden shadow-xl">
         <div className="p-6 border-b border-slate-800">
-            <h3 className="text-lg font-bold text-foreground">Equipe da Clínica</h3>
+            <h3 className="text-lg font-bold text-foreground">Equipe da empresa</h3>
             <p className="text-sm text-slate-500 mt-1">Gerencie roles e times dos usuários</p>
         </div>
 
